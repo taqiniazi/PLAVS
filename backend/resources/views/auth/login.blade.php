@@ -1,0 +1,65 @@
+@extends('layouts.app')
+
+@section('title', 'MyBookShelf - Login')
+
+@push('styles')
+<link href="{{ asset('css/login.css') }}" rel="stylesheet">
+@endpush
+
+@section('content')
+<div class="container-fluid p-0">
+    <div class="row g-0 login-container">
+        <div class="col-lg-6 left-panel">
+            <div class="text-center">
+                <div class="logo-text">
+                    <img src="{{ asset('images/logo.png') }}" alt="" class="img-fluid">
+                </div>
+                <h4 class="fw-bold mb-1">SIGN IN</h4>
+                <p class="text-muted mb-5">Welcome! Please enter your details</p>
+            </div>
+
+            <form action="{{ route('login.post') }}" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label class="form-label fw-medium small">Official Email ID</label>
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                           placeholder="Enter email address" value="{{ old('email') }}" required>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-medium small">Password</label>
+                    <div class="input-group">
+                        <input type="password" name="password" class="form-control border-end-0 @error('password') is-invalid @enderror" 
+                               placeholder="************" required>
+                        <span class="input-group-text bg-light border-start-0 text-muted"><i class="far fa-eye-slash"></i></span>
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                        <label class="form-check-label small text-muted" for="remember">
+                            Remember me
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-custom mb-3">SIGN IN</button>
+                
+                <div class="text-center">
+                    <p class="text-muted small">Don't have an account? <a href="#" class="text-dark fw-bold text-decoration-none">Sign up</a></p>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-6 right-panel d-none d-lg-block">
+        </div>
+    </div>
+</div>
+@endsection

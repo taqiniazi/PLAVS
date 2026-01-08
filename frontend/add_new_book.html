@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBookShelf - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+</head>
+<body>
+
+    <div class="sidebar d-flex flex-column" id="sidebar">
+        <div class="logo">
+            <img src="images/logo.png" class="img-fluid">
+        </div>
+        <nav class="nav flex-column">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="view_books.html" class="nav-link active">
+                <i class="fas fa-search"></i> View Books
+            </a>
+            <a href="manage_books.html" class="nav-link">
+                <i class="fas fa-box-open"></i> Manage Books
+            </a>
+            <a href="book_shelves.html" class="nav-link">
+                <i class="fas fa-book"></i> Book Shelves
+            </a>
+            <a href="book_owners.html" class="nav-link">
+                <i class="fas fa-users"></i> Owners
+            </a>
+            <a href="events.html" class="nav-link">
+                <i class="fas fa-calendar-alt"></i> Events
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="btn btn-light d-lg-none me-2" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="search-box d-none d-md-flex">
+                <i class="fas fa-search text-muted"></i>
+                <input type="text" placeholder="Search here...">
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <i class="far fa-bell text-muted fs-5"></i>
+                <i class="fas fa-cog text-muted fs-5"></i>
+                <div class="user-profile">
+                    <img src="images/user.png" alt="Profile" class="img-fluid">
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-banner">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-1">Welcome!</h5>
+                    <h2 class="fw-bold mb-2">Taqi Raza Khan</h2>
+                    <p class="small opacity-75 mb-0">Last Login From : Monday, July 30, 2025</p>
+                </div>
+                <div class="col-md-4 position-relative d-none d-md-block" style="height:100px;">
+                    <img src="images/dashboard_title_image.png" class="banner-illustration" alt="Reading">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row mt-3">
+            <div class="col-lg-12">
+                <div class="page-header mb-3">
+                    <h4 class="page-title">Add New Book</h4>
+                </div>
+                <div class="form-container">
+            <form>
+                <div class="mb-4">
+                    <label class="form-label">Book Title</label>
+                    <input type="text" class="form-control" placeholder="Enter Book Title">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label class="form-label">Edition</label>
+                        <input type="text" class="form-control" placeholder="Enter edition">
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label class="form-label">ISBN Number</label>
+                        <input type="text" class="form-control" placeholder="Enter ISBN">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Publisher Name</label>
+                        <input type="text" class="form-control" placeholder="Enter publisher name">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label class="form-label">Publish Date</label>
+                        <input type="date" class="form-control" placeholder="Select Date">
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label class="form-label">Author</label>
+                        <select class="form-select">
+                            <option selected disabled>Select</option>
+                            <option>Eric Verzuh</option>
+                            <option>Scott Berkun</option>
+                            <option>Robert C. Martin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Shelf Location</label>
+                        <select class="form-select">
+                            <option selected disabled>Select</option>
+                            <option>Shelf A-1</option>
+                            <option>Shelf B-2</option>
+                            <option>Shelf C-3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Owner</label>
+                    <select class="form-select">
+                        <option selected disabled>Select</option>
+                        <option>Taqi Raza Khan</option>
+                        <option>Library Admin</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" placeholder="Brief description of the book"></textarea>
+                </div>
+
+                <div class="mt-4 ms-auto">
+                    <button type="submit" class="btn btn-submit">Add Book</button>
+                </div>
+
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
