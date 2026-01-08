@@ -230,7 +230,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
@@ -268,7 +267,7 @@ $(document).ready(function () {
         
         $('#transferDescription').text('Transferring the Ownership of "' + bookTitle + '" to:');
         $('#transfer_book_id').val(bookId);
-        $('#transferForm').attr('action', '{{ route('books.transfer') }}');
+        $('#transferForm').attr('action', "{{ route('books.transfer') }}");
         
         var transferModal = new bootstrap.Modal(document.getElementById('transferModal'));
         transferModal.show();

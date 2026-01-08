@@ -13,6 +13,16 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-4">
+                    <label class="form-label">Book Cover Image</label>
+                    <div class="mb-2">
+                        <img id="edit-image-preview" src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" alt="Cover" style="max-width:120px;" />
+                    </div>
+                    <input type="file" name="cover_image" class="form-control mb-2" accept="image/*">
+                    <input type="hidden" name="scanned_image_url" id="edit_scanned_image_url" value="">
+                    <small class="text-muted">Upload a new cover image to replace the existing one (optional)</small>
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label">Book Title</label>
                     <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" 
                            placeholder="Enter Book Title" value="{{ old('title', $book->title) }}" required>

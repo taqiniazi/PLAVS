@@ -57,7 +57,7 @@
             @foreach($recent_books as $book)
             <div class="col-md-3 col-6 mb-3">
                 <div class="book-card">
-                    <img src="{{ asset('images/' . $book['image']) }}" alt="{{ $book['title'] }}" class="img-fluid">
+                    <img src="{{ $book['image'] }}" alt="{{ $book['title'] }}" class="img-fluid">
                     <p class="book-title">{{ $book['title'] }}</p>
                     <span class="book-author">Author : {{ $book['author'] }}</span>
                 </div>

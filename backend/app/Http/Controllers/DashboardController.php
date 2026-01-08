@@ -22,7 +22,7 @@ class DashboardController extends Controller
             return [
                 'title' => strlen($book->title) > 18 ? substr($book->title, 0, 15) . '...' : $book->title,
                 'author' => $book->author,
-                'image' => $book->image ?? 'book1.png'
+                'image' => $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png'))
             ];
         });
 

@@ -66,6 +66,7 @@ class BookController extends Controller
 
     public function store(Request $request)
     {
+        // Basic validation first
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
@@ -77,27 +78,69 @@ class BookController extends Controller
             'owner' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'scanned_image_url' => 'nullable|string'
         ]);
+
+        // Ensure either a file upload or a scanned URL is present
+        $scannedUrl = trim($request->input('scanned_image_url', ''));
+        if (! $request->hasFile('cover_image') && empty($scannedUrl)) {
+            return redirect()->back()->withErrors(['cover_image' => 'Please upload a cover image or use the scanner.'])->withInput();
+        }
 
         $bookData = [
             'title' => $validated['title'],
             'author' => $validated['author'],
-            'isbn' => $validated['isbn'],
-            'edition' => $validated['edition'],
-            'publisher' => $validated['publisher'],
-            'publish_date' => $validated['publish_date'],
+            'isbn' => $validated['isbn'] ?? null,
+            'edition' => $validated['edition'] ?? null,
+            'publisher' => $validated['publisher'] ?? null,
+            'publish_date' => $validated['publish_date'] ?? null,
             'shelf_location' => $validated['shelf'],
             'owner' => $validated['owner'],
-            'description' => $validated['description'],
+            'description' => $validated['description'] ?? null,
             'visibility' => true,
             'status' => 'Available',
-            'image' => 'book1.png' // Default image
+            'image' => 'book1.png'
         ];
 
-        // Handle cover image upload
-        if ($request->hasFile('cover_image')) {
-            $coverImagePath = $request->file('cover_image')->store('books', 'public');
-            $bookData['cover_image'] = $coverImagePath;
+        // Scenario A: user uploaded a file
+        if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads/books', $filename, 'public');
+            $bookData['cover_image'] = $path;
+
+        // Scenario B: downloaded from scanned_image_url
+        } elseif (!empty($scannedUrl)) {
+            // Validate URL
+            if (filter_var($scannedUrl, FILTER_VALIDATE_URL)) {
+                try {
+                    $response = \Illuminate\Support\Facades\Http::get($scannedUrl);
+                    if ($response->successful()) {
+                        $contentType = $response->header('Content-Type', 'image/jpeg');
+                        if (strpos($contentType, 'image/') === 0) {
+                            $mime = substr($contentType, 6);
+                            // normalize common types
+                            if ($mime === 'jpeg' || $mime === 'pjpeg') $ext = 'jpg';
+                            elseif ($mime === 'png') $ext = 'png';
+                            elseif ($mime === 'gif') $ext = 'gif';
+                            else $ext = 'jpg';
+
+                            $filename = 'google_book_' . time() . '_' . uniqid() . '.' . $ext;
+                            $path = 'uploads/books/' . $filename;
+                            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
+                            $bookData['cover_image'] = $path;
+                        } else {
+                            \Log::warning('Scanned image URL returned non-image content type: ' . $contentType);
+                        }
+                    } else {
+                        \Log::warning('Failed to download scanned image URL, status: ' . $response->status());
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Exception while downloading scanned image URL: ' . $e->getMessage());
+                }
+            } else {
+                \Log::warning('Invalid scanned_image_url provided: ' . $scannedUrl);
+            }
         }
 
         $book = Book::create($bookData);
@@ -159,9 +202,46 @@ class BookController extends Controller
             'description' => 'nullable|string|max:1000',
             'visibility' => 'boolean',
             'status' => 'required|string|max:100',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'scanned_image_url' => 'nullable|string'
         ]);
 
+        // Update core fields
         $book->update($validated);
+
+        // Handle new cover upload or scanned image URL
+        if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads/books', $filename, 'public');
+            $book->cover_image = $path;
+            $book->save();
+        } elseif ($request->filled('scanned_image_url')) {
+            $scannedUrl = $request->input('scanned_image_url');
+            if (filter_var($scannedUrl, FILTER_VALIDATE_URL)) {
+                try {
+                    $response = \Illuminate\Support\Facades\Http::get($scannedUrl);
+                    if ($response->successful()) {
+                        $contentType = $response->header('Content-Type', 'image/jpeg');
+                        if (strpos($contentType, 'image/') === 0) {
+                            $mime = substr($contentType, 6);
+                            if ($mime === 'jpeg' || $mime === 'pjpeg') $ext = 'jpg';
+                            elseif ($mime === 'png') $ext = 'png';
+                            elseif ($mime === 'gif') $ext = 'gif';
+                            else $ext = 'jpg';
+
+                            $filename = 'google_book_' . time() . '_' . uniqid() . '.' . $ext;
+                            $path = 'uploads/books/' . $filename;
+                            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
+                            $book->cover_image = $path;
+                            $book->save();
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Exception while downloading scanned image URL on update: ' . $e->getMessage());
+                }
+            }
+        }
 
         return redirect()->route('books.manage')->with('success', 'Book updated successfully!');
     }
