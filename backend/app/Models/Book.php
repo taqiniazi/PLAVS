@@ -18,6 +18,7 @@ class Book extends Model
         'publish_date',
         'shelf_location',
         'owner',
+        'assigned_user_id',
         'description',
         'visibility',
         'status',

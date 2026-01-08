@@ -39,6 +39,12 @@ Route::middleware('auth')->group(function () {
     // Book Routes - Custom routes MUST come before resource routes
     Route::get('/books/manage', [BookController::class, 'manage'])->name('books.manage');
     Route::get('/books/{book}/details', [BookController::class, 'details'])->name('books.details');
+
+    // Book action routes
+    Route::post('/books/transfer', [BookController::class, 'transfer'])->name('books.transfer');
+    Route::post('/books/change-shelf', [BookController::class, 'changeShelf'])->name('books.change_shelf');
+    Route::post('/books/assign', [BookController::class, 'assign'])->name('books.assign');
+
     Route::resource('books', BookController::class);
 
     // Event Routes

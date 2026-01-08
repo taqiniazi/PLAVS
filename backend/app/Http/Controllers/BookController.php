@@ -166,6 +166,66 @@ class BookController extends Controller
         return redirect()->route('books.manage')->with('success', 'Book updated successfully!');
     }
 
+    public function transfer(Request $request)
+    {
+        $validated = $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'owner' => 'required|string|max:255',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        // Validate owner exists in users table
+        $ownerExists = User::where('name', $validated['owner'])->exists();
+        if (! $ownerExists) {
+            return redirect()->route('books.manage')->withErrors(['owner' => 'Selected owner does not exist.']);
+        }
+
+        $book = Book::findOrFail($validated['book_id']);
+        $oldOwner = $book->owner;
+        $book->owner = $validated['owner'];
+        $book->save();
+
+        $this->logActivity('book_transferred', "Book '{$book->title}' transferred from {$oldOwner} to {$book->owner}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+
+        return redirect()->route('books.manage')->with('success', 'Book ownership transferred successfully!');
+    }
+
+    public function changeShelf(Request $request)
+    {
+        $validated = $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'shelf_location' => 'required|string|max:50',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $book = Book::findOrFail($validated['book_id']);
+        $old = $book->shelf_location;
+        $book->shelf_location = $validated['shelf_location'];
+        $book->save();
+
+        $this->logActivity('book_shelf_changed', "Book '{$book->title}' moved from {$old} to {$book->shelf_location}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+
+        return redirect()->route('books.manage')->with('success', 'Book shelf changed successfully!');
+    }
+
+    public function assign(Request $request)
+    {
+        $validated = $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'assigned_user_id' => 'required|exists:users,id',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $book = Book::findOrFail($validated['book_id']);
+        $book->assigned_user_id = $validated['assigned_user_id'];
+        $book->status = 'Assigned';
+        $book->save();
+
+        $this->logActivity('book_assigned', "Book '{$book->title}' assigned to user ID {$validated['assigned_user_id']}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+
+        return redirect()->route('books.manage')->with('success', 'Book assigned successfully!');
+    }
+
     public function destroy(Book $book)
     {
         $book->delete();
@@ -189,7 +249,8 @@ class BookController extends Controller
         }
         
         $books = $query->get();
-        return view('books.manage', compact('books'));
+        $users = User::all();
+        return view('books.manage', compact('books', 'users'));
     }
 
     public function details(Book $book)

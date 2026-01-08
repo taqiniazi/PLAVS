@@ -119,9 +119,9 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign"><i class="fas fa-user-plus"></i></button>
-                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-title="Strategic Procurement"><i class="fas fa-exchange-alt"></i></button>
-                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-title="Strategic Procurement"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
+                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="978-0596006138" data-book-title="Strategic Procurement"><i class="fas fa-user-plus"></i></button>
+                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-id="978-0596006138" data-book-title="Strategic Procurement"><i class="fas fa-exchange-alt"></i></button>
+                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-id="978-0596006138" data-book-title="Strategic Procurement"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
                                 <button class="btn-action btn-dispose" data-bs-toggle="tooltip" onclick="confirmDispose()" title="Dispose"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
@@ -151,9 +151,9 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign"><i class="fas fa-user-plus"></i></button>
-                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-title="Making Things Happen"><i class="fas fa-exchange-alt"></i></button>
-                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-title="Making Things Happen"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
+                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="978-0596007656" data-book-title="Making Things Happen"><i class="fas fa-user-plus"></i></button>
+                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-id="978-0596007656" data-book-title="Making Things Happen"><i class="fas fa-exchange-alt"></i></button>
+                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-id="978-0596007656" data-book-title="Making Things Happen"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
                                 <button class="btn-action btn-dispose" data-bs-toggle="tooltip" onclick="confirmDispose()" title="Dispose"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
@@ -183,9 +183,9 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign"><i class="fas fa-user-plus"></i></button>
-                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-title="Clean Code"><i class="fas fa-exchange-alt"></i></button>
-                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-title="Clean Code"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
+                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="978-0132350884" data-book-title="Clean Code"><i class="fas fa-user-plus"></i></button>
+                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#transferModal" title="Transfer" data-book-id="978-0132350884" data-book-title="Clean Code"><i class="fas fa-exchange-alt"></i></button>
+                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#shelvesModal" title="Change Shelf" data-book-id="978-0132350884" data-book-title="Clean Code"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
                                 <button class="btn-action btn-dispose" data-bs-toggle="tooltip" onclick="confirmDispose()" title="Dispose"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
@@ -206,10 +206,11 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">Select a new owner for this book. The current owner will lose access rights.</p>
-                    <form>
+                    <form id="transferForm">
+                        <input type="hidden" name="book_id" id="transfer_book_id">
                         <div class="mb-3">
                             <label class="form-label fw-medium">New Owner</label>
-                            <select class="form-select">
+                            <select name="owner" class="form-select">
                                 <option selected disabled>Select User...</option>
                                 <option>Sarah Ahmed</option>
                                 <option>Ali Khan</option>
@@ -218,7 +219,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Reason (Optional)</label>
-                            <textarea class="form-control" rows="2" placeholder="e.g. Donation, Sale"></textarea>
+                            <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Donation, Sale"></textarea>
                         </div>
                     </form>
                 </div>
@@ -238,11 +239,12 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3"></p>
-                    <form>
+                    <form id="shelvesForm">
+                        <input type="hidden" name="book_id" id="shelves_book_id">
                         <div class="mb-3">
                             <label class="form-label fw-medium">Transfer to Shelve</label>
-                            <select class="form-select">
-                                <option selected disabled>Select User...</option>
+                            <select name="shelf_location" class="form-select">
+                                <option selected disabled>Select Shelf...</option>
                                 <option>Shelf 1</option>
                                 <option>Shelf 2</option>
                                 <option>Shelf 3</option>
@@ -250,7 +252,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Reason (Optional)</label>
-                            <textarea class="form-control" rows="2" placeholder="e.g. Donation, Sale"></textarea>
+                            <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Donation, Sale"></textarea>
                         </div>
                     </form>
                 </div>
