@@ -3,6 +3,10 @@
 @section('title', 'MyBookShelf - View Books')
 
 @section('content')
+@php
+    $user = auth()->user();
+    $canAddBooks = $user && ($user->hasAdminRole() || $user->isTeacher());
+@endphp
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     {{ session('success') }}
@@ -28,7 +32,9 @@
                         </a>
                     @endif
                 </form>
+                @if($canAddBooks)
                 <a href="{{ route('books.create') }}" class="btn btn-gold">Add New Book</a>
+                @endif
             </div>
         </div>
         
@@ -66,7 +72,7 @@
                     </h5>
                     @if(request('search'))
                         <a href="{{ route('books.index') }}" class="btn btn-primary mt-2">View All Books</a>
-                    @else
+                    @elseif($canAddBooks)
                         <a href="{{ route('books.create') }}" class="btn btn-primary mt-2">Add Your First Book</a>
                     @endif
                 </div>

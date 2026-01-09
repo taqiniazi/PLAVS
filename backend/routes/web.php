@@ -9,6 +9,8 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ShelfController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
 
 /*
 |--------------------------------------------------------------------------
