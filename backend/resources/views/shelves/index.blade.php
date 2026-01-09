@@ -1,0 +1,190 @@
+@extends('layouts.dashboard')
+
+@section('title', 'MyBookShelf - Manage Shelves')
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/accordion/3.0.7/accordion.min.css">
+@endpush
+
+@section('content')
+@php
+    $user = auth()->user();
+    $isAdmin = $user->hasAdminRole();
+@endphp
+
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+<div class="row mt-3">
+    <div class="col-lg-12">
+        <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+            <h4 class="page-title">Manage Shelves</h4>
+            @if($isAdmin)
+                <a href="{{ route('shelves.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Shelf
+                </a>
+            @endif
+        </div>
+
+        <div class="table-card">
+            <div class="accordion" id="shelvesAccordion">
+                @forelse($shelvesByLibrary as $libraryName => $shelves)
+                    <div class="accordion-item mb-3">
+                        <h2 class="accordion-header" id="heading{{ Str::slug($libraryName) }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ Str::slug($libraryName) }}" aria-expanded="false" 
+                                    aria-controls="collapse{{ Str::slug($libraryName) }}">
+                                <i class="fas fa-building me-2"></i>
+                                <strong>{{ $libraryName }}</strong>
+                                <span class="badge bg-secondary ms-2">{{ $shelves->count() }} Shelves</span>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ Str::slug($libraryName) }}" class="accordion-collapse collapse" 
+                             aria-labelledby="heading{{ Str::slug($libraryName) }}" data-bs-parent="#shelvesAccordion">
+                            <div class="accordion-body p-0">
+                                @php
+                                    $shelvesByRoom = $shelves->groupBy(fn($shelf) => $shelf->room->name);
+                                @endphp
+                                
+                                <div class="accordion nested-accordion" id="roomAccordion{{ Str::slug($libraryName) }}">
+                                    @foreach($shelvesByRoom as $roomName => $roomShelves)
+                                        <div class="accordion-item border-0 border-bottom">
+                                            <h3 class="accordion-header" id="roomHeading{{ Str::slug($libraryName . $roomName) }}">
+                                                <button class="accordion-button collapsed py-3" type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        data-bs-target="#roomCollapse{{ Str::slug($libraryName . $roomName) }}" 
+                                                        aria-expanded="false" 
+                                                        aria-controls="roomCollapse{{ Str::slug($libraryName . $roomName) }}">
+                                                    <i class="fas fa-door-open me-2"></i>
+                                                    {{ $roomName }}
+                                                    <span class="badge bg-info ms-2">{{ $roomShelves->count() }}</span>
+                                                </button>
+                                            </h3>
+                                            <div id="roomCollapse{{ Str::slug($libraryName . $roomName) }}" 
+                                                 class="accordion-collapse collapse" 
+                                                 aria-labelledby="roomHeading{{ Str::slug($libraryName . $roomName) }}"
+                                                 data-bs-parent="#roomAccordion{{ Str::slug($libraryName) }}">
+                                                <div class="accordion-body">
+                                                    <div class="row">
+                                                        @foreach($roomShelves as $shelf)
+                                                            <div class="col-md-4 mb-3">
+                                                                <div class="card h-100 shelf-card">
+                                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                                        <h6 class="mb-0">
+                                                                            <i class="fas fa-bookmark me-1"></i>
+                                                                            {{ $shelf->name }}
+                                                                        </h6>
+                                                                        @if($isAdmin)
+                                                                            <div>
+                                                                                <a href="{{ route('shelves.edit', $shelf) }}" 
+                                                                                   class="btn btn-sm btn-outline-primary" 
+                                                                                   data-bs-toggle="tooltip" title="Edit">
+                                                                                    <i class="fas fa-edit"></i>
+                                                                                </a>
+                                                                                <form method="POST" 
+                                                                                      action="{{ route('shelves.destroy', $shelf) }}" 
+                                                                                      style="display: inline;"
+                                                                                      onsubmit="return confirm('Are you sure you want to delete this shelf?')">
+                                                                                    @csrf
+                                                                                    @method('DELETE')
+                                                                                    <button type="submit" 
+                                                                                            class="btn btn-sm btn-outline-danger" 
+                                                                                            data-bs-toggle="tooltip" title="Delete">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </button>
+                                                                                </form>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        @if($shelf->code)
+                                                                            <p class="text-muted small mb-2">
+                                                                                <i class="fas fa-qrcode me-1"></i>
+                                                                                Code: {{ $shelf->code }}
+                                                                            </p>
+                                                                        @endif
+                                                                        @if($shelf->description)
+                                                                            <p class="small mb-3">{{ $shelf->description }}</p>
+                                                                        @endif
+                                                                        
+                                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                            <span class="small text-muted">Books:</span>
+                                                                            <span class="badge bg-primary">{{ $shelf->total_books }}</span>
+                                                                        </div>
+                                                                        
+                                                                        @if($shelf->books->count() > 0)
+                                                                            <div class="book-preview mt-2">
+                                                                                <p class="small text-muted mb-1">Recent Books:</p>
+                                                                                <ul class="list-unstyled small">
+                                                                                    @foreach($shelf->books->take(3) as $book)
+                                                                                        <li>
+                                                                                            <i class="fas fa-book text-secondary me-1"></i>
+                                                                                            {{ Str::limit($book->title, 30) }}
+                                                                                        </li>
+                                                                                    @endforeach
+                                                                                </ul>
+                                                                                @if($shelf->books->count() > 3)
+                                                                                    <p class="small text-muted mb-0">
+                                                                                        +{{ $shelf->books->count() - 3 }} more books
+                                                                                    </p>
+                                                                                @endif
+                                                                            </div>
+                                                                        @else
+                                                                            <p class="small text-muted text-center py-3 mb-0">
+                                                                                <i class="fas fa-book-open me-1"></i>
+                                                                                No books on this shelf
+                                                                            </p>
+                                                                        @endif
+                                                                    </div>
+                                                                    <div class="card-footer bg-transparent">
+                                                                        <a href="{{ route('shelves.show', $shelf) }}" 
+                                                                           class="btn btn-sm btn-outline-primary w-100">
+                                                                            <i class="fas fa-eye me-1"></i> View All Books
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-5">
+                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No shelves found.</p>
+                        @if($isAdmin)
+                            <a href="{{ route('shelves.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Your First Shelf
+                            </a>
+                        @endif
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/accordion/3.0.7/accordion.min.js"></script>
+<script>
+$(document).ready(function () {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+@endpush

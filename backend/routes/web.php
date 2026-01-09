@@ -7,6 +7,8 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\ShelfController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,11 +49,29 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('books', BookController::class);
 
+    // Library Routes
+    Route::resource('libraries', LibraryController::class);
+    Route::get('/libraries/{library}/invite', [LibraryController::class, 'generateInvite'])->name('libraries.generate_invite');
+    Route::get('/join/{token}', [LibraryController::class, 'join'])->name('libraries.join');
+
+    // Room Routes (nested under libraries)
+    Route::resource('libraries.rooms', RoomController::class);
+
+    // Shelf Routes
+    Route::resource('shelves', ShelfController::class);
+
     // Event Routes
     Route::resource('events', EventController::class)->only(['index', 'store', 'destroy']);
     
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
+
+    // Teacher Routes
+    Route::get('/teachers/students', [TeacherController::class, 'students'])->name('teachers.students');
+    Route::get('/teachers/assignments', [TeacherController::class, 'assignments'])->name('teachers.assignments');
+
+    // Student Routes
+    Route::get('/student/assigned-books', [StudentController::class, 'assignedBooks'])->name('student.assigned-books');
 });
 
 // API Routes

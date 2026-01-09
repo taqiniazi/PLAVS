@@ -7,6 +7,12 @@
 @endpush
 
 @section('content')
+@php
+    $user = auth()->user();
+    $isAdmin = $user->hasAdminRole();
+    $isTeacher = $user->isTeacher();
+    $isStudent = $user->isStudent();
+@endphp
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     {{ session('success') }}
@@ -18,6 +24,7 @@
     <div class="col-lg-12">
         <div class="page-header mb-4">
             <h4 class="page-title">Manage Books</h4>
+            @if($isAdmin)
             <form method="GET" action="{{ route('books.manage') }}" class="d-flex align-items-center gap-2">
                 <div class="custom-search">
                     <input type="text" name="search" placeholder="Search books..." 
@@ -30,6 +37,7 @@
                     </a>
                 @endif
             </form>
+            @endif
         </div>
         
         @if(request('search'))
@@ -44,12 +52,16 @@
                 <table id="booksTable" class="table table-hover align-middle" style="width:100%">
                     <thead>
                         <tr>
+                            @if($isAdmin)
                             <th width="40" data-orderable="false"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+                            @endif
                             <th width="30%">Book Details</th>
-                            <th>Shelf</th>
+                            <th>Shelf Location</th>
                             <th>Visibility</th>
                             <th>Owner / Status</th>
+                            @if($isAdmin || $isTeacher || $isStudent)
                             <th class="text-end" data-orderable="false">Actions</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -66,14 +78,30 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="badge-shelf">{{ $book->shelf_location }}</span></td>
                             <td>
+                                @if($book->shelf)
+                                    <span class="badge-shelf">
+                                        {{ $book->shelf->room->library->name }} > 
+                                        {{ $book->shelf->room->name }} > 
+                                        {{ $book->shelf->name }}
+                                    </span>
+                                @else
+                                    <span class="badge-shelf">Not Assigned</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($isAdmin)
                                 <div class="form-check form-switch">
                                     <input class="form-check-input visibility-toggle" type="checkbox" 
                                            {{ $book->visibility ? 'checked' : '' }} 
                                            data-book-id="{{ $book->id }}">
                                     <label class="form-check-label visibility-label">{{ $book->visibility ? 'Public' : 'Private' }}</label>
                                 </div>
+                                @else
+                                    <span class="badge {{ $book->visibility ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $book->visibility ? 'Public' : 'Private' }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex flex-column">
@@ -82,28 +110,43 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <a href="{{ route('books.edit', $book) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
-                                    <i class="fas fa-user-plus"></i>
-                                </button>
-                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" title="Transfer" 
-                                        data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
-                                    <i class="fas fa-exchange-alt"></i>
-                                </button>
-                                <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" title="Change Shelf" 
-                                        data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
-                                    <i class="fa-solid fa-arrow-down-up-across-line"></i>
-                                </button>
-                                <form method="POST" action="{{ route('books.destroy', $book) }}" style="display: inline;" 
-                                      onsubmit="return confirm('Are you sure you want to DISPOSE of this book? This action cannot be undone.')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action btn-dispose" data-bs-toggle="tooltip" title="Dispose">
-                                        <i class="fas fa-trash-alt"></i>
+                                @if($isAdmin)
+                                    <a href="{{ route('books.edit', $book) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                        <i class="fas fa-user-plus"></i>
                                     </button>
-                                </form>
+                                    <button class="btn-action btn-transfer" data-bs-toggle="tooltip" title="Transfer" 
+                                            data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                    <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" title="Change Shelf" 
+                                            data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                        <i class="fa-solid fa-arrow-down-up-across-line"></i>
+                                    </button>
+                                    <form method="POST" action="{{ route('books.destroy', $book) }}" style="display: inline;" 
+                                          onsubmit="return confirm('Are you sure you want to DISPOSE of this book? This action cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action btn-dispose" data-bs-toggle="tooltip" title="Dispose">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                @elseif($isTeacher)
+                                    {{-- Teachers can view and assign to students --}}
+                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign to Student" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                        <i class="fas fa-user-plus"></i>
+                                    </button>
+                                    <a href="{{ route('books.show', $book) }}" class="btn-action" data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                @elseif($isStudent)
+                                    {{-- Students can only view book details --}}
+                                    <a href="{{ route('books.show', $book) }}" class="btn-action" data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
