@@ -138,14 +138,9 @@
                                     <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign to Student" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
                                         <i class="fas fa-user-plus"></i>
                                     </button>
-                                    <a href="{{ route('books.show', $book) }}" class="btn-action" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
                                 @elseif($isStudent)
-                                    {{-- Students can only view book details --}}
-                                    <a href="{{ route('books.show', $book) }}" class="btn-action" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+                                    {{-- Students can only view book details via clicking --}}
+                                    {{-- No action buttons needed --}}
                                 @endif
                             </td>
                         </tr>
