@@ -246,13 +246,11 @@ $(document).ready(function () {
         ]
     });
 
-    // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
-    // Select all checkbox functionality
     document.getElementById('selectAll').addEventListener('change', function() {
         var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
         for(var i = 0; i < checkboxes.length; i++) {
@@ -260,7 +258,6 @@ $(document).ready(function () {
         }
     });
 
-    // Transfer modal functionality
     $(document).on('click', '.btn-transfer', function () {
         var bookId = $(this).data("book-id");
         var bookTitle = $(this).data("book-title");
@@ -273,7 +270,6 @@ $(document).ready(function () {
         transferModal.show();
     });
 
-    // Shelves modal functionality
     $(document).on('click', '.btn-shelves', function () {
         var bookId = $(this).data("book-id");
         var bookTitle = $(this).data("book-title");
@@ -286,7 +282,6 @@ $(document).ready(function () {
         shelvesModal.show();
     });
 
-    // Assign modal functionality
     $(document).on('click', '.btn-assign', function () {
         var bookId = $(this).data("book-id");
         var bookTitle = $(this).data("book-title");
@@ -299,7 +294,6 @@ $(document).ready(function () {
         assignModal.show();
     });
 
-    // Visibility toggle functionality
     $(document).on('change', '.visibility-toggle', function() {
         var bookId = $(this).data('book-id');
         var isVisible = $(this).is(':checked');
