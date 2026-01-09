@@ -5,10 +5,6 @@
 @section('content')
 @php
     $user = auth()->user();
-    $isSuperAdmin = $user->isSuperAdmin();
-    $isAdmin = $user->isAdmin();
-    $isLibrarian = $user->isLibrarian();
-    $isOwner = $user->isOwner();
     $isTeacher = $user->isTeacher();
     $isStudent = $user->isStudent();
     $hasAdminRole = $user->hasAdminRole();

@@ -13,7 +13,14 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::query();
+        $user = Auth::user();
+        
+        // For non-admin users (students), only show their assigned books
+        if ($user && !$user->canViewAllBooks()) {
+            $query = $user->booksThroughAssignment();
+        } else {
+            $query = Book::query();
+        }
         
         // Check if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
@@ -26,8 +33,12 @@ class BookController extends Controller
             });
         }
         
-        // Paginate results (15 per page) and append search query to pagination links
-        $books = $query->paginate(15)->appends($request->query());
+        // For admins, paginate; for students, get all assigned books
+        if ($user && !$user->canViewAllBooks()) {
+            $books = $query->orderByPivot('assigned_at', 'desc')->get();
+        } else {
+            $books = $query->paginate(15)->appends($request->query());
+        }
         
         return view('books.index', compact('books'));
     }

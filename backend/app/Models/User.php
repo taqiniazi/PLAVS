@@ -87,7 +87,7 @@ class User extends Authenticatable
     public function booksThroughAssignment()
     {
         return $this->belongsToMany(Book::class, 'book_user')
-            ->withPivot(['assignment_type', 'notes', 'assigned_at'])
+            ->withPivot(['assignment_type', 'notes', 'assigned_at', 'return_date', 'is_returned', 'return_notes'])
             ->withTimestamps();
     }
 
@@ -97,6 +97,15 @@ class User extends Authenticatable
     public function accessibleBooks()
     {
         return $this->assignedBooks()->union($this->booksThroughAssignment());
+    }
+
+    /**
+     * Get non-returned books assigned through pivot
+     */
+    public function activeAssignedBooks()
+    {
+        return $this->booksThroughAssignment()
+            ->wherePivot('is_returned', false);
     }
 
     /**

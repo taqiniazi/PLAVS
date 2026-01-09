@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/transfer', [BookController::class, 'transfer'])->name('books.transfer');
     Route::post('/books/change-shelf', [BookController::class, 'changeShelf'])->name('books.change_shelf');
     Route::post('/books/assign', [BookController::class, 'assign'])->name('books.assign');
+    Route::post('/books/return', [BookController::class, 'returnBook'])->name('books.return');
 
     Route::resource('books', BookController::class);
 
@@ -74,6 +75,7 @@ Route::middleware('auth')->group(function () {
 
     // Student Routes
     Route::get('/student/assigned-books', [StudentController::class, 'assignedBooks'])->name('student.assigned-books');
+    Route::post('/student/return-book/{book}', [StudentController::class, 'returnBook'])->name('student.return-book');
 });
 
 // API Routes

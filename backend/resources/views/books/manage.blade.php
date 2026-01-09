@@ -3,7 +3,7 @@
 @section('title', 'MyBookShelf - Manage Books')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">
 @endpush
 
 @section('content')
@@ -67,7 +67,7 @@
                     <tbody>
                         @foreach($books as $book)
                         <tr>
-                            <td><input type="checkbox" class="form-check-input"></td>
+                            <td><input type="checkbox" class="form-check-input book-checkbox"></td>
                             <td>
                                 <div class="book-info">
                                     <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" 
@@ -114,17 +114,24 @@
                                     <a href="{{ route('books.edit', $book) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" 
+                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fas fa-user-plus"></i>
                                     </button>
                                     <button class="btn-action btn-transfer" data-bs-toggle="tooltip" title="Transfer" 
-                                            data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fas fa-exchange-alt"></i>
                                     </button>
                                     <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" title="Change Shelf" 
-                                            data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fa-solid fa-arrow-down-up-across-line"></i>
                                     </button>
+                                    @if(str_contains($book->status, 'Borrowed'))
+                                    <button class="btn-action btn-return text-success" data-bs-toggle="tooltip" title="Return Book" 
+                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->user_id }}">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    @endif
                                     <form method="POST" action="{{ route('books.destroy', $book) }}" style="display: inline;" 
                                           onsubmit="return confirm('Are you sure you want to DISPOSE of this book? This action cannot be undone.')">
                                         @csrf
@@ -135,7 +142,8 @@
                                     </form>
                                 @elseif($isTeacher)
                                     {{-- Teachers can view and assign to students --}}
-                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign to Student" data-book-id="{{ $book->id }}" data-book-title="{{ $book->title }}">
+                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign to Student" 
+                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fas fa-user-plus"></i>
                                     </button>
                                 @elseif($isStudent)
@@ -152,7 +160,7 @@
     </div>
 </div>
 
-<!-- Transfer Modal -->
+<!-- Single Transfer Modal (Outside Loop) -->
 <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -160,19 +168,20 @@
                 <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Transfer Ownership</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="transferForm" method="POST" action="{{ route('books.transfer') }}">
+            <form id="transferForm" method="POST" action="">
                 @csrf
                 <input type="hidden" name="book_id" id="transfer_book_id">
                 <div class="modal-body">
-                    <p class="text-muted small mb-3" id="transferDescription">Select a new owner for this book. The current owner will lose access rights.</p>
+                    <p class="text-muted small mb-3" id="transferDescription">Select a new owner for this book.</p>
                     <div class="mb-3">
                         <label class="form-label fw-medium">New Owner</label>
                         <select name="owner" class="form-select" required>
                             <option selected disabled>Select User...</option>
-                            <option value="Sarah Ahmed">Sarah Ahmed</option>
-                            <option value="Ali Khan">Ali Khan</option>
-                            <option value="Library Admin">Library Admin</option>
-                            <option value="Taqi Raza Khan">Taqi Raza Khan</option>
+                            @foreach($users as $userOption)
+                                @if($userOption->id !== $user->id)
+                                <option value="{{ $userOption->name }}">{{ $userOption->name }}</option>
+                                @endif
+                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
@@ -189,7 +198,7 @@
     </div>
 </div>
 
-<!-- Shelves Modal -->
+<!-- Single Shelves Modal (Outside Loop) -->
 <div class="modal fade" id="shelvesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -197,11 +206,11 @@
                 <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Change Shelves</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="shelvesForm" method="POST" action="{{ route('books.change_shelf') }}">
+            <form id="shelvesForm" method="POST" action="">
                 @csrf
                 <input type="hidden" name="book_id" id="shelves_book_id">
                 <div class="modal-body">
-                    <p class="text-muted small mb-3" id="shelvesDescription"></p>
+                    <p class="text-muted small mb-3" id="shelvesDescription">Select a new shelf location for this book.</p>
                     <div class="mb-3">
                         <label class="form-label fw-medium">Transfer to Shelf</label>
                         <select name="shelf_location" class="form-select" required>
@@ -223,14 +232,14 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-modal-save">Confirm Transfer</button>
+                    <button type="submit" class="btn btn-modal-save">Confirm Change</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Assign Modal -->
+<!-- Single Assign Modal (Outside Loop) -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -238,17 +247,17 @@
                 <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i> Assign Book</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="assignForm" method="POST" action="{{ route('books.assign') }}">
+            <form id="assignForm" method="POST" action="">
                 @csrf
                 <input type="hidden" name="book_id" id="assign_book_id">
                 <div class="modal-body">
-                    <p class="text-muted small mb-3" id="assignDescription">Assign this book to a user</p>
+                    <p class="text-muted small mb-3" id="assignDescription">Assign this book to a user.</p>
                     <div class="mb-3">
                         <label class="form-label fw-medium">Assign To</label>
                         <select name="assigned_user_id" class="form-select" required>
                             <option selected disabled>Select User...</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @foreach($users as $userOption)
+                                <option value="{{ $userOption->id }}">{{ $userOption->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -265,14 +274,52 @@
         </div>
     </div>
 </div>
+
+<!-- Single Return Modal (Outside Loop) -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-undo me-2"></i> Return Book</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="returnForm" method="POST" action="">
+                @csrf
+                <input type="hidden" name="book_id" id="return_book_id">
+                <input type="hidden" name="user_id" id="return_user_id">
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="returnDescription">Confirm the return of this book.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Condition (Optional)</label>
+                        <select name="condition" class="form-select">
+                            <option value="">Select Condition...</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Notes (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Any damage or remarks"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-modal-save">Confirm Return</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('js/dataTables.bootstrap.min.js') }}"></script>
 
 <script>
 $(document).ready(function () {
+    // Initialize DataTables
     var table = $('#booksTable').DataTable({
         "language": {
             "search": "Search Inventory:",
@@ -280,58 +327,90 @@ $(document).ready(function () {
             "info": "Showing _START_ to _END_ of _TOTAL_ books"
         },
         "columnDefs": [
-            { "orderable": false, "targets": [0, 5] } 
+            { "orderable": false, "targets": [0, 5] }
         ]
     });
 
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
+    // Handle select all checkbox
     document.getElementById('selectAll').addEventListener('change', function() {
-        var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+        var checkboxes = document.querySelectorAll('tbody input[type="checkbox"].book-checkbox');
         for(var i = 0; i < checkboxes.length; i++) {
             checkboxes[i].checked = this.checked;
         }
     });
 
+    // Move modals to body to fix z-index issues
+    $('.modal').appendTo('body');
+
+    // ========== TRANSFER MODAL LOGIC ==========
     $(document).on('click', '.btn-transfer', function () {
-        var bookId = $(this).data("book-id");
-        var bookTitle = $(this).data("book-title");
+        var bookId = $(this).data('id');
+        var bookTitle = $(this).data('title');
         
-        $('#transferDescription').text('Transferring the Ownership of "' + bookTitle + '" to:');
+        // Update modal content
+        $('#transferDescription').text('Transferring ownership of "' + bookTitle + '" to:');
         $('#transfer_book_id').val(bookId);
         $('#transferForm').attr('action', "{{ route('books.transfer') }}");
         
+        // Show modal
         var transferModal = new bootstrap.Modal(document.getElementById('transferModal'));
         transferModal.show();
     });
 
+    // ========== SHELVES MODAL LOGIC ==========
     $(document).on('click', '.btn-shelves', function () {
-        var bookId = $(this).data("book-id");
-        var bookTitle = $(this).data("book-title");
+        var bookId = $(this).data('id');
+        var bookTitle = $(this).data('title');
         
-        $('#shelvesDescription').text('Change the shelf of "' + bookTitle + '" to:');
+        // Update modal content
+        $('#shelvesDescription').text('Change shelf location of "' + bookTitle + '" to:');
         $('#shelves_book_id').val(bookId);
-        $('#shelvesForm').attr('action', '{{ route('books.change_shelf') }}');
+        $('#shelvesForm').attr('action', "{{ route('books.change_shelf') }}");
         
+        // Show modal
         var shelvesModal = new bootstrap.Modal(document.getElementById('shelvesModal'));
         shelvesModal.show();
     });
 
+    // ========== ASSIGN MODAL LOGIC ==========
     $(document).on('click', '.btn-assign', function () {
-        var bookId = $(this).data("book-id");
-        var bookTitle = $(this).data("book-title");
-
+        var bookId = $(this).data('id');
+        var bookTitle = $(this).data('title');
+        
+        // Update modal content
         $('#assignDescription').text('Assign "' + bookTitle + '" to:');
         $('#assign_book_id').val(bookId);
-        $('#assignForm').attr('action', '{{ route('books.assign') }}');
-
+        $('#assignForm').attr('action', "{{ route('books.assign') }}");
+        
+        // Show modal
         var assignModal = new bootstrap.Modal(document.getElementById('assignModal'));
         assignModal.show();
     });
 
+    // ========== RETURN MODAL LOGIC ==========
+    $(document).on('click', '.btn-return', function () {
+        var bookId = $(this).data('id');
+        var bookTitle = $(this).data('title');
+        var userId = $(this).data('user-id');
+        
+        // Update modal content
+        $('#returnDescription').text('Confirm return of "' + bookTitle + '" by the borrower.');
+        $('#return_book_id').val(bookId);
+        $('#return_user_id').val(userId);
+        $('#returnForm').attr('action', "{{ route('books.return') }}");
+        
+        // Show modal
+        var returnModal = new bootstrap.Modal(document.getElementById('returnModal'));
+        returnModal.show();
+    });
+
+    // ========== VISIBILITY TOGGLE LOGIC ==========
     $(document).on('change', '.visibility-toggle', function() {
         var bookId = $(this).data('book-id');
         var isVisible = $(this).is(':checked');
@@ -349,7 +428,6 @@ $(document).ready(function () {
                 visibility: isVisible ? 1 : 0
             },
             success: function(response) {
-                // Show success message or handle response
                 console.log('Visibility updated successfully');
             },
             error: function(xhr) {
@@ -357,7 +435,7 @@ $(document).ready(function () {
                 $(this).prop('checked', !isVisible);
                 label.text(!isVisible ? 'Public' : 'Private');
                 alert('Error updating visibility. Please try again.');
-            }
+            }.bind(this)
         });
     });
 });
