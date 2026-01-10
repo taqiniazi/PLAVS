@@ -97,6 +97,22 @@
                                 @enderror
                             </div>
                             
+                            <!-- Owner Username -->
+                            <div class="col-md-6 mb-3">
+                                <label for="owner_username" class="form-label required-field">Owner Username</label>
+                                <input type="text"
+                                       class="form-control @error('owner_username') is-invalid @enderror"
+                                       id="owner_username"
+                                       name="owner_username"
+                                       value="{{ old('owner_username') }}"
+                                       placeholder="Enter unique username"
+                                       required>
+                                <div class="form-text">This will be used for library login</div>
+                                @error('owner_username')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
                             <!-- Owner Email -->
                             <div class="col-md-6 mb-3">
                                 <label for="owner_email" class="form-label required-field">Owner Email</label>
@@ -124,6 +140,76 @@
                                        required>
                                 <div class="form-text">Please include country code (e.g., +1234567890)</div>
                                 @error('owner_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Owner Password -->
+                            <div class="col-md-6 mb-3">
+                                <label for="owner_password" class="form-label required-field">Owner Password</label>
+                                <input type="password"
+                                       class="form-control @error('owner_password') is-invalid @enderror"
+                                       id="owner_password"
+                                       name="owner_password"
+                                       placeholder="Create a secure password"
+                                       required>
+                                <div class="form-text">Password must be at least 8 characters</div>
+                                @error('owner_password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Password Confirmation -->
+                            <div class="col-md-6 mb-3">
+                                <label for="owner_password_confirmation" class="form-label required-field">Confirm Password</label>
+                                <input type="password"
+                                       class="form-control @error('owner_password_confirmation') is-invalid @enderror"
+                                       id="owner_password_confirmation"
+                                       name="owner_password_confirmation"
+                                       placeholder="Confirm your password"
+                                       required>
+                                @error('owner_password_confirmation')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Contact Information Section -->
+                            <div class="col-12 mt-4">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-address-book me-2"></i>
+                                    Library Contact Information
+                                </h6>
+                                <p class="text-muted small mb-4">
+                                    Public contact information for the library (different from owner's personal details)
+                                </p>
+                            </div>
+                            
+                            <!-- Contact Email -->
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Contact Email</label>
+                                <input type="email"
+                                       class="form-control @error('contact_email') is-invalid @enderror"
+                                       id="contact_email"
+                                       name="contact_email"
+                                       value="{{ old('contact_email') }}"
+                                       placeholder="library@example.com">
+                                <div class="form-text">Public email for library inquiries</div>
+                                @error('contact_email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Contact Phone -->
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone</label>
+                                <input type="tel"
+                                       class="form-control @error('contact_phone') is-invalid @enderror"
+                                       id="contact_phone"
+                                       name="contact_phone"
+                                       value="{{ old('contact_phone') }}"
+                                       placeholder="+1234567890">
+                                <div class="form-text">Public phone number for library</div>
+                                @error('contact_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

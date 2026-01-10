@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Library;
 use App\Models\Room;
 use App\Models\Shelf;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class LibraryController extends Controller
@@ -47,22 +50,60 @@ class LibraryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            // Library validation
             'name' => 'required|string|max:255',
             'type' => 'required|in:public,private',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            
+            // Owner validation
+            'owner_name' => 'required|string|max:255',
+            'owner_username' => 'required|string|max:255|unique:users,username',
+            'owner_email' => 'required|email|unique:users,email',
+            'owner_phone' => 'required|string|max:20',
+            'owner_password' => 'required|string|min:8|confirmed',
+            
+            // Contact validation
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:20',
         ]);
 
-        $library = Library::create([
-            'name' => $request->name,
-            'type' => $request->type,
-            'location' => $request->location,
-            'description' => $request->description,
-            'owner_id' => Auth::id(),
-        ]);
+        DB::transaction(function () use ($request) {
+            // 1. Check/Create User
+            $user = User::firstOrCreate(
+                ['email' => $request->owner_email],
+                [
+                    'name' => $request->owner_name,
+                    'username' => $request->owner_username,
+                    'email' => $request->owner_email,
+                    'phone' => $request->owner_phone,
+                    'password' => Hash::make($request->owner_password),
+                    'role' => 'owner',
+                ]
+            );
+
+            // 2. Create Library
+            $library = Library::create([
+                'name' => $request->name,
+                'type' => $request->type,
+                'location' => $request->location,
+                'description' => $request->description,
+                'owner_id' => $user->id,
+                'contact_email' => $request->contact_email,
+                'contact_phone' => $request->contact_phone,
+            ]);
+
+            // 3. Handle image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('library_images', 'public');
+                $library->image = $imagePath;
+                $library->save();
+            }
+        });
 
         return redirect()->route('libraries.index')
-            ->with('success', 'Library created successfully.');
+            ->with('success', 'Library and Owner account created successfully!');
     }
 
     /**

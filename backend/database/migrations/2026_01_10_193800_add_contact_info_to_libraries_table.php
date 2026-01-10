@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['superadmin', 'admin', 'librarian', 'owner', 'student', 'teacher'])->default('student');
-            $table->string('avatar')->nullable();
+        Schema::table('libraries', function (Blueprint $table) {
+            $table->string('contact_email')->nullable()->after('description');
+            $table->string('contact_phone')->nullable()->after('contact_email');
         });
     }
 
@@ -22,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role', 'avatar']);
+        Schema::table('libraries', function (Blueprint $table) {
+            $table->dropColumn(['contact_email', 'contact_phone']);
         });
     }
 };

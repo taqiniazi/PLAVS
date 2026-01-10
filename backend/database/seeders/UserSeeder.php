@@ -15,6 +15,7 @@ class UserSeeder extends Seeder
         // Superadmin
         \App\Models\User::create([
             'name' => 'Super Admin',
+            'username' => 'superadmin',
             'email' => 'superadmin@admin.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'superadmin',
@@ -24,6 +25,7 @@ class UserSeeder extends Seeder
         // Admin
         \App\Models\User::create([
             'name' => 'Admin User',
+            'username' => 'admin',
             'email' => 'admin@admin.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'admin',
@@ -33,6 +35,7 @@ class UserSeeder extends Seeder
         // Librarian
         \App\Models\User::create([
             'name' => 'Taqi Raza Khan',
+            'username' => 'librarian',
             'email' => 'librarian@admin.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'librarian',
@@ -42,6 +45,7 @@ class UserSeeder extends Seeder
         // Teacher
         \App\Models\User::create([
             'name' => 'Sarah Ahmed',
+            'username' => 'sarah_ahmed',
             'email' => 'teacher@admin.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'teacher',
@@ -51,6 +55,7 @@ class UserSeeder extends Seeder
         // Student
         \App\Models\User::create([
             'name' => 'Ali Khan',
+            'username' => 'ali_khan',
             'email' => 'student@admin.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'student',

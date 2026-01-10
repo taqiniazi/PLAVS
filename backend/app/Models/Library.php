@@ -17,7 +17,9 @@ class Library extends Model
         'invite_token',
         'description',
         'image',
-        'owner_id'
+        'owner_id',
+        'contact_email',
+        'contact_phone',
     ];
 
     protected $casts = [
