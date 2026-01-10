@@ -39,13 +39,15 @@ class ShelfController extends Controller
         
         if ($user->hasAdminRole()) {
             $rooms = Room::with('library')->get();
+            $libraries = \App\Models\Library::all();
         } else {
             $rooms = Room::whereHas('library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })->with('library')->get();
+            $libraries = \App\Models\Library::where('owner_id', $user->id)->get();
         }
 
-        return view('shelves.create', compact('rooms'));
+        return view('shelves.create', compact('rooms', 'libraries'));
     }
 
     /**
