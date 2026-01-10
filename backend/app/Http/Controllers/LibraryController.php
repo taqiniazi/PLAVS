@@ -99,14 +99,27 @@ class LibraryController extends Controller
             'type' => 'required|in:public,private',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
+            'owner_name' => 'required|string|max:255',
+            'owner_email' => 'required|email|max:255',
+            'owner_phone' => 'required|string|max:20',
         ]);
 
+        // Update library information
         $library->update([
             'name' => $request->name,
             'type' => $request->type,
             'location' => $request->location,
             'description' => $request->description,
         ]);
+
+        // Update owner information if owner exists
+        if ($library->owner) {
+            $library->owner->update([
+                'name' => $request->owner_name,
+                'email' => $request->owner_email,
+                'phone' => $request->owner_phone,
+            ]);
+        }
 
         return redirect()->route('libraries.index')
             ->with('success', 'Library updated successfully.');

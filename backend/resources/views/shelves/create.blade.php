@@ -7,8 +7,8 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-8 mx-auto">
-            <div class="form-card">
-                <div class="form-header">
+            <div class="card">
+                <div class="card-header">
                     <h4 class="mb-0">
                         <i class="fas fa-bookmark me-2"></i>
                         Add New Shelf
@@ -16,7 +16,7 @@
                     <p class="mb-0 mt-2 opacity-75">Create a new shelf to organize your books</p>
                 </div>
                 
-                <div class="form-body">
+                <div class="card-body">
                     <form action="{{ route('shelves.store') }}" method="POST">
                         @csrf
                         

@@ -437,7 +437,9 @@ div.dataTables_wrapper div.dataTables_length select {
     font-size: 0.75rem;
     font-weight: 600;
 }
-
+a{
+    text-decoration: none;
+}
 /* Action Buttons */
 .btn-action {
     width: 32px;
@@ -452,9 +454,9 @@ div.dataTables_wrapper div.dataTables_length select {
     color: white;
     font-size: 0.8rem;
 }
-.btn-assign { background-color: var(--primary-dark); }
-.btn-transfer { background-color: var(--primary-gold); }
-.btn-shelf { background-color: #6c757d; }
+.btn-assign,.btn-edit { background-color: var(--primary-dark); }
+.btn-transfer,.btn-view { background-color: var(--primary-gold); }
+.btn-shelf,.btn-return { background-color: #6c757d; }
 .btn-dispose { background-color: #dc3545; }
 
 .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
@@ -580,26 +582,12 @@ div.dataTables_wrapper div.dataTables_filter input {
 .modal-backdrop.show {
     display: none !important;
 }
-.form-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-    border: 1px solid #e9ecef;
-}
-
-.form-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 12px 12px 0 0;
-    padding: 20px;
-}
-
-.form-body {
-    padding: 30px;
-}
-
+ .card-header {
+        background: var(--primary-dark);
+        color: white;
+    }
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
     border: none;
     padding: 10px 30px;
     border-radius: 8px;
@@ -611,23 +599,8 @@ div.dataTables_wrapper div.dataTables_filter input {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
-
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
 .required-field::after {
     content: ' *';
     color: #dc3545;
     font-weight: bold;
-}
-form-text {
-    font-size: 0.875rem;
-    color: #6c757d;
 }

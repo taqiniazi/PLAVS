@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Add New Library')
+@section('title', 'Edit Library')
 
 @section('content')
 
@@ -10,15 +10,16 @@
             <div class="card">
                 <div class="card-header">
                     <h4 class="mb-0">
-                        <i class="fas fa-building me-2"></i>
-                        Add New Library
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Library
                     </h4>
-                    <p class="mb-0 mt-2 opacity-75">Create a new library to organize your book collection</p>
+                    <p class="mb-0 mt-2 opacity-75">Update library information</p>
                 </div>
                 
                 <div class="card-body">
-                    <form action="{{ route('libraries.store') }}" method="POST">
+                    <form action="{{ route('libraries.update', $library) }}" method="POST">
                         @csrf
+                        @method('PUT')
                         
                         <div class="row">
                             <!-- Library Name -->
@@ -28,7 +29,7 @@
                                        class="form-control @error('name') is-invalid @enderror" 
                                        id="name" 
                                        name="name" 
-                                       value="{{ old('name') }}" 
+                                       value="{{ old('name', $library->name) }}" 
                                        placeholder="Enter library name"
                                        required>
                                 @error('name')
@@ -44,8 +45,8 @@
                                         name="type" 
                                         required>
                                     <option value="">Select library type</option>
-                                    <option value="public" {{ old('type') == 'public' ? 'selected' : '' }}>Public</option>
-                                    <option value="private" {{ old('type') == 'private' ? 'selected' : '' }}>Private</option>
+                                    <option value="public" {{ old('type', $library->type) == 'public' ? 'selected' : '' }}>Public</option>
+                                    <option value="private" {{ old('type', $library->type) == 'private' ? 'selected' : '' }}>Private</option>
                                 </select>
                                 @error('type')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -59,7 +60,7 @@
                                        class="form-control @error('location') is-invalid @enderror" 
                                        id="location" 
                                        name="location" 
-                                       value="{{ old('location') }}" 
+                                       value="{{ old('location', $library->location) }}" 
                                        placeholder="Enter library location"
                                        required>
                                 @error('location')
@@ -74,7 +75,7 @@
                                        class="form-control @error('map_link') is-invalid @enderror" 
                                        id="map_link" 
                                        name="map_link" 
-                                       value="{{ old('map_link') }}" 
+                                       value="{{ old('map_link', $library->map_link) }}" 
                                        placeholder="https://maps.google.com/...">
                                 <!-- <div class="form-text">Optional: Add a Google Maps link for easy navigation</div> -->
                                 @error('map_link')
@@ -89,7 +90,7 @@
                                        class="form-control @error('owner_name') is-invalid @enderror"
                                        id="owner_name"
                                        name="owner_name"
-                                       value="{{ old('owner_name') }}"
+                                       value="{{ old('owner_name', $library->owner ? $library->owner->name : '') }}"
                                        placeholder="Enter owner's full name"
                                        required>
                                 @error('owner_name')
@@ -104,7 +105,7 @@
                                        class="form-control @error('owner_email') is-invalid @enderror"
                                        id="owner_email"
                                        name="owner_email"
-                                       value="{{ old('owner_email') }}"
+                                       value="{{ old('owner_email', $library->owner ? $library->owner->email : '') }}"
                                        placeholder="owner@example.com"
                                        required>
                                 @error('owner_email')
@@ -119,7 +120,7 @@
                                        class="form-control @error('owner_phone') is-invalid @enderror"
                                        id="owner_phone"
                                        name="owner_phone"
-                                       value="{{ old('owner_phone') }}"
+                                       value="{{ old('owner_phone', $library->owner ? $library->owner->phone : '') }}"
                                        placeholder="+1234567890"
                                        required>
                                 <div class="form-text">Please include country code (e.g., +1234567890)</div>
@@ -137,7 +138,7 @@
                             </div>
                             <div class="col-md-6">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-plus me-2"></i>Create Library
+                                    <i class="fas fa-save me-2"></i>Update Library
                                 </button>
                             </div>
                         </div>
@@ -161,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = form.querySelector('button[type="submit"]');
     
     form.addEventListener('submit', function() {
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
         submitBtn.disabled = true;
     });
 });
