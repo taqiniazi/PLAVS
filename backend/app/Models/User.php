@@ -272,4 +272,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rating::class);
     }
+
+    /**
+     * Check if the user has a specific role.
+     * Adjust the logic below depending on if 'role' is a column or a relationship.
+     */
+    public function hasRole($role)
+    {
+        // OPTION 1: If you have a simple 'role' string column in your users table
+        // checks if the column matches the string (e.g., 'Super Admin', 'Owner')
+        return $this->role === $role;
+
+        // OPTION 2: If you are using a package like Spatie, verify you imported the Trait:
+        // use Spatie\Permission\Traits\HasRoles;
+        // use HasRoles; // inside the class
+    }
+
+    // Helper for checking multiple roles (optional but useful)
+    public function hasAnyRole($roles)
+    {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+        return $this->role === $roles;
+    }
 }

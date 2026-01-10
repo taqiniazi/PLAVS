@@ -204,53 +204,55 @@
     {{-- Admin/Librarian/Owner: Libraries and Recently Added --}}
     @if($hasAdminRole)
         <div class="col-lg-9">
-            <h6 class="fw-bold mb-3">Libraries Overview</h6>
-            <div class="table-card mb-3">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Library Name</th>
-                                <th>Type</th>
-                                <th>Rooms</th>
-                                <th>Shelves</th>
-                                <th>Books</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($libraries ?? [] as $library)
-                            <tr>
-                                <td>
-                                    <i class="fas fa-building me-2"></i>
-                                    {{ $library->name }}
-                                </td>
-                                <td>
-                                    <span class="badge {{ $library->type === 'public' ? 'bg-success' : 'bg-warning' }}">
-                                        {{ ucfirst($library->type) }}
-                                    </span>
-                                </td>
-                                <td>{{ $library->rooms->count() }}</td>
-                                <td>{{ $library->shelves->count() }}</td>
-                                <td>{{ $library->books->count() }}</td>
-                                <td>
-                                    <a href="{{ route('libraries.show', $library) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <i class="fas fa-building fa-2x text-muted mb-2 d-block"></i>
-                                    No libraries found. Create your first library!
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+            @if(auth()->user()->hasRole('Super Admin'))
+                <h6 class="fw-bold mb-3">Libraries Overview</h6>
+                <div class="table-card mb-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Library Name</th>
+                                    <th>Type</th>
+                                    <th>Rooms</th>
+                                    <th>Shelves</th>
+                                    <th>Books</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($libraries ?? [] as $library)
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-building me-2"></i>
+                                        {{ $library->name }}
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ $library->type === 'public' ? 'bg-success' : 'bg-warning' }}">
+                                            {{ ucfirst($library->type) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $library->rooms->count() }}</td>
+                                    <td>{{ $library->shelves->count() }}</td>
+                                    <td>{{ $library->books->count() }}</td>
+                                    <td>
+                                        <a href="{{ route('libraries.show', $library) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-building fa-2x text-muted mb-2 d-block"></i>
+                                        No libraries found. Create your first library!
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            @endif
             
             <h6 class="fw-bold mb-3">Recently Added Books</h6>
             <div class="row">
