@@ -99,7 +99,7 @@
                 <p class="text-muted mb-0">Books you've saved for later</p>
             </div>
 
-            @if($wishlistBooks->isEmpty())
+            @if($wishlistItems->isEmpty())
                 <div class="empty-state">
                     <i class="fas fa-heart-broken"></i>
                     <h5 class="text-muted">Your wishlist is empty</h5>
@@ -110,7 +110,7 @@
                 </div>
             @else
                 <div class="row">
-                    @foreach($wishlistBooks as $wishlistItem)
+                    @foreach($wishlistItems as $wishlistItem)
                         @php $book = $wishlistItem->book; @endphp
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="wishlist-card">

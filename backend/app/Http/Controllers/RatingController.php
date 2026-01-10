@@ -47,4 +47,21 @@ class RatingController extends Controller
             'user_rating' => $rating->rating
         ]);
     }
+
+    /**
+     * Get the current user's rating for a book.
+     */
+    public function getUserRating(Book $book)
+    {
+        $user = Auth::user();
+        
+        $rating = Rating::where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->first();
+
+        return response()->json([
+            'rating' => $rating ? $rating->rating : null,
+            'review' => $rating ? $rating->review : null,
+        ]);
+    }
 }

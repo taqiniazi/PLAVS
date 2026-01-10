@@ -257,6 +257,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's wishlist books.
+     */
+    public function wishlistBooks()
+    {
+        return $this->belongsToMany(Book::class, 'wishlists', 'user_id', 'book_id')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the user's ratings.
      */
     public function ratings()

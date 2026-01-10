@@ -64,6 +64,10 @@ Route::middleware('auth')->group(function () {
 
     // Rating Routes
     Route::post('/books/{book}/rating', [App\Http\Controllers\RatingController::class, 'store'])->name('books.rating.store');
+    Route::get('/api/books/{book}/user-rating', [App\Http\Controllers\RatingController::class, 'getUserRating'])->name('api.books.user-rating');
+    
+    // Wishlist API Routes
+    Route::get('/api/wishlist/check/{book}', [App\Http\Controllers\WishlistController::class, 'check'])->name('api.wishlist.check');
 
     // Room Routes (nested under libraries)
     Route::get('/libraries/{library}/rooms/create', [App\Http\Controllers\RoomController::class, 'create'])->name('libraries.rooms.create');

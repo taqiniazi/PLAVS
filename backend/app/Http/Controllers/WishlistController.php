@@ -15,9 +15,11 @@ class WishlistController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $wishlistBooks = $user->wishlist()->with('book.shelf.room.library')->get();
+        $wishlistItems = Wishlist::where('user_id', $user->id)
+            ->with('book.shelf.room.library')
+            ->get();
 
-        return view('wishlist.index', compact('wishlistBooks'));
+        return view('wishlist.index', compact('wishlistItems'));
     }
 
     /**
@@ -54,6 +56,22 @@ class WishlistController extends Controller
             'button_text' => $isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist',
             'button_class' => $isInWishlist ? 'btn-danger' : 'btn-primary',
             'icon_class' => $isInWishlist ? 'fa-heart' : 'fa-heart-o'
+        ]);
+    }
+
+    /**
+     * Check if a book is in the user's wishlist.
+     */
+    public function check(Book $book)
+    {
+        $user = Auth::user();
+        
+        $isInWishlist = Wishlist::where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->exists();
+
+        return response()->json([
+            'is_in_wishlist' => $isInWishlist,
         ]);
     }
 }
