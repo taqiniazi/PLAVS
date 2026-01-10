@@ -111,7 +111,7 @@
                             </td>
                             <td class="text-end">
                                 @if($isAdmin)
-                                    <a href="{{ route('books.edit', $book) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
+                                    <a href="{{ route('books.edit', $book) }}" class="btn btn-action btn-dark btn-edit" data-bs-toggle="tooltip" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign" 
@@ -127,10 +127,15 @@
                                         <i class="fa-solid fa-arrow-down-up-across-line"></i>
                                     </button>
                                     @if(str_contains($book->status, 'Borrowed'))
-                                    <button class="btn-action btn-return text-success" data-bs-toggle="tooltip" title="Return Book" 
-                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->user_id }}">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
+                                    <form method="POST" action="{{ route('books.return') }}" style="display: inline;">
+                                        @csrf
+                                        <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                        <input type="hidden" name="user_id" value="{{ $book->user_id }}">
+                                        <button type="submit" class="btn-action btn-return text-success" data-bs-toggle="tooltip" title="Return Book"
+                                                data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->user_id }}">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </form>
                                     @endif
                                     <form method="POST" action="{{ route('books.destroy', $book) }}" style="display: inline;" 
                                           onsubmit="return confirm('Are you sure you want to DISPOSE of this book? This action cannot be undone.')">
@@ -215,14 +220,9 @@
                         <label class="form-label fw-medium">Transfer to Shelf</label>
                         <select name="shelf_location" class="form-select" required>
                             <option selected disabled>Select Shelf...</option>
-                            <option value="Shelf A-1">Shelf A-1</option>
-                            <option value="Shelf A-2">Shelf A-2</option>
-                            <option value="Shelf B-1">Shelf B-1</option>
-                            <option value="Shelf B-2">Shelf B-2</option>
-                            <option value="Shelf C-1">Shelf C-1</option>
-                            <option value="Shelf C-2">Shelf C-2</option>
-                            <option value="Shelf C-3">Shelf C-3</option>
-                            <option value="Shelf C-4">Shelf C-4</option>
+                            @foreach($shelves ?? [] as $shelf)
+                            <option value="{{ $shelf->name }}">{{ $shelf->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
@@ -378,6 +378,59 @@ $(document).ready(function () {
         shelvesModal.show();
     });
 
+    // Handle Shelves Form Submission via AJAX
+    $('#shelvesForm').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalBtnText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                // Close modal
+                var modalEl = document.getElementById('shelvesModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                // Update table cell dynamically
+                var bookId = response.book_id;
+                var newShelfName = response.new_shelf_name;
+
+                // Find the row with this book and update the shelf location cell
+                $('#booksTable tbody tr').each(function() {
+                    var row = $(this);
+                    // Look for the shelves button with this book ID
+                    var shelvesBtn = row.find('.btn-shelves[data-id="' + bookId + '"]');
+                    if (shelvesBtn.length) {
+                        // Update shelf cell - it's the 3rd cell (index 2)
+                        var shelfCell = row.find('td:eq(2)');
+                        shelfCell.html('<span class="badge-shelf">' + newShelfName + '</span>');
+                    }
+                });
+
+                // Show success message
+                $('body').append('<div class="alert alert-success alert-dismissible fade show" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;">' +
+                    response.message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+
+                // Remove alert after 3 seconds
+                setTimeout(function() {
+                    $('.alert').fadeOut(300, function() { $(this).remove(); });
+                }, 3000);
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON?.message || 'Something went wrong'));
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalBtnText);
+            }
+        });
+    });
+
     // ========== ASSIGN MODAL LOGIC ==========
     $(document).on('click', '.btn-assign', function () {
         var bookId = $(this).data('id');
@@ -410,32 +463,87 @@ $(document).ready(function () {
         returnModal.show();
     });
 
+    // Handle Return Form Submission via AJAX
+    $(document).on('submit', 'form[action="{{ route("books.return") }}"]', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalBtnText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                // Update table cell dynamically - find the row and update status
+                var bookId = response.book_id;
+                
+                // Find the row with this book and update status
+                $('#booksTable tbody tr').each(function() {
+                    var row = $(this);
+                    // Look for the return button with this book ID
+                    var returnBtn = row.find('.btn-return[data-id="' + bookId + '"]');
+                    if (returnBtn.length) {
+                        // Update status cell - it's the 4th cell (index 4)
+                        var statusCell = row.find('td:eq(4)');
+                        var statusBadge = statusCell.find('.badge');
+                        if (statusBadge.length) {
+                            statusBadge.removeClass('badge-borrowed').addClass('badge-avail').text('Available');
+                        }
+                        // Remove the return button and its form
+                        returnBtn.closest('form').remove();
+                    }
+                });
+                
+                // Show success message
+                $('body').append('<div class="alert alert-success alert-dismissible fade show" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;">' +
+                    response.message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                
+                // Remove alert after 3 seconds
+                setTimeout(function() {
+                    $('.alert').fadeOut(300, function() { $(this).remove(); });
+                }, 3000);
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON?.message || 'Something went wrong'));
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalBtnText);
+            }
+        });
+    });
+
     // ========== VISIBILITY TOGGLE LOGIC ==========
     $(document).on('change', '.visibility-toggle', function() {
         var bookId = $(this).data('book-id');
         var isVisible = $(this).is(':checked');
         var label = $(this).siblings('.visibility-label');
+        var checkbox = $(this);
         
         // Update label immediately for better UX
         label.text(isVisible ? 'Public' : 'Private');
         
         // Send AJAX request to update visibility
         $.ajax({
-            url: '/books/' + bookId,
-            method: 'PUT',
+            url: '/books/' + bookId + '/toggle-visibility',
+            method: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
                 visibility: isVisible ? 1 : 0
             },
             success: function(response) {
                 console.log('Visibility updated successfully');
+                // Update the label text to match the new state
+                label.text(isVisible ? 'Public' : 'Private');
             },
             error: function(xhr) {
                 // Revert the toggle if there's an error
-                $(this).prop('checked', !isVisible);
+                checkbox.prop('checked', !isVisible);
                 label.text(!isVisible ? 'Public' : 'Private');
                 alert('Error updating visibility. Please try again.');
-            }.bind(this)
+            }
         });
     });
 });

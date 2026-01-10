@@ -17,16 +17,17 @@ class LibraryController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
+        // Base query with eager loading and count
+        $query = Library::with('owner')->withCount('books');
+
         if ($user->isSuperAdmin() || $user->isAdmin() || $user->isLibrarian()) {
-            $libraries = Library::with(['owner', 'rooms', 'shelves'])->get();
+            $libraries = $query->get();
         } elseif ($user->isOwner()) {
-            $libraries = $user->ownedLibraries()->with(['rooms', 'shelves'])->get();
+            $libraries = $query->where('owner_id', $user->id)->get();
         } else {
             // Students and Teachers can only see public libraries
-            $libraries = Library::where('type', 'public')
-                ->with(['owner', 'rooms', 'shelves'])
-                ->get();
+            $libraries = $query->where('type', 'public')->get();
         }
 
         return view('libraries.index', compact('libraries'));

@@ -7,13 +7,14 @@
             <i class="fas fa-th-large"></i> Dashboard
         </a>
         
-        {{-- All users can view books --}}
-        <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
-            <i class="fas fa-search"></i> View Books
-        </a>
+       
 
         {{-- Administrative Links: Librarian/Admin/Super Admin/Owner --}}
         @if(auth()->user()->hasAdminRole())
+         {{-- All users can view books --}}
+            <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+                <i class="fas fa-search"></i> View Books
+            </a>
             <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
                 <i class="fas fa-box-open"></i> Manage Books
             </a>
@@ -49,7 +50,7 @@
         {{-- Student specific links --}}
         @if(auth()->user()->isStudent())
             <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
-                <i class="fas fa-book-reader"></i> My Assigned Books
+                <i class="fas fa-book-reader"></i> Assigned Books
             </a>
         @endif
 

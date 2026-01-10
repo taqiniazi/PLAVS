@@ -85,7 +85,7 @@ class BookController extends Controller
             'edition' => 'nullable|string|max:50',
             'publisher' => 'nullable|string|max:255',
             'publish_date' => 'nullable|date',
-            'shelf' => 'required|string|max:50',
+            'shelf' => 'nullable|string|max:50',
             'owner' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -105,7 +105,7 @@ class BookController extends Controller
             'edition' => $validated['edition'] ?? null,
             'publisher' => $validated['publisher'] ?? null,
             'publish_date' => $validated['publish_date'] ?? null,
-            'shelf_location' => $validated['shelf'],
+            'shelf_location' => $validated['shelf'] ?? 'Not Assigned',
             'owner' => $validated['owner'],
             'description' => $validated['description'] ?? null,
             'visibility' => true,
@@ -291,10 +291,31 @@ class BookController extends Controller
 
         $book = Book::findOrFail($validated['book_id']);
         $old = $book->shelf_location;
-        $book->shelf_location = $validated['shelf_location'];
+        
+        // Find the shelf by name and update shelf_id
+        $shelf = \App\Models\Shelf::where('name', $validated['shelf_location'])->first();
+        
+        if ($shelf) {
+            $book->shelf_id = $shelf->id;
+            $book->shelf_location = $validated['shelf_location'];
+        } else {
+            // If shelf not found, just update the shelf_location field
+            $book->shelf_location = $validated['shelf_location'];
+        }
+        
         $book->save();
 
         $this->logActivity('book_shelf_changed', "Book '{$book->title}' moved from {$old} to {$book->shelf_location}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+
+        // Handle AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Book shelf changed successfully!',
+                'new_shelf_name' => $book->shelf_location,
+                'book_id' => $book->id
+            ]);
+        }
 
         return redirect()->route('books.manage')->with('success', 'Book shelf changed successfully!');
     }
@@ -317,6 +338,38 @@ class BookController extends Controller
         return redirect()->route('books.manage')->with('success', 'Book assigned successfully!');
     }
 
+    public function returnBook(Request $request)
+    {
+        $validated = $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'user_id' => 'required|exists:users,id',
+            'condition' => 'nullable|string|max:50',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $book = Book::findOrFail($validated['book_id']);
+        $oldStatus = $book->status;
+        $oldUserId = $book->assigned_user_id;
+        
+        // Update book status and clear assignment
+        $book->status = 'Available';
+        $book->assigned_user_id = null;
+        $book->save();
+
+        $this->logActivity('book_returned', "Book '{$book->title}' returned by user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'), $book);
+
+        // Handle AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Book returned successfully!',
+                'book_id' => $book->id
+            ]);
+        }
+
+        return redirect()->route('books.manage')->with('success', 'Book returned successfully!');
+    }
+
     public function destroy(Book $book)
     {
         $book->delete();
@@ -326,7 +379,7 @@ class BookController extends Controller
     public function manage(Request $request)
     {
         $query = Book::query();
-        
+
         // Check if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
@@ -338,10 +391,30 @@ class BookController extends Controller
                   ->orWhere('owner', 'LIKE', '%' . $searchTerm . '%');
             });
         }
-        
-        $books = $query->get();
+
+        $books = $query->with(['shelf.room.library'])->get();
         $users = User::all();
-        return view('books.manage', compact('books', 'users'));
+        $shelves = \App\Models\Shelf::all();
+        return view('books.manage', compact('books', 'users', 'shelves'));
+    }
+
+    public function toggleVisibility(Request $request, Book $book)
+    {
+        $validated = $request->validate([
+            'visibility' => 'required|boolean',
+        ]);
+
+        $book->visibility = $validated['visibility'];
+        $book->save();
+
+        $this->logActivity('book_visibility_changed', "Book '{$book->title}' visibility changed to " . ($book->visibility ? 'Public' : 'Private'), $book);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Book visibility updated successfully!',
+            'book_id' => $book->id,
+            'new_visibility' => $book->visibility
+        ]);
     }
 
     public function details(Book $book)

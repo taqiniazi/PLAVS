@@ -34,7 +34,7 @@
                         <th>Assigned Date</th>
                         <th>Return Date</th>
                         <th>Status</th>
-                        <th style="width: 150px;">Actions</th>
+                        <!-- <th style="width: 150in px;">Actions</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -67,7 +67,7 @@
                             <span class="badge bg-success">In Use</span>
                             @endif
                         </td>
-                        <td>
+                        <!-- <td>
                             @if(!$isReturned)
                             <form action="{{ route('student.return-book', $book) }}" method="POST" style="display: inline;">
                                 @csrf
@@ -79,7 +79,7 @@
                             @else
                             <span class="text-muted">-</span>
                             @endif
-                        </td>
+                        </td> -->
                     </tr>
                     @endforeach
                 </tbody>

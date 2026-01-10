@@ -15,8 +15,8 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         
-        // Get books assigned to this student through pivot table with return info
-        $assignedBooks = $user->booksThroughAssignment()
+        // Get only active (non-returned) books assigned to this student through pivot table
+        $assignedBooks = $user->activeAssignedBooks()
             ->with('category')
             ->orderByPivot('assigned_at', 'desc')
             ->get();

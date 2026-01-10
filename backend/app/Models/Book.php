@@ -16,6 +16,7 @@ class Book extends Model
         'edition',
         'publisher',
         'publish_date',
+        'shelf_location',
         'owner',
         'assigned_user_id',
         'description',
