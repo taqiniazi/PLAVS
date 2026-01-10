@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('floor')->nullable();
-            $table->foreignId('library_id')->constrained()->onDelete('cascade');
+            $table->foreignId('library_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

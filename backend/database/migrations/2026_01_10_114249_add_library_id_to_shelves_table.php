@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('books', function (Blueprint $table) {
-            $table->string('shelf_location')->nullable()->after('publish_date');
+        Schema::table('shelves', function (Blueprint $table) {
+            $table->foreignId('library_id')->nullable()->constrained()->onDelete('cascade');
         });
     }
 
@@ -21,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('books', function (Blueprint $table) {
-            $table->dropColumn('shelf_location');
+        Schema::table('shelves', function (Blueprint $table) {
+            $table->dropForeign(['library_id']);
+            $table->dropColumn('library_id');
         });
     }
 };
