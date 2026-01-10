@@ -58,7 +58,8 @@
                             <th width="30%">Book Details</th>
                             <th>Shelf Location</th>
                             <th>Visibility</th>
-                            <th>Owner / Status</th>
+                            <th>Current Holder</th>
+                            <th>Status</th>
                             @if($isAdmin || $isTeacher || $isStudent)
                             <th class="text-end" data-orderable="false">Actions</th>
                             @endif
@@ -104,10 +105,29 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="d-flex flex-column">
-                                    <span class="fw-medium">{{ $book->owner }}</span>
-                                    <span class="badge-status-{{ str_contains($book->status, 'Available') ? 'avail' : 'borrowed' }} mt-1 w-auto">{{ $book->status }}</span>
-                                </div>
+                                @if($book->assigned_user_id)
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ $book->assignedUser->name }}
+                                    </span>
+                                    <small class="text-muted d-block">{{ $book->assignedUser->role }}</small>
+                                @elseif($book->status === 'transferred')
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-building me-1"></i>
+                                        {{ $book->shelf->room->library->name }}
+                                    </span>
+                                    <small class="text-muted d-block">Transferred</small>
+                                @else
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-home me-1"></i>
+                                        In Stock
+                                    </span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge {{ $book->status === 'Available' ? 'bg-success' : ($book->status === 'Assigned' ? 'bg-info' : 'bg-warning') }}">
+                                    {{ $book->status }}
+                                </span>
                             </td>
                             <td class="text-end">
                                 @if($isAdmin)
@@ -122,10 +142,21 @@
                                             data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fas fa-exchange-alt"></i>
                                     </button>
-                                    <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" title="Change Shelf" 
+                                    <button class="btn-action btn-shelves bg-dark" data-bs-toggle="tooltip" title="Change Shelf"
                                             data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fa-solid fa-arrow-down-up-across-line"></i>
                                     </button>
+                                    
+                                    @if($book->status === 'Assigned' || $book->status === 'transferred')
+                                        <form method="POST" action="{{ route('books.recall', $book) }}" style="display: inline;">
+                                            @csrf
+                                            @method('POST')
+                                            <button type="submit" class="btn-action btn-recall" data-bs-toggle="tooltip" title="Recall Book"
+                                                    onclick="return confirm('Are you sure you want to recall this book?')">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if(str_contains($book->status, 'Borrowed'))
                                     <form method="POST" action="{{ route('books.return') }}" style="display: inline;">
                                         @csrf
@@ -165,50 +196,75 @@
     </div>
 </div>
 
-<!-- Single Transfer Modal (Outside Loop) -->
+<!-- Single Transfer Modal (Owner-specific) -->
+@if(auth()->user()->isOwner())
 <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Transfer Ownership</h5>
+                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Transfer Book</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="transferForm" method="POST" action="">
                 @csrf
                 <input type="hidden" name="book_id" id="transfer_book_id">
                 <div class="modal-body">
-                    <p class="text-muted small mb-3" id="transferDescription">Select a new owner for this book.</p>
+                    <p class="text-muted small mb-3" id="transferDescription">Transfer this book to another library or assign to a user.</p>
                     <div class="mb-3">
-                        <label class="form-label fw-medium">New Owner</label>
-                        <select name="owner" class="form-select" required>
-                            <option selected disabled>Select User...</option>
-                            @foreach($users as $userOption)
-                                @if($userOption->id !== $user->id)
-                                <option value="{{ $userOption->name }}">{{ $userOption->name }}</option>
-                                @endif
+                        <label class="form-label fw-medium">Transfer Type</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="transfer_type" id="transferToLibrary" value="library" checked>
+                            <label class="form-check-label" for="transferToLibrary">
+                                Transfer to Another Library
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="transfer_type" id="transferToUser" value="user">
+                            <label class="form-check-label" for="transferToUser">
+                                Assign to User (Teacher/Student)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="librarySelection" style="display: none;">
+                        <label for="target_library_id" class="form-label">Target Library</label>
+                        <select class="form-select" name="target_id" id="target_library_id">
+                            <option value="">Select a library...</option>
+                            @foreach(\App\Models\Library::all() as $library)
+                                <option value="{{ $library->id }}">{{ $library->name }} ({{ $library->type }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3" id="userSelection" style="display: none;">
+                        <label for="target_user_id" class="form-label">Target User</label>
+                        <select class="form-select" name="target_id" id="target_user_id">
+                            <option value="">Select a user...</option>
+                            @foreach($users->whereIn('role', ['teacher', 'student']) as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium">Reason (Optional)</label>
-                        <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Donation, Sale"></textarea>
+                        <label for="reason" class="form-label">Reason (Optional)</label>
+                        <textarea class="form-control" name="reason" id="reason" rows="3" placeholder="Enter reason for transfer"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-modal-save">Confirm Transfer</button>
+                    <button type="submit" class="btn btn-modal-save">Transfer</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+@endif
 
-<!-- Single Shelves Modal (Outside Loop) -->
+<!-- Single Shelves Modal (Admin only) -->
+@if(auth()->user()->hasAdminRole())
 <div class="modal fade" id="shelvesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Change Shelves</h5>
+                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Change Shelf Location</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="shelvesForm" method="POST" action="">
@@ -217,29 +273,25 @@
                 <div class="modal-body">
                     <p class="text-muted small mb-3" id="shelvesDescription">Select a new shelf location for this book.</p>
                     <div class="mb-3">
-                        <label class="form-label fw-medium">Transfer to Shelf</label>
-                        <select name="shelf_location" class="form-select" required>
-                            <option selected disabled>Select Shelf...</option>
-                            @foreach($shelves ?? [] as $shelf)
-                            <option value="{{ $shelf->name }}">{{ $shelf->name }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label fw-medium">New Shelf Location</label>
+                        <input type="text" class="form-control" name="shelf_location" id="shelf_location" placeholder="Enter new shelf location">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-medium">Reason (Optional)</label>
-                        <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Reorganization"></textarea>
+                        <textarea class="form-control" name="reason" id="changeShelfReason" rows="3" placeholder="Enter reason for shelf change"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-modal-save">Confirm Change</button>
+                    <button type="submit" class="btn btn-modal-save">Change Shelf</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+@endif
 
-<!-- Single Assign Modal (Outside Loop) -->
+<!-- Single Assign Modal -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -275,7 +327,8 @@
     </div>
 </div>
 
-<!-- Single Return Modal (Outside Loop) -->
+<!-- Single Return Modal (Admin only) -->
+@if(auth()->user()->hasAdminRole())
 <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -311,6 +364,7 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
 @push('scripts')
@@ -485,11 +539,11 @@ $(document).ready(function () {
                     // Look for the return button with this book ID
                     var returnBtn = row.find('.btn-return[data-id="' + bookId + '"]');
                     if (returnBtn.length) {
-                        // Update status cell - it's the 4th cell (index 4)
-                        var statusCell = row.find('td:eq(4)');
+                        // Update status cell - it's the 5th cell (index 5)
+                        var statusCell = row.find('td:eq(5)');
                         var statusBadge = statusCell.find('.badge');
                         if (statusBadge.length) {
-                            statusBadge.removeClass('badge-borrowed').addClass('badge-avail').text('Available');
+                            statusBadge.removeClass('bg-info').addClass('bg-success').text('Available');
                         }
                         // Remove the return button and its form
                         returnBtn.closest('form').remove();
@@ -546,6 +600,32 @@ $(document).ready(function () {
             }
         });
     });
+    
+    // Transfer type selection logic
+    @if(auth()->user()->isOwner())
+    const transferToLibrary = document.getElementById('transferToLibrary');
+    const transferToUser = document.getElementById('transferToUser');
+    const librarySelection = document.getElementById('librarySelection');
+    const userSelection = document.getElementById('userSelection');
+    
+    transferToLibrary.addEventListener('change', function() {
+        if (this.checked) {
+            librarySelection.style.display = 'block';
+            userSelection.style.display = 'none';
+            document.getElementById('target_library_id').required = true;
+            document.getElementById('target_user_id').required = false;
+        }
+    });
+    
+    transferToUser.addEventListener('change', function() {
+        if (this.checked) {
+            librarySelection.style.display = 'none';
+            userSelection.style.display = 'block';
+            document.getElementById('target_library_id').required = false;
+            document.getElementById('target_user_id').required = true;
+        }
+    });
+    @endif
 });
 </script>
 @endpush

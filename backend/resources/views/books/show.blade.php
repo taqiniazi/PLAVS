@@ -24,26 +24,29 @@
                     {{-- Rating Section --}}
                     <div class="rating-section mt-3">
                         <label class="text-muted small d-block mb-2">Rate this book</label>
-                        <div class="rating-stars mb-2" id="ratingStars">
-                            @for($i = 1; $i <= 5; $i++)
-                                <i class="far fa-star fa-lg me-1" data-rating="{{ $i }}"></i>
-                            @endfor
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-primary" id="averageRating">
-                                {{ round($book->average_rating, 1) }}/5
-                            </span>
-                            <small class="text-muted ms-2" id="ratingCount">
-                                ({{ $book->rating_count }} {{ Str::plural('review', $book->rating_count) }})
-                            </small>
-                        </div>
-                        <div class="mt-2">
-                            <textarea class="form-control" id="reviewText" rows="3"
-                                      placeholder="Share your thoughts about this book...">{{ $userRating->review ?? '' }}</textarea>
-                        </div>
-                        <button class="btn btn-primary btn-sm mt-2" id="saveRatingBtn" style="display: none;">
-                            <i class="fas fa-save me-1"></i> Save Rating
-                        </button>
+                        <form id="ratingForm">
+                            <input type="hidden" name="rating" id="ratingValue" value="0">
+                            <div class="rating-stars mb-2" id="ratingStars">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="far fa-star fa-lg me-1 rate-star" data-value="{{ $i }}"></i>
+                                @endfor
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary" id="averageRating">
+                                    {{ round($book->average_rating, 1) }}/5
+                                </span>
+                                <small class="text-muted ms-2" id="ratingCount">
+                                    ({{ $book->rating_count }} {{ Str::plural('review', $book->rating_count) }})
+                                </small>
+                            </div>
+                            <div class="mt-2">
+                                <textarea class="form-control" id="reviewText" name="review" rows="3"
+                                          placeholder="Share your thoughts about this book...">{{ $userRating->review ?? '' }}</textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mt-2" id="saveRatingBtn" style="display: none;">
+                                <i class="fas fa-save me-1"></i> Save Rating
+                            </button>
+                        </form>
                     </div>
                     
                     {{-- Wishlist Button --}}
@@ -234,22 +237,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initRatingStars() {
-        const stars = document.querySelectorAll('#ratingStars i');
+        const stars = document.querySelectorAll('#ratingStars i.rate-star');
         const reviewText = document.getElementById('reviewText');
         const saveRatingBtn = document.getElementById('saveRatingBtn');
+        const ratingValue = document.getElementById('ratingValue');
         
         // Load user's existing rating if any
         loadUserRating();
         
         stars.forEach(star => {
             star.addEventListener('click', function() {
-                const rating = parseInt(this.getAttribute('data-rating'));
+                const rating = parseInt(this.getAttribute('data-value'));
+                ratingValue.value = rating;
                 updateStars(rating);
                 saveRatingBtn.style.display = 'inline-block';
             });
             
             star.addEventListener('mouseenter', function() {
-                const rating = parseInt(this.getAttribute('data-rating'));
+                const rating = parseInt(this.getAttribute('data-value'));
                 highlightStars(rating);
             });
             
@@ -281,18 +286,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateStars(rating) {
-        const stars = document.querySelectorAll('#ratingStars i');
+        const stars = document.querySelectorAll('#ratingStars i.rate-star');
         stars.forEach((star, index) => {
             if (index < rating) {
-                star.className = 'fas fa-star fa-lg me-1 text-warning';
+                star.className = 'fas fa-star fa-lg me-1 text-warning rate-star';
             } else {
-                star.className = 'far fa-star fa-lg me-1';
+                star.className = 'far fa-star fa-lg me-1 rate-star';
             }
         });
     }
     
     function highlightStars(rating) {
-        const stars = document.querySelectorAll('#ratingStars i');
+        const stars = document.querySelectorAll('#ratingStars i.rate-star');
         stars.forEach((star, index) => {
             if (index < rating) {
                 star.style.color = '#ffc107';
@@ -303,19 +308,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function resetStars() {
-        const stars = document.querySelectorAll('#ratingStars i');
+        const stars = document.querySelectorAll('#ratingStars i.rate-star');
         stars.forEach((star, index) => {
             if (userRating && index < userRating.rating) {
-                star.className = 'fas fa-star fa-lg me-1 text-warning';
+                star.className = 'fas fa-star fa-lg me-1 text-warning rate-star';
             } else {
-                star.className = 'far fa-star fa-lg me-1';
+                star.className = 'far fa-star fa-lg me-1 rate-star';
             }
         });
     }
     
     function saveRating() {
-        const stars = document.querySelectorAll('#ratingStars i.fas.fa-star');
-        const rating = stars.length;
+        const rating = parseInt(document.getElementById('ratingValue').value);
         const review = document.getElementById('reviewText').value;
         
         if (rating === 0) {

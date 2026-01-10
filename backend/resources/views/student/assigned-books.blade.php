@@ -34,7 +34,7 @@
                         <th>Assigned Date</th>
                         <th>Return Date</th>
                         <th>Status</th>
-                        <!-- <th style="width: 150in px;">Actions</th> -->
+                        <!-- <th style="width: 150px;">Actions</th> -->
                     </tr>
                 </thead>
                 <tbody>

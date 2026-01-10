@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
@@ -141,16 +142,16 @@ class BookController extends Controller
                             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
                             $bookData['cover_image'] = $path;
                         } else {
-                            \Log::warning('Scanned image URL returned non-image content type: ' . $contentType);
+                            Log::warning('Scanned image URL returned non-image content type: ' . $contentType);
                         }
                     } else {
-                        \Log::warning('Failed to download scanned image URL, status: ' . $response->status());
+                        Log::warning('Failed to download scanned image URL, status: ' . $response->status());
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Exception while downloading scanned image URL: ' . $e->getMessage());
+                    Log::warning('Exception while downloading scanned image URL: ' . $e->getMessage());
                 }
             } else {
-                \Log::warning('Invalid scanned_image_url provided: ' . $scannedUrl);
+                Log::warning('Invalid scanned_image_url provided: ' . $scannedUrl);
             }
         }
 
@@ -249,7 +250,7 @@ class BookController extends Controller
                         }
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Exception while downloading scanned image URL on update: ' . $e->getMessage());
+                    Log::warning('Exception while downloading scanned image URL on update: ' . $e->getMessage());
                 }
             }
         }
@@ -257,29 +258,6 @@ class BookController extends Controller
         return redirect()->route('books.manage')->with('success', 'Book updated successfully!');
     }
 
-    public function transfer(Request $request)
-    {
-        $validated = $request->validate([
-            'book_id' => 'required|exists:books,id',
-            'owner' => 'required|string|max:255',
-            'reason' => 'nullable|string|max:1000',
-        ]);
-
-        // Validate owner exists in users table
-        $ownerExists = User::where('name', $validated['owner'])->exists();
-        if (! $ownerExists) {
-            return redirect()->route('books.manage')->withErrors(['owner' => 'Selected owner does not exist.']);
-        }
-
-        $book = Book::findOrFail($validated['book_id']);
-        $oldOwner = $book->owner;
-        $book->owner = $validated['owner'];
-        $book->save();
-
-        $this->logActivity('book_transferred', "Book '{$book->title}' transferred from {$oldOwner} to {$book->owner}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
-
-        return redirect()->route('books.manage')->with('success', 'Book ownership transferred successfully!');
-    }
 
     public function changeShelf(Request $request)
     {
@@ -378,7 +356,15 @@ class BookController extends Controller
 
     public function manage(Request $request)
     {
+        $user = Auth::user();
         $query = Book::query();
+
+        // Owner scope restriction: Owners can only see books from their own libraries
+        if ($user->isOwner()) {
+            $query->whereHas('shelf.room.library', function($q) use ($user) {
+                $q->where('owner_id', $user->id);
+            });
+        }
 
         // Check if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
@@ -396,6 +382,94 @@ class BookController extends Controller
         $users = User::all();
         $shelves = \App\Models\Shelf::all();
         return view('books.manage', compact('books', 'users', 'shelves'));
+    }
+
+    /**
+     * Show transferred/lent books for the current owner
+     */
+    public function transferredBooks(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Only owners can view transferred books
+        if (!$user->isOwner()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $query = Book::whereHas('shelf.room.library', function($q) use ($user) {
+            $q->where('owner_id', $user->id);
+        })->where(function($q) {
+            $q->where('status', 'transferred')
+              ->orWhere('status', 'assigned')
+              ->orWhereNotNull('assigned_user_id');
+        });
+
+        // Search functionality
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('author', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhereHas('assignedUser', function($q) use ($searchTerm) {
+                      $q->where('name', 'LIKE', '%' . $searchTerm . '%');
+                  });
+            });
+        }
+
+        $transferredBooks = $query->with(['assignedUser', 'shelf.room.library'])->get();
+        
+        return view('books.transferred', compact('transferredBooks'));
+    }
+
+    /**
+     * Transfer book to another library or user
+     */
+
+    /**
+     * Transfer book to another library or user (Owner-specific)
+     */
+    public function transfer(Request $request)
+    {
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'transfer_to' => 'required|in:library,user', // specific target type
+            'target_id' => 'required', // ID of the library or user
+        ]);
+
+        $book = Book::findOrFail($request->book_id);
+
+        // Authorization: Only Owner/Admin can transfer
+        // if (!auth()->user()->isOwnerOf($book)) { abort(403); }
+
+        if ($request->transfer_to === 'library') {
+            // Transfer to another Library
+            // 1. You might want to set a 'transferred_to_library_id' column
+            // 2. Or change the shelf/room to the new library's default.
+            // For now, let's assume we mark it as transferred:
+            $book->update([
+                'status' => 'transferred',
+                // 'current_library_id' => $request->target_id
+                // Add specific logic here based on your Schema
+            ]);
+            $msg = "Book transferred to Library successfully.";
+
+        } else {
+            // Transfer/Assign to a User (Teacher/Student)
+            // Check if user exists
+            $user = \App\Models\User::findOrFail($request->target_id);
+            
+            // Attach to pivot table
+            $user->assignedBooks()->attach($book->id, [
+                'assigned_at' => now(),
+                'status' => 'active',
+                // 'assigned_by' => auth()->id()
+            ]);
+
+            $book->update(['status' => 'borrowed']); // or 'assigned'
+            $msg = "Book assigned to User successfully.";
+        }
+
+        return response()->json(['success' => true, 'message' => $msg]);
     }
 
     public function toggleVisibility(Request $request, Book $book)

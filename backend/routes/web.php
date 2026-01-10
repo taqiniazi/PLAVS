@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/change-shelf', [BookController::class, 'changeShelf'])->name('books.change_shelf');
     Route::post('/books/assign', [BookController::class, 'assign'])->name('books.assign');
     Route::post('/books/return', [BookController::class, 'returnBook'])->name('books.return');
+    Route::post('/books/recall', [BookController::class, 'recallBook'])->name('books.recall');
     Route::post('/books/{book}/toggle-visibility', [BookController::class, 'toggleVisibility'])->name('books.toggle_visibility');
 
     Route::resource('books', BookController::class);
