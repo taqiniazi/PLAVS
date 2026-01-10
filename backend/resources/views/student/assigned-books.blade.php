@@ -47,8 +47,8 @@
                     @endphp
                     <tr class="{{ $isReturned ? 'table-secondary' : '' }}" style="{{ $isReturned ? 'opacity: 0.7;' : '' }}">
                         <td>
-                            <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" 
-                                 alt="{{ $book->title }}" 
+                            <img src="{{ $book->cover_url }}"
+                                 alt="{{ $book->title }}"
                                  class="img-thumbnail"
                                  style="width: 60px; height: 80px; object-fit: cover;">
                         </td>

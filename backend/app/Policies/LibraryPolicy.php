@@ -55,8 +55,8 @@ class LibraryPolicy
      */
     public function update(User $user, Library $library): bool
     {
-        return $user->isSuperAdmin() || 
-               ($user->isAdmin() && $library->type !== 'private') ||
+        return $user->isSuperAdmin() ||
+               $user->isAdmin() ||
                ($user->isOwner() && $library->owner_id === $user->id);
     }
 
@@ -65,7 +65,8 @@ class LibraryPolicy
      */
     public function delete(User $user, Library $library): bool
     {
-        return $user->isSuperAdmin() || 
+        return $user->isSuperAdmin() ||
+               $user->isAdmin() ||
                ($user->isOwner() && $library->owner_id === $user->id);
     }
 

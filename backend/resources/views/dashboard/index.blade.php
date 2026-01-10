@@ -342,7 +342,7 @@
                 @forelse($my_assigned_books ?? [] as $book)
                 <div class="col-md-4 mb-3">
                     <div class="book-card h-100">
-                        <img src="{{ $book->cover_image ?? asset('images/book1.png') }}" 
+                        <img src="{{ $book->cover_url }}"
                              alt="{{ $book->title }}" class="img-fluid">
                         <p class="book-title">{{ $book->title }}</p>
                         <span class="book-author">Author : {{ $book->author }}</span>

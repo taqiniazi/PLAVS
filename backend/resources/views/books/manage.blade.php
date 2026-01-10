@@ -70,7 +70,7 @@
                             <td><input type="checkbox" class="form-check-input book-checkbox"></td>
                             <td>
                                 <div class="book-info">
-                                    <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" 
+                                    <img src="{{ $book->cover_url }}"
                                          alt="Cover" class="img-fluid">
                                     <div>
                                         <span class="book-title">{{ $book->title }}</span>

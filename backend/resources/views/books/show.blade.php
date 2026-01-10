@@ -18,24 +18,39 @@
             {{-- Book Cover Image --}}
             <div class="col-md-4">
                 <div class="book-detail-card">
-                    <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" 
+                    <img src="{{ $book->cover_url }}"
                          alt="{{ $book->title }}" class="img-fluid book-cover">
                     
-                    {{-- Rating Stars --}}
+                    {{-- Rating Section --}}
                     <div class="rating-section mt-3">
-                        <div class="rating-stars">
+                        <label class="text-muted small d-block mb-2">Rate this book</label>
+                        <div class="rating-stars mb-2" id="ratingStars">
                             @for($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star {{ $i <= ($book->rating ?? 0) ? 'text-warning' : 'text-muted' }}"></i>
+                                <i class="far fa-star fa-lg me-1" data-rating="{{ $i }}"></i>
                             @endfor
                         </div>
-                        <small class="text-muted">{{ $book->rating ?? 0 }} out of 5</small>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary" id="averageRating">
+                                {{ round($book->average_rating, 1) }}/5
+                            </span>
+                            <small class="text-muted ms-2" id="ratingCount">
+                                ({{ $book->rating_count }} {{ Str::plural('review', $book->rating_count) }})
+                            </small>
+                        </div>
+                        <div class="mt-2">
+                            <textarea class="form-control" id="reviewText" rows="3"
+                                      placeholder="Share your thoughts about this book...">{{ $userRating->review ?? '' }}</textarea>
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" id="saveRatingBtn" style="display: none;">
+                            <i class="fas fa-save me-1"></i> Save Rating
+                        </button>
                     </div>
                     
                     {{-- Wishlist Button --}}
                     <div class="mt-3">
-                        <button class="btn btn-outline-danger w-100" id="wishlistBtn">
-                            <i class="fas fa-heart"></i>
-                            <span class="ms-2">Add to Wishlist</span>
+                        <button class="btn btn-primary w-100" id="wishlistBtn">
+                            <i class="fas fa-heart-o me-1"></i>
+                            <span id="wishlistText">Add to Wishlist</span>
                         </button>
                     </div>
                 </div>
@@ -130,12 +145,236 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const bookId = {{ $book->id }};
+    const userId = {{ auth()->id() }};
+    
+    // Check if user has already rated this book
+    let userRating = null;
+    
+    // Initialize wishlist button state
+    checkWishlistStatus();
+    
+    // Initialize rating stars
+    initRatingStars();
+    
+    // Wishlist Button Functionality
     const wishlistBtn = document.getElementById('wishlistBtn');
     if (wishlistBtn) {
         wishlistBtn.addEventListener('click', function() {
-            // Wishlist functionality placeholder
-            alert('Wishlist feature - implement backend endpoint');
+            toggleWishlist();
         });
+    }
+    
+    // Save Rating Button Functionality
+    const saveRatingBtn = document.getElementById('saveRatingBtn');
+    if (saveRatingBtn) {
+        saveRatingBtn.addEventListener('click', function() {
+            saveRating();
+        });
+    }
+    
+    function checkWishlistStatus() {
+        // Check if book is in wishlist via AJAX
+        fetch(`/api/wishlist/check/${bookId}`)
+            .then(response => response.json())
+            .then(data => {
+                updateWishlistButton(data.is_in_wishlist);
+            })
+            .catch(error => {
+                console.error('Error checking wishlist:', error);
+            });
+    }
+    
+    function toggleWishlist() {
+        const wishlistBtn = document.getElementById('wishlistBtn');
+        const wishlistText = document.getElementById('wishlistText');
+        const icon = wishlistBtn.querySelector('i');
+        
+        wishlistBtn.disabled = true;
+        wishlistText.textContent = 'Processing...';
+        
+        fetch(`/wishlist/toggle/${bookId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateWishlistButton(data.is_in_wishlist);
+                showToast(data.message, 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling wishlist:', error);
+            showToast('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            wishlistBtn.disabled = false;
+            wishlistText.textContent = document.getElementById('wishlistText').textContent;
+        });
+    }
+    
+    function updateWishlistButton(isInWishlist) {
+        const wishlistBtn = document.getElementById('wishlistBtn');
+        const wishlistText = document.getElementById('wishlistText');
+        const icon = wishlistBtn.querySelector('i');
+        
+        if (isInWishlist) {
+            wishlistBtn.className = 'btn btn-danger w-100';
+            wishlistText.textContent = 'Remove from Wishlist';
+            icon.className = 'fas fa-heart me-1';
+        } else {
+            wishlistBtn.className = 'btn btn-primary w-100';
+            wishlistText.textContent = 'Add to Wishlist';
+            icon.className = 'fas fa-heart-o me-1';
+        }
+    }
+    
+    function initRatingStars() {
+        const stars = document.querySelectorAll('#ratingStars i');
+        const reviewText = document.getElementById('reviewText');
+        const saveRatingBtn = document.getElementById('saveRatingBtn');
+        
+        // Load user's existing rating if any
+        loadUserRating();
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                updateStars(rating);
+                saveRatingBtn.style.display = 'inline-block';
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+            
+            star.addEventListener('mouseleave', function() {
+                resetStars();
+            });
+        });
+        
+        reviewText.addEventListener('input', function() {
+            saveRatingBtn.style.display = 'inline-block';
+        });
+    }
+    
+    function loadUserRating() {
+        // This would typically be passed from the backend
+        // For now, we'll fetch it via AJAX
+        fetch(`/api/books/${bookId}/user-rating`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.rating) {
+                    userRating = data.rating;
+                    updateStars(userRating.rating);
+                    document.getElementById('reviewText').value = userRating.review || '';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user rating:', error);
+            });
+    }
+    
+    function updateStars(rating) {
+        const stars = document.querySelectorAll('#ratingStars i');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.className = 'fas fa-star fa-lg me-1 text-warning';
+            } else {
+                star.className = 'far fa-star fa-lg me-1';
+            }
+        });
+    }
+    
+    function highlightStars(rating) {
+        const stars = document.querySelectorAll('#ratingStars i');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.style.color = '#ffc107';
+            } else {
+                star.style.color = '';
+            }
+        });
+    }
+    
+    function resetStars() {
+        const stars = document.querySelectorAll('#ratingStars i');
+        stars.forEach((star, index) => {
+            if (userRating && index < userRating.rating) {
+                star.className = 'fas fa-star fa-lg me-1 text-warning';
+            } else {
+                star.className = 'far fa-star fa-lg me-1';
+            }
+        });
+    }
+    
+    function saveRating() {
+        const stars = document.querySelectorAll('#ratingStars i.fas.fa-star');
+        const rating = stars.length;
+        const review = document.getElementById('reviewText').value;
+        
+        if (rating === 0) {
+            showToast('Please select a rating first.', 'warning');
+            return;
+        }
+        
+        const saveRatingBtn = document.getElementById('saveRatingBtn');
+        saveRatingBtn.disabled = true;
+        saveRatingBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+        
+        fetch(`/books/${bookId}/rating`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                rating: rating,
+                review: review
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                userRating = { rating: data.rating, review: data.review };
+                updateAverageRating(data.average_rating, data.rating_count);
+                saveRatingBtn.style.display = 'none';
+                showToast('Rating saved successfully!', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving rating:', error);
+            showToast('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            saveRatingBtn.disabled = false;
+            saveRatingBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Rating';
+        });
+    }
+    
+    function updateAverageRating(averageRating, ratingCount) {
+        document.getElementById('averageRating').textContent = `${averageRating}/5`;
+        document.getElementById('ratingCount').textContent = `(${ratingCount} ${ratingCount === 1 ? 'review' : 'reviews'})`;
+    }
+    
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
 });
 </script>

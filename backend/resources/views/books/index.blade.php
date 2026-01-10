@@ -68,7 +68,7 @@
             @forelse($books as $book)
             <div class="book-item mb-3">
                 <a href="{{ route('books.show', $book) }}" class="book-card text-decoration-none">
-                    <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" 
+                    <img src="{{ $book->cover_url }}"
                          alt="{{ $book->title }}" class="img-fluid">
                     <p class="book-title">{{ strlen($book->title) > 18 ? substr($book->title, 0, 15) . '...' : $book->title }}</p>
                     <span class="book-author">Author : {{ $book->author }}</span>

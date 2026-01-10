@@ -83,50 +83,30 @@
                                 @enderror
                             </div>
                             
-                            <!-- Owner Name -->
-                            <div class="col-md-6 mb-3">
-                                <label for="owner_name" class="form-label required-field">Owner Name</label>
-                                <input type="text"
-                                       class="form-control @error('owner_name') is-invalid @enderror"
-                                       id="owner_name"
-                                       name="owner_name"
-                                       value="{{ old('owner_name', $library->owner ? $library->owner->name : '') }}"
-                                       placeholder="Enter owner's full name"
-                                       required>
-                                @error('owner_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <!-- Owner Email -->
-                            <div class="col-md-6 mb-3">
-                                <label for="owner_email" class="form-label required-field">Owner Email</label>
-                                <input type="email"
-                                       class="form-control @error('owner_email') is-invalid @enderror"
-                                       id="owner_email"
-                                       name="owner_email"
-                                       value="{{ old('owner_email', $library->owner ? $library->owner->email : '') }}"
-                                       placeholder="owner@example.com"
-                                       required>
-                                @error('owner_email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <!-- Owner Phone -->
-                            <div class="col-md-6 mb-3">
-                                <label for="owner_phone" class="form-label required-field">Owner Phone</label>
-                                <input type="tel"
-                                       class="form-control @error('owner_phone') is-invalid @enderror"
-                                       id="owner_phone"
-                                       name="owner_phone"
-                                       value="{{ old('owner_phone', $library->owner ? $library->owner->phone : '') }}"
-                                       placeholder="+1234567890"
-                                       required>
-                                <div class="form-text">Please include country code (e.g., +1234567890)</div>
-                                @error('owner_phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                            <!-- Owner Information (Read-only) -->
+                            <div class="col-md-12 mb-3">
+                                <label for="owner_info" class="form-label">Library Owner</label>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Name:</strong> {{ $library->owner ? $library->owner->name : 'System' }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Email:</strong> {{ $library->owner ? $library->owner->email : 'N/A' }}
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <strong>Role:</strong> {{ $library->owner ? $library->owner->getRoleDisplayName() : 'System' }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Library Type:</strong> {{ ucfirst($library->type) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted">Owner information is managed through user profiles</div>
                             </div>
                         </div>
                         

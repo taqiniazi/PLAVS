@@ -245,4 +245,20 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'book_user', 'user_id', 'book_id')
             ->where('assignment_type', 'teacher_assign');
     }
+
+    /**
+     * Get the user's wishlist items.
+     */
+    public function wishlist()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Get the user's ratings.
+     */
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
 }

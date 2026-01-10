@@ -58,6 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/libraries/{library}/invite', [LibraryController::class, 'generateInvite'])->name('libraries.generate_invite');
     Route::get('/join/{token}', [LibraryController::class, 'join'])->name('libraries.join');
 
+    // Wishlist Routes
+    Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle/{book}', [App\Http\Controllers\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Rating Routes
+    Route::post('/books/{book}/rating', [App\Http\Controllers\RatingController::class, 'store'])->name('books.rating.store');
+
     // Room Routes (nested under libraries)
     Route::get('/libraries/{library}/rooms/create', [App\Http\Controllers\RoomController::class, 'create'])->name('libraries.rooms.create');
     Route::post('/libraries/{library}/rooms', [App\Http\Controllers\RoomController::class, 'store'])->name('libraries.rooms.store');

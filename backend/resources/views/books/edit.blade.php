@@ -15,7 +15,7 @@
                 <div class="mb-4">
                     <label class="form-label">Book Cover Image</label>
                     <div class="mb-2">
-                        <img id="edit-image-preview" src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png')) }}" alt="Cover" style="max-width:120px;" />
+                        <img id="edit-image-preview" src="{{ $book->cover_url }}" alt="Cover" style="max-width:120px;" />
                     </div>
                     <input type="file" name="cover_image" class="form-control mb-2" accept="image/*">
                     <input type="hidden" name="scanned_image_url" id="edit_scanned_image_url" value="">
