@@ -131,7 +131,7 @@
                                         @csrf
                                         <input type="hidden" name="book_id" value="{{ $book->id }}">
                                         <input type="hidden" name="user_id" value="{{ $book->user_id }}">
-                                        <button type="submit" class="btn-action btn-return text-success" data-bs-toggle="tooltip" title="Return Book"
+                                        <button type="submit" class="btn-action btn-return text-white" data-bs-toggle="tooltip" title="Return Book"
                                                 data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->user_id }}">
                                             <i class="fas fa-undo"></i>
                                         </button>
