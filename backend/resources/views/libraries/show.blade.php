@@ -27,12 +27,12 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     @can('update', $library)
-                        <a href="{{ route('libraries.edit', $library) }}" class="btn btn-light me-2">
+                        <a href="{{ route('libraries.edit', $library) }}" class="btn btn-outline-info me-2">
                             <i class="fas fa-edit me-2"></i>Edit Library
                         </a>
                     @endcan
                     @can('create', App\Models\Room::class)
-                        <a href="{{ route('libraries.rooms.create', $library) }}" class="btn btn-add-room">
+                        <a href="{{ route('libraries.rooms.create', $library) }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Add Room
                         </a>
                     @endcan
@@ -139,34 +139,34 @@
                 <div class="row">
                     @foreach($library->rooms as $room)
                         <div class="col-md-6 col-lg-4">
-                            <div class="room-card">
-                                <div class="room-header">
+                            <div class="card">
+                                <div class="card-header">
                                     <div>
                                         <h5 class="mb-1">{{ $room->name }}</h5>
                                         <p class="mb-0 text-muted small">{{ $room->description ?? 'No description' }}</p>
                                     </div>
                                     <div class="room-actions">
-                                        <a href="{{ route('libraries.rooms.show', [$library, $room]) }}" 
+                                        <a href="{{ route('libraries.rooms.show', [$library, $room]) }}"
                                            class="btn btn-outline-primary btn-sm" title="View Room">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @can('update', $room)
-                                            <a href="{{ route('libraries.rooms.edit', [$library, $room]) }}" 
-                                               class="btn btn-outline-warning btn-sm" title="Edit Room">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endcan
-                                        @can('delete', $room)
-                                            <form method="POST" action="{{ route('libraries.rooms.destroy', [$library, $room]) }}" 
-                                                  style="display: inline;" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this room?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Room">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
+                                             <i class="fas fa-eye"></i>
+                                         </a>
+                                         @can('update', $room)
+                                             <a href="{{ route('rooms.edit', $room) }}"
+                                                class="btn btn-outline-warning btn-sm" title="Edit Room">
+                                                 <i class="fas fa-edit"></i>
+                                             </a>
+                                         @endcan
+                                         @can('delete', $room)
+                                             <form method="POST" action="{{ route('rooms.destroy', $room) }}"
+                                                   style="display: inline;"
+                                                   onsubmit="return confirm('Are you sure you want to delete this room?')">
+                                                 @csrf
+                                                 @method('DELETE')
+                                                 <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Room">
+                                                     <i class="fas fa-trash"></i>
+                                                 </button>
+                                             </form>
+                                         @endcan
                                     </div>
                                 </div>
                                 

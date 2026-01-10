@@ -20,26 +20,24 @@ class RoomController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Library $library)
     {
-        $libraries = Library::all();
-        return view('rooms.create', compact('libraries'));
+        return view('rooms.create', compact('library'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, Library $library)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'library_id' => 'required|exists:libraries,id',
             'description' => 'nullable|string',
         ]);
 
-        Room::create($validated);
+        $library->rooms()->create($validated);
 
-        return redirect()->route('libraries.show', $request->library_id)
+        return redirect()->route('libraries.show', $library)
             ->with('success', 'Room created successfully.');
     }
 
@@ -57,8 +55,7 @@ class RoomController extends Controller
      */
     public function edit(Room $room)
     {
-        $libraries = Library::all();
-        return view('rooms.edit', compact('room', 'libraries'));
+        return view('rooms.edit', compact('room'));
     }
 
     /**
@@ -68,13 +65,12 @@ class RoomController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'library_id' => 'required|exists:libraries,id',
             'description' => 'nullable|string',
         ]);
 
         $room->update($validated);
 
-        return redirect()->route('rooms.show', [$request->library_id, $room])
+        return redirect()->route('libraries.show', $room->library_id)
             ->with('success', 'Room updated successfully.');
     }
 

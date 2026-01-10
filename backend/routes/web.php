@@ -59,7 +59,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/join/{token}', [LibraryController::class, 'join'])->name('libraries.join');
 
     // Room Routes (nested under libraries)
-    Route::resource('libraries.rooms', RoomController::class);
+    Route::get('/libraries/{library}/rooms/create', [App\Http\Controllers\RoomController::class, 'create'])->name('libraries.rooms.create');
+    Route::post('/libraries/{library}/rooms', [App\Http\Controllers\RoomController::class, 'store'])->name('libraries.rooms.store');
+
+    // Route to view a specific room (Fixes the crash)
+    Route::get('/libraries/{library}/rooms/{room}', [App\Http\Controllers\RoomController::class, 'show'])->name('libraries.rooms.show');
+
+    // Route for Editing/Deleting Rooms (if not using full resource)
+    Route::get('/rooms/{room}/edit', [App\Http\Controllers\RoomController::class, 'edit'])->name('rooms.edit');
+    Route::put('/rooms/{room}', [App\Http\Controllers\RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/rooms/{room}', [App\Http\Controllers\RoomController::class, 'destroy'])->name('rooms.destroy');
 
     // Shelf Routes
     Route::resource('shelves', ShelfController::class);
@@ -82,4 +91,10 @@ Route::middleware('auth')->group(function () {
 // API Routes
 Route::middleware('auth')->group(function () {
     Route::get('/api/events', [EventController::class, 'api'])->name('api.events');
+    
+    // API for fetching rooms by library (for dynamic shelf creation)
+    Route::get('/api/libraries/{library}/rooms', function (\App\Models\Library $library) {
+        $rooms = $library->rooms()->get(['id', 'name']);
+        return response()->json(['rooms' => $rooms]);
+    })->name('api.libraries.rooms');
 });

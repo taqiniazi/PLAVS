@@ -604,3 +604,22 @@ div.dataTables_wrapper div.dataTables_filter input {
     color: #dc3545;
     font-weight: bold;
 }
+
+.shelf-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px dashed #dee2e6;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #6c757d;
+    margin-bottom: 15px;
+}

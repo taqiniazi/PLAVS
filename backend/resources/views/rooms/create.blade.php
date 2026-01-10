@@ -43,9 +43,9 @@
                             <div class="row mb-3">
                                 <div class="col-md-12">
                                     <label for="library_id" class="form-label required-field">Library</label>
-                                    <select class="form-select @error('library_id') is-invalid @enderror" 
-                                            id="library_id" 
-                                            name="library_id" 
+                                    <select class="form-select @error('library_id') is-invalid @enderror"
+                                            id="library_id"
+                                            name="library_id"
                                             required>
                                         <option value="">Select library</option>
                                         @foreach($libraries as $lib)
@@ -63,13 +63,13 @@
                         
                         <div class="row">
                             <!-- Room Name -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="name" class="form-label required-field">Room Name</label>
-                                <input type="text" 
-                                       class="form-control @error('name') is-invalid @enderror" 
-                                       id="name" 
-                                       name="name" 
-                                       value="{{ old('name') }}" 
+                                <input type="text"
+                                       class="form-control @error('name') is-invalid @enderror"
+                                       id="name"
+                                       name="name"
+                                       value="{{ old('name') }}"
                                        placeholder="Enter room name"
                                        required>
                                 @error('name')
@@ -77,28 +77,13 @@
                                 @enderror
                             </div>
                             
-                            <!-- Floor -->
-                            <div class="col-md-6 mb-3">
-                                <label for="floor" class="form-label">Floor</label>
-                                <input type="text" 
-                                       class="form-control @error('floor') is-invalid @enderror" 
-                                       id="floor" 
-                                       name="floor" 
-                                       value="{{ old('floor') }}" 
-                                       placeholder="e.g., Ground Floor, 1st Floor">
-                                <div class="form-text">Optional: Specify which floor this room is on</div>
-                                @error('floor')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
                             <!-- Description -->
                             <div class="col-md-12 mb-3">
                                 <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" 
-                                          id="description" 
-                                          name="description" 
-                                          rows="3" 
+                                <textarea class="form-control @error('description') is-invalid @enderror"
+                                          id="description"
+                                          name="description"
+                                          rows="3"
                                           placeholder="Describe this room (optional)">{{ old('description') }}</textarea>
                                 <div class="form-text">Optional: Add details about the room's purpose or features</div>
                                 @error('description')
@@ -109,7 +94,7 @@
                         
                         <div class="row mt-4">
                             <div class="col-md-6">
-                                <a href="{{ isset($library) ? route('libraries.show', $library) : route('libraries.index') }}" 
+                                <a href="{{ isset($library) ? route('libraries.show', $library) : route('libraries.index') }}"
                                    class="btn btn-outline-secondary w-100">
                                     <i class="fas fa-arrow-left me-2"></i>Cancel
                                 </a>
