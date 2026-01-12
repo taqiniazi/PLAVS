@@ -12,10 +12,17 @@
     $isAdmin = $user->hasAdminRole();
     $isTeacher = $user->isTeacher();
     $isStudent = $user->isStudent();
+    $isOwner = $user->isOwner();
 @endphp
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
@@ -310,9 +317,15 @@
                         <label class="form-label fw-medium">Assign To</label>
                         <select name="assigned_user_id" class="form-select" required>
                             <option selected disabled>Select User...</option>
-                            @foreach($users as $userOption)
-                                <option value="{{ $userOption->id }}">{{ $userOption->name }}</option>
-                            @endforeach
+                            @if($isOwner)
+                                @foreach($users->where('role', 'student') as $userOption)
+                                    <option value="{{ $userOption->id }}">{{ $userOption->name }}</option>
+                                @endforeach
+                            @else
+                                @foreach($users as $userOption)
+                                    <option value="{{ $userOption->id }}">{{ $userOption->name }}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                     <div class="mb-3">
