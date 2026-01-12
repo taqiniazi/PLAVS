@@ -13,7 +13,18 @@ class RoomController extends Controller
      */
     public function index()
     {
-        $rooms = Room::with('library')->paginate(10);
+        $user = auth()->user();
+        // Owners see only their libraries' rooms; admins/librarians see all
+        if ($user->isOwner() && !$user->hasAdminRole()) {
+            $rooms = Room::with('library')
+                ->whereHas('library', function($q) use ($user) {
+                    $q->where('owner_id', $user->id);
+                })
+                ->paginate(10);
+        } else {
+            $rooms = Room::with('library')->paginate(10);
+        }
+
         return view('rooms.index', compact('rooms'));
     }
 
@@ -22,6 +33,7 @@ class RoomController extends Controller
      */
     public function create(Library $library)
     {
+        $this->authorize('manageContent', $library);
         return view('rooms.create', compact('library'));
     }
 
@@ -30,6 +42,7 @@ class RoomController extends Controller
      */
     public function store(Request $request, Library $library)
     {
+        $this->authorize('manageContent', $library);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -46,6 +59,7 @@ class RoomController extends Controller
      */
     public function show(Library $library, Room $room)
     {
+        $this->authorize('view', $room);
         $room->load('shelves');
         return view('rooms.show', compact('room', 'library'));
     }
@@ -55,6 +69,7 @@ class RoomController extends Controller
      */
     public function edit(Room $room)
     {
+        $this->authorize('update', $room);
         return view('rooms.edit', compact('room'));
     }
 
@@ -63,6 +78,7 @@ class RoomController extends Controller
      */
     public function update(Request $request, Room $room)
     {
+        $this->authorize('update', $room);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -79,6 +95,7 @@ class RoomController extends Controller
      */
     public function destroy(Room $room)
     {
+        $this->authorize('delete', $room);
         $libraryId = $room->library_id;
         $room->delete();
 

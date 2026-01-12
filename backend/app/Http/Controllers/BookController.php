@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Models\Shelf;
 
 class BookController extends Controller
 {
@@ -46,34 +47,12 @@ class BookController extends Controller
 
     public function create()
     {
-        $authors = [
-            'Eric Verzuh',
-            'Scott Berkun',
-            'Robert C. Martin',
-            'Martin Fowler',
-            'Kent Beck',
-            'Uncle Bob'
-        ];
+        $user = Auth::user();
+        $shelves = Shelf::whereHas('room.library', function ($q) use ($user) {
+            $q->where('owner_id', $user->id);
+        })->orderBy('name')->get();
 
-        $shelves = [
-            'Shelf A-1',
-            'Shelf A-2',
-            'Shelf B-1',
-            'Shelf B-2',
-            'Shelf C-1',
-            'Shelf C-2',
-            'Shelf C-3',
-            'Shelf C-4'
-        ];
-
-        $owners = [
-            'Taqi Raza Khan',
-            'Library Admin',
-            'Sarah Ahmed',
-            'Ali Khan'
-        ];
-
-        return view('books.create', compact('authors', 'shelves', 'owners'));
+        return view('books.create', compact('shelves'));
     }
 
     public function store(Request $request)
@@ -86,8 +65,7 @@ class BookController extends Controller
             'edition' => 'nullable|string|max:50',
             'publisher' => 'nullable|string|max:255',
             'publish_date' => 'nullable|date',
-            'shelf' => 'nullable|string|max:50',
-            'owner' => 'required|string|max:255',
+            'shelf' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'scanned_image_url' => 'nullable|string'
@@ -106,13 +84,18 @@ class BookController extends Controller
             'edition' => $validated['edition'] ?? null,
             'publisher' => $validated['publisher'] ?? null,
             'publish_date' => $validated['publish_date'] ?? null,
-            'shelf_location' => $validated['shelf'] ?? 'Not Assigned',
-            'owner' => $validated['owner'],
+            'shelf_location' => $validated['shelf'],
+            'owner' => Auth::user()->name,
             'description' => $validated['description'] ?? null,
             'visibility' => true,
-            'status' => 'Available',
-            'image' => 'book1.png'
+            'status' => 'Available'
         ];
+
+        // Map shelf name to shelf_id if it exists
+        $shelfModel = Shelf::where('name', $validated['shelf'])->first();
+        if ($shelfModel) {
+            $bookData['shelf_id'] = $shelfModel->id;
+        }
 
         // Scenario A: user uploaded a file
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
