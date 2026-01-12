@@ -56,12 +56,37 @@ class DashboardController extends Controller
         
         // Student specific stats
         if ($user->isStudent()) {
-            $stats['my_assigned_books'] = $user->assignedBooks()->count();
-            $stats['books_read'] = $user->assignedBooks()->where('status', 'Returned')->count();
-            $stats['currently_reading'] = $user->assignedBooks()->where('status', 'Borrowed')->count();
+            // Combine counts from direct assignment and pivot assignments
+            $stats['my_assigned_books'] = $user->assignedBooks()->count() + $user->booksThroughAssignment()->count();
+            $stats['books_read'] = $user->assignedBooks()->where('status', 'Returned')->count()
+                + $user->booksThroughAssignment()->where('status', 'Returned')->count();
+            $stats['currently_reading'] = $user->assignedBooks()->where('status', 'Borrowed')->count()
+                + $user->booksThroughAssignment()->where('status', 'Borrowed')->count();
             $stats['my_teachers'] = User::where('role', 'teacher')->count();
-            
-            $my_assigned_books = $user->assignedBooks()->get();
+
+            // Get both direct assigned books and pivot assigned books
+            $directBooks = $user->assignedBooks()
+                ->with('category')
+                ->get()
+                ->each(function ($book) {
+                    // Use updated_at as a fallback assigned date for direct assignments
+                    $book->assigned_date = $book->updated_at;
+                });
+
+            $pivotBooks = $user->booksThroughAssignment()
+                ->with('category')
+                ->get()
+                ->each(function ($book) {
+                    // Prefer pivot assigned_at if available, otherwise fallback to updated_at
+                    $book->assigned_date = optional($book->pivot)->assigned_at ?? $book->updated_at;
+                });
+
+            // Merge, sort by assigned_date desc, remove duplicates, and take top 4
+            $my_assigned_books = $directBooks
+                ->merge($pivotBooks)
+                ->sortByDesc('assigned_date')
+                ->unique('id')
+                ->take(4);
         } else {
             $my_assigned_books = collect();
         }

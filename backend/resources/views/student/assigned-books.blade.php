@@ -40,10 +40,29 @@
                 <tbody>
                     @foreach($assignedBooks as $book)
                     @php
-                        $pivot = $book->pivot;
-                        $isReturned = $pivot->is_returned ?? false;
-                        $assignedAt = $pivot->assigned_at ? \Carbon\Carbon::parse($pivot->assigned_at)->format('M d, Y') : 'N/A';
-                        $returnDate = $pivot->return_date ? \Carbon\Carbon::parse($pivot->return_date)->format('M d, Y') : '-';
+                        // Safely access pivot (may be null for directly assigned books)
+                        $pivot = $book->pivot ?? null;
+                        $isReturned = optional($pivot)->is_returned ?? false;
+
+                        // Determine Assigned Date: prefer pivot assigned_at, fallback to controller-provided assigned_date, then N/A
+                        $assignedAtValue = optional($pivot)->assigned_at ?? ($book->assigned_date ?? null);
+                        if ($assignedAtValue instanceof \Carbon\Carbon) {
+                            $assignedAt = $assignedAtValue->format('M d, Y');
+                        } elseif ($assignedAtValue) {
+                            $assignedAt = \Carbon\Carbon::parse($assignedAtValue)->format('M d, Y');
+                        } else {
+                            $assignedAt = 'N/A';
+                        }
+
+                        // Determine Return Date from pivot if available
+                        $returnDateValue = optional($pivot)->return_date;
+                        if ($returnDateValue instanceof \Carbon\Carbon) {
+                            $returnDate = $returnDateValue->format('M d, Y');
+                        } elseif ($returnDateValue) {
+                            $returnDate = \Carbon\Carbon::parse($returnDateValue)->format('M d, Y');
+                        } else {
+                            $returnDate = '-';
+                        }
                     @endphp
                     <tr class="{{ $isReturned ? 'table-secondary' : '' }}" style="{{ $isReturned ? 'opacity: 0.7;' : '' }}">
                         <td>

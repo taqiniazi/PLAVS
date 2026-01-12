@@ -15,11 +15,29 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         
-        // Get only active (non-returned) books assigned to this student through pivot table
-        $assignedBooks = $user->activeAssignedBooks()
+        // Get direct assigned books (via assigned_user_id)
+        $directBooks = $user->assignedBooks()
             ->with('category')
-            ->orderByPivot('assigned_at', 'desc')
-            ->get();
+            ->get()
+            ->each(function ($book) {
+                // Fallback assigned date for direct assignments
+                $book->assigned_date = $book->updated_at;
+            });
+        
+        // Get active (non-returned) books assigned through pivot table
+        $pivotBooks = $user->activeAssignedBooks()
+            ->with('category')
+            ->get()
+            ->each(function ($book) {
+                // Prefer pivot assigned_at if available
+                $book->assigned_date = optional($book->pivot)->assigned_at ?? $book->updated_at;
+            });
+        
+        // Merge both sources, sort by assigned_date desc, and de-duplicate by book id
+        $assignedBooks = $directBooks
+            ->merge($pivotBooks)
+            ->sortByDesc('assigned_date')
+            ->unique('id');
         
         return view('student.assigned-books', compact('assignedBooks'));
     }

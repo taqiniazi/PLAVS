@@ -378,7 +378,8 @@ textarea.form-control {
     padding: 25px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
-table.dataTable thead>tr>th{
+table.dataTable thead>tr>th,
+table thead>tr>th{
     background-color: var(--hover-bg-navy);
     color: var(--bg-light);
 }
