@@ -165,7 +165,9 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
-        return view('books.show', compact('book'));
+        $ratings = $book->ratings()->with('user')->orderByDesc('created_at')->get();
+        $userRating = auth()->check() ? $book->ratings()->where('user_id', auth()->id())->first() : null;
+        return view('books.show', compact('book', 'ratings', 'userRating'));
     }
 
     public function edit(Book $book)
@@ -360,14 +362,23 @@ class BookController extends Controller
         $query = Book::query();
 
         // Owner scope restriction: Owners can only see books from their own libraries
-        if ($user->isOwner()) {
-            $query->whereHas('shelf.room.library', function($q) use ($user) {
-                $q->where('owner_id', $user->id);
+        if ($user->isOwner()) { 
+            $query->where(function($q) use ($user) {
+                // Books shelved under libraries owned by this user
+                $q->whereHas('shelf.room.library', function($q2) use ($user) {
+                    $q2->where('owner_id', $user->id);
+                })
+                // Include unshelved books explicitly owned by this user
+                ->orWhere(function($q2) use ($user) {
+                    $q2->whereNull('shelf_id')
+                       ->where('owner', $user->name);
+                });
             });
         }
 
         // Check if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
+        
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', '%' . $searchTerm . '%')

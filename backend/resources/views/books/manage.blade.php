@@ -60,7 +60,7 @@
                             <th>Visibility</th>
                             <th>Current Holder</th>
                             <th>Status</th>
-                            @if($isAdmin || $isTeacher || $isStudent)
+                            @if($isAdmin || $isTeacher || $isStudent  || $isOwner)
                             <th class="text-end" data-orderable="false">Actions</th>
                             @endif
                         </tr>
@@ -68,7 +68,9 @@
                     <tbody>
                         @foreach($books as $book)
                         <tr>
+                            @if($isAdmin)
                             <td><input type="checkbox" class="form-check-input book-checkbox"></td>
+                            @endif
                             <td>
                                 <div class="book-info">
                                     <img src="{{ $book->cover_url }}"
@@ -196,8 +198,8 @@
     </div>
 </div>
 
-<!-- Single Transfer Modal (Owner-specific) -->
-@if(auth()->user()->isOwner())
+<!-- Single Transfer Modal (Admin/Owner/Super Admin) -->
+@if(auth()->user()->hasAdminRole())
 <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -265,7 +267,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i> Change Shelf Location</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button"    class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="shelvesForm" method="POST" action="">
                 @csrf
@@ -374,6 +376,15 @@
 <script>
 $(document).ready(function () {
     // Initialize DataTables
+    var hasActionsColumn = {{ ($isAdmin || $isTeacher || $isStudent) ? 'true' : 'false' }};
+    var nonOrderableTargets = [];
+    @if($isAdmin)
+    nonOrderableTargets.push(0);
+    @endif
+    if (hasActionsColumn) {
+        nonOrderableTargets.push(-1);
+    }
+
     var table = $('#booksTable').DataTable({
         "language": {
             "search": "Search Inventory:",
@@ -381,7 +392,7 @@ $(document).ready(function () {
             "info": "Showing _START_ to _END_ of _TOTAL_ books"
         },
         "columnDefs": [
-            { "orderable": false, "targets": [0, 5] }
+            { "orderable": false, "targets": nonOrderableTargets }
         ]
     });
 
@@ -391,13 +402,16 @@ $(document).ready(function () {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Handle select all checkbox
-    document.getElementById('selectAll').addEventListener('change', function() {
-        var checkboxes = document.querySelectorAll('tbody input[type="checkbox"].book-checkbox');
-        for(var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].checked = this.checked;
-        }
-    });
+    // Handle select all checkbox (admin only)
+    var selectAllEl = document.getElementById('selectAll');
+    if (selectAllEl) {
+        selectAllEl.addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('tbody input[type="checkbox"].book-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+    }
 
     // Move modals to body to fix z-index issues
     $('.modal').appendTo('body');
@@ -602,7 +616,7 @@ $(document).ready(function () {
     });
     
     // Transfer type selection logic
-    @if(auth()->user()->isOwner())
+    @if(auth()->user()->hasAdminRole())
     const transferToLibrary = document.getElementById('transferToLibrary');
     const transferToUser = document.getElementById('transferToUser');
     const librarySelection = document.getElementById('librarySelection');

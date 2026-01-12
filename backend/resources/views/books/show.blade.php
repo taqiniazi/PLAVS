@@ -33,11 +33,12 @@
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-primary" id="averageRating">
-                                    {{ round($book->average_rating, 1) }}/5
-                                </span>
-                                <small class="text-muted ms-2" id="ratingCount">
-                                    ({{ $book->rating_count }} {{ Str::plural('review', $book->rating_count) }})
-                                </small>
+                                     {{ round($book->average_rating, 1) }}/5
+                                 </span>
+                                 @php $reviewCount = isset($ratings) ? $ratings->count() : ($book->rating_count ?? 0); @endphp
+                                 <small class="text-muted ms-2" id="ratingCount">
+                                     ({{ $reviewCount }} {{ Str::plural('review', $reviewCount) }})
+                                 </small>
                             </div>
                             <div class="mt-2">
                                 <textarea class="form-control" id="reviewText" name="review" rows="3"
@@ -125,6 +126,44 @@
                     <div class="mb-3">
                         <label class="text-muted small">Description</label>
                         <p class="mb-0">{{ $book->description ?? 'No description available.' }}</p>
+                    </div>
+                    {{-- Ratings Area --}}
+                    <label class="text-muted small">Ratings</label>
+                    <div class="card mb-3">
+                        <div class="card-body bg-light">
+                            @if(isset($ratings) && $ratings->isEmpty())
+                                <p class="text-muted mb-0">No reviews yet. Be the first to review.</p>
+                            @else
+                                <ul class="list-unstyled mb-0">
+                                    @foreach($ratings as $rating)
+                                        @php $user = $rating->user; @endphp
+                                        <li class="mb-3">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <div class="avatar-small rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                                        {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center">
+                                                        <strong>{{ $user->name ?? 'Unknown User' }}</strong>
+                                                        <small class="text-muted ms-2">{{ optional($rating->created_at)->diffForHumans() }}</small>
+                                                    </div>
+                                                    <div class="mt-1">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="{{ $i <= (int)($rating->rating ?? 0) ? 'fas fa-star text-warning' : 'far fa-star' }} me-1"></i>
+                                                        @endfor
+                                                    </div>
+                                                    @if(!empty($rating->review))
+                                                        <p class="mb-0 mt-2">{{ $rating->review }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
                     </div>
                     
                     {{-- Admin Actions --}}
