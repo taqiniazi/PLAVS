@@ -17,29 +17,68 @@ class DashboardController extends Controller
         $user = Auth::user();
         $stats = [];
         
-        // Base stats for all users
-        $stats['total_books'] = number_format(Book::count());
-        $stats['active_members'] = number_format(User::count());
-        $stats['books_borrowed'] = number_format(Book::where('status', 'like', 'Borrowed%')->count());
-        $stats['book_shelves'] = number_format(Shelf::count());
-        
-        // Owner specific stat: total librarians linked to this owner
-        if ($user->isOwner()) {
-            $stats['total_librarians'] = number_format(
-                User::where('role', User::ROLE_LIBRARIAN)
-                    ->where('parent_owner_id', $user->id)
-                    ->count()
-            );
-        }
-        
-        // Admin/Librarian/Owner specific stats
         if ($user->hasAdminRole()) {
-            $stats['total_libraries'] = number_format(Library::count());
-            $stats['total_rooms'] = \App\Models\Room::count();
-            
-            // Get libraries for overview
-            $libraries = Library::with(['rooms', 'shelves', 'books'])->get();
-            
+            if ($user->isAdmin()) {
+                // Admin sees all
+                $stats['total_books'] = number_format(Book::count());
+                $stats['active_members'] = number_format(User::count());
+                $stats['books_borrowed'] = number_format(Book::where('status', 'like', 'Borrowed%')->count());
+                $stats['book_shelves'] = number_format(Shelf::count());
+                $stats['total_libraries'] = number_format(Library::count());
+                $stats['total_rooms'] = \App\Models\Room::count();
+                
+                $libraries = Library::with(['rooms', 'shelves', 'books'])->get();
+            } elseif ($user->isOwner()) {
+                // Owner sees only their own data
+                $ownerId = $user->id;
+                
+                $stats['total_books'] = number_format(Book::where(function($q) use ($ownerId, $user) {
+                     $q->whereHas('shelf.room.library', function($sq) use ($ownerId) {
+                         $sq->where('owner_id', $ownerId);
+                     })->orWhere('owner', $user->name);
+                })->count());
+                
+                $stats['total_librarians'] = number_format(
+                    User::where('role', User::ROLE_LIBRARIAN)
+                        ->where('parent_owner_id', $user->id)
+                        ->count()
+                );
+                
+                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function($q) use ($ownerId) {
+                    $q->where('owner_id', $ownerId);
+                })->count());
+                
+                $stats['total_libraries'] = number_format(Library::where('owner_id', $ownerId)->count());
+                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function($q) use ($ownerId) {
+                    $q->where('owner_id', $ownerId);
+                })->count());
+                
+                $libraries = Library::where('owner_id', $ownerId)->with(['rooms', 'shelves', 'books'])->get();
+            } elseif ($user->isLibrarian()) {
+                // Librarian sees parent owner's data
+                $ownerId = $user->parent_owner_id;
+                
+                $stats['total_books'] = number_format(Book::where(function($q) use ($ownerId, $user) {
+                     $q->whereHas('shelf.room.library', function($sq) use ($ownerId) {
+                         $sq->where('owner_id', $ownerId);
+                     })->orWhere('owner', optional($user->parentOwner)->name);
+                })->count());
+                
+                $stats['active_members'] = number_format(User::whereHas('joinedLibraries', function($q) use ($ownerId) {
+                    $q->where('owner_id', $ownerId);
+                })->count());
+                
+                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function($q) use ($ownerId) {
+                    $q->where('owner_id', $ownerId);
+                })->count());
+                
+                $stats['total_libraries'] = number_format(Library::where('owner_id', $ownerId)->count());
+                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function($q) use ($ownerId) {
+                    $q->where('owner_id', $ownerId);
+                })->count());
+                
+                $libraries = Library::where('owner_id', $ownerId)->with(['rooms', 'shelves', 'books'])->get();
+            }
         } else {
             $libraries = collect();
         }

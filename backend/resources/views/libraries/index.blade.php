@@ -31,7 +31,7 @@
 <div class="row mt-3">
     <div class="col-lg-12">
         <div class="page-header mb-4">
-            <h4 class="page-title">Libraries</h4>
+            <h4 class="page-title">My Libraries</h4>
             @can('create', App\Models\Library::class)
             <div class="float-end">
                 <a href="{{ route('libraries.create') }}" class="btn btn-primary">
@@ -124,7 +124,7 @@
         @if(auth()->user()->isOwner())
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>Your Librarians</h5>
+                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>My Librarians</h5>
             </div>
             <div class="card-body p-0">
                 @if(isset($librarians) && $librarians->count() > 0)

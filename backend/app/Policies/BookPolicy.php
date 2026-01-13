@@ -91,7 +91,7 @@ class BookPolicy
      */
     public function delete(User $user, Book $book): bool
     {
-        return $user->hasAdminRole();
+        return $this->update($user, $book);
     }
 
     /**
@@ -99,7 +99,7 @@ class BookPolicy
      */
     public function restore(User $user, Book $book): bool
     {
-        return $user->hasAdminRole();
+        return $this->update($user, $book);
     }
 
     /**
@@ -115,6 +115,6 @@ class BookPolicy
      */
     public function assign(User $user, Book $book): bool
     {
-        return $user->canAssignBooks() && ($user->hasAdminRole() || $user->isLibrarian() || $user->isOwner() || $user->isTeacher());
+        return $this->update($user, $book);
     }
 }

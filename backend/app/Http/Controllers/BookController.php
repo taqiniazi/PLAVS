@@ -17,16 +17,27 @@ class BookController extends Controller
     {
         $user = Auth::user();
         
-        // Students/Teachers: only show their assigned books
-        if ($user && !$user->canViewAllBooks()) {
-            // Librarian is excluded from canViewAllBooks; handle librarian explicitly below
-            $query = $user->booksThroughAssignment();
-        } else {
+        // Determine base query based on role
+        if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
+            // Admins, Owners, Librarians start with all books (then filtered)
             $query = Book::query();
+        } else {
+            // Students/Teachers: only show their assigned books
+            $query = $user ? $user->booksThroughAssignment() : Book::query();
         }
 
-        // Owner active library filter
+        // Owner Scope: Show only books in their libraries or owned by them
         if ($user && $user->isOwner()) {
+            $query->where(function($q) use ($user) {
+                // Books in shelves belonging to libraries owned by this user
+                $q->whereHas('shelf.room.library', function($subQ) use ($user) {
+                    $subQ->where('owner_id', $user->id);
+                })
+                // OR books explicitly owned by this user (e.g. unshelved)
+                ->orWhere('owner', $user->name);
+            });
+
+            // Active library filter (if selected in session)
             $activeLibraryId = session('active_library_id');
             if ($activeLibraryId) {
                 $query->whereHas('shelf.room.library', function($q) use ($activeLibraryId) {
@@ -35,19 +46,13 @@ class BookController extends Controller
             }
         }
 
-        // Librarian scope: show only books under parent owner's libraries or unshelved books owned by parent
+        // Librarian Scope: Show only books in parent owner's libraries or owned by parent
         if ($user && $user->isLibrarian()) {
             $query->where(function($q) use ($user) {
-                $q->whereHas('shelf.room.library', function($q2) use ($user) {
-                    $q2->where('owner_id', $user->parent_owner_id);
+                $q->whereHas('shelf.room.library', function($libQ) use ($user) {
+                    $libQ->where('owner_id', $user->parent_owner_id);
                 })
-                ->orWhere(function($q2) use ($user) {
-                    $q2->whereNull('shelf_id')
-                       ->whereHas('shelf', function($q3) {
-                           // no-op when shelf_id is null
-                       })
-                       ->orWhere('owner', optional($user->parentOwner)->name);
-                });
+                ->orWhere('owner', optional($user->parentOwner)->name);
             });
         }
         
@@ -62,11 +67,12 @@ class BookController extends Controller
             });
         }
         
-        // For admins/owners, paginate; for others assigned books get all
-        if ($user && !$user->canViewAllBooks()) {
-            $books = $query->orderByPivot('assigned_at', 'desc')->get();
-        } else {
+        // Pagination
+        if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
             $books = $query->paginate(15)->appends($request->query());
+        } else {
+            // For assigned books (students/teachers), usually get all or paginate
+            $books = $query->orderByPivot('assigned_at', 'desc')->paginate(15)->appends($request->query());
         }
         
         return view('books.index', compact('books'));

@@ -30,7 +30,13 @@ class LibraryController extends Controller
         } elseif ($user->isLibrarian()) {
             $libraries = $query->where('owner_id', $user->parent_owner_id)->get();
         } elseif ($user->isOwner()) {
-            $libraries = $query->where('owner_id', $user->id)->get();
+            // Show owned libraries AND joined libraries
+            $libraries = $query->where(function($q) use ($user) {
+                $q->where('owner_id', $user->id)
+                  ->orWhereHas('members', function($subQ) use ($user) {
+                      $subQ->where('user_id', $user->id);
+                  });
+            })->get();
         } else {
             // Students and Teachers can only see public libraries
             $libraries = $query->where('type', 'public')->get();

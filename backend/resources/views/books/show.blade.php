@@ -167,15 +167,20 @@
                     </div>
                     
                     {{-- Admin Actions --}}
-                    @if(auth()->user()->hasAdminRole())
+                    @if(auth()->user()->can('update', $book) || auth()->user()->can('assign', $book))
                     <hr>
                     <div class="d-flex gap-2">
+                        @can('update', $book)
                         <a href="{{ route('books.edit', $book) }}" class="btn btn-primary">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
+                        @endcan
+                        
+                        @can('assign', $book)
                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignModal">
                             <i class="fas fa-user-plus me-1"></i> Assign
                         </button>
+                        @endcan
                     </div>
                     @endif
                 </div>
