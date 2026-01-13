@@ -142,11 +142,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Normalize arbitrary role value to canonical key (lowercase, underscores, with aliases)
+     */
+    private function normalizeRoleValue(string $role): string
+    {
+        $raw = strtolower(trim($role));
+        $norm = preg_replace('/[\s\-]+/', '_', $raw); // spaces or hyphens to underscores
+        $aliases = [
+            'superadmin' => 'super_admin',
+        ];
+        return $aliases[$norm] ?? $norm;
+    }
+
+    /**
+     * Normalize current user's role to canonical key
+     */
+    private function roleKey(): string
+    {
+        return $this->normalizeRoleValue((string) $this->role);
+    }
+
+    /**
      * Check if user is Super Admin
      */
     public function isSuperAdmin(): bool
     {
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        return $this->roleKey() === self::ROLE_SUPER_ADMIN;
     }
 
     /**
@@ -154,7 +175,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN]);
+        return in_array($this->roleKey(), [self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN], true);
     }
 
     /**
@@ -162,7 +183,7 @@ class User extends Authenticatable
      */
     public function isLibrarian(): bool
     {
-        return $this->role === self::ROLE_LIBRARIAN;
+        return $this->roleKey() === self::ROLE_LIBRARIAN;
     }
 
     /**
@@ -170,7 +191,7 @@ class User extends Authenticatable
      */
     public function isOwner(): bool
     {
-        return $this->role === self::ROLE_OWNER;
+        return $this->roleKey() === self::ROLE_OWNER;
     }
 
     /**
@@ -178,7 +199,7 @@ class User extends Authenticatable
      */
     public function isTeacher(): bool
     {
-        return $this->role === self::ROLE_TEACHER;
+        return $this->roleKey() === self::ROLE_TEACHER;
     }
 
     /**
@@ -186,7 +207,7 @@ class User extends Authenticatable
      */
     public function isStudent(): bool
     {
-        return $this->role === self::ROLE_STUDENT;
+        return $this->roleKey() === self::ROLE_STUDENT;
     }
 
     /**
@@ -194,7 +215,7 @@ class User extends Authenticatable
      */
     public function isCandidate(): bool
     {
-        return $this->role === self::ROLE_CANDIDATE;
+        return $this->roleKey() === self::ROLE_CANDIDATE;
     }
 
     /**
@@ -202,15 +223,7 @@ class User extends Authenticatable
      */
     public function hasAdminRole(): bool
     {
-        return in_array($this->role, self::ADMIN_ROLES);
-    }
-
-    /**
-     * Check if user can manage libraries
-     */
-    public function canManageLibraries(): bool
-    {
-        return $this->hasAdminRole();
+        return in_array($this->roleKey(), self::ADMIN_ROLES, true);
     }
 
     /**
@@ -218,7 +231,7 @@ class User extends Authenticatable
      */
     public function canAssignBooks(): bool
     {
-        return in_array($this->role, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_LIBRARIAN, self::ROLE_TEACHER]);
+        return in_array($this->roleKey(), [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_LIBRARIAN, self::ROLE_TEACHER], true);
     }
 
     /**
@@ -227,7 +240,30 @@ class User extends Authenticatable
     public function canViewAllBooks(): bool
     {
         // Librarians should NOT see all system books; limit to their owner's libraries
-        return in_array($this->role, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_OWNER]);
+        return in_array($this->roleKey(), [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_OWNER], true);
+    }
+
+    /**
+     * Check if the user has a specific role.
+     * Accepts either display strings like 'Super Admin' or keys like 'super_admin'.
+     */
+    public function hasRole($role)
+    {
+        $key = $this->normalizeRoleValue(is_string($role) ? $role : (string) $role);
+        return $this->roleKey() === $key;
+    }
+
+    // Helper for checking multiple roles
+    public function hasAnyRole($roles)
+    {
+        if (is_array($roles)) {
+            $normalized = array_map(function ($r) {
+                return $this->normalizeRoleValue((string) $r);
+            }, $roles);
+            return in_array($this->roleKey(), $normalized, true);
+        }
+        $key = $this->normalizeRoleValue((string) $roles);
+        return $this->roleKey() === $key;
     }
 
     /**
@@ -235,7 +271,8 @@ class User extends Authenticatable
      */
     public function getRoleDisplayName(): string
     {
-        return match($this->role) {
+        $key = $this->roleKey();
+        return match($key) {
             self::ROLE_SUPER_ADMIN => 'Super Admin',
             self::ROLE_ADMIN => 'Admin',
             self::ROLE_LIBRARIAN => 'Librarian',
@@ -243,7 +280,7 @@ class User extends Authenticatable
             self::ROLE_TEACHER => 'Teacher',
             self::ROLE_STUDENT => 'Student',
             self::ROLE_CANDIDATE => 'Candidate',
-            default => ucfirst($this->role),
+            default => ucwords(str_replace('_', ' ', $key)),
         };
     }
 
@@ -293,27 +330,8 @@ class User extends Authenticatable
         return $this->hasMany(Rating::class);
     }
 
-    /**
-     * Check if the user has a specific role.
-     * Adjust the logic below depending on if 'role' is a column or a relationship.
-     */
-    public function hasRole($role)
-    {
-        // OPTION 1: If you have a simple 'role' string column in your users table
-        // checks if the column matches the string (e.g., 'Super Admin', 'Owner')
-        return $this->role === $role;
-
-        // OPTION 2: If you are using a package like Spatie, verify you imported the Trait:
-        // use Spatie\Permission\Traits\HasRoles;
-        // use HasRoles; // inside the class
-    }
-
-    // Helper for checking multiple roles (optional but useful)
-    public function hasAnyRole($roles)
-    {
-        if (is_array($roles)) {
-            return in_array($this->role, $roles);
-        }
-        return $this->role === $roles;
-    }
+    // Duplicate legacy hasRole/hasAnyRole methods were removed.
+    // Normalized versions are defined earlier in the class.
+    // Legacy duplicate methods removed to prevent redeclare errors.
+    // hasRole() and hasAnyRole() are already defined above with normalized role checks.
 }

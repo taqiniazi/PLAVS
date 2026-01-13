@@ -12,6 +12,7 @@ use App\Http\Controllers\ShelfController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\LibrarianController;
+use App\Http\Controllers\PermissionsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,7 @@ Route::middleware('auth')->group(function () {
 
     // Library Routes
     Route::resource('libraries', LibraryController::class);
+    Route::post('/libraries/switch', [LibraryController::class, 'switch'])->name('libraries.switch');
     Route::get('/libraries/{library}/invite', [LibraryController::class, 'generateInvite'])->name('libraries.generate_invite');
     Route::get('/join/{token}', [LibraryController::class, 'join'])->name('libraries.join');
 
@@ -110,6 +112,11 @@ Route::middleware('auth')->group(function () {
         session(['notifications_cleared_at' => now()]);
         return back();
     })->name('notifications.clear');
+
+    // Permissions Routes (Admin/Superadmin only view; candidates can request)
+    Route::get('/permissions', [PermissionsController::class, 'index'])->name('permissions.index');
+    Route::post('/permissions/assign-role', [PermissionsController::class, 'assignRole'])->name('permissions.assign-role');
+    Route::post('/permissions/request-owner', [PermissionsController::class, 'requestOwner'])->name('permissions.request-owner');
 });
 
 // API Routes

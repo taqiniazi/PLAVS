@@ -82,21 +82,27 @@
                                 @enderror
                             </div>
                             
+                            @php($isOwner = Auth::user()->isOwner())
+
                             <!-- Owner Name -->
                             <div class="col-md-6 mb-3">
-                                <label for="owner_name" class="form-label required-field">Owner Name</label>
+                                <label for="owner_name" class="form-label">Owner Name</label>
                                 <input type="text"
                                        class="form-control @error('owner_name') is-invalid @enderror"
                                        id="owner_name"
                                        name="owner_name"
-                                       value="{{ old('owner_name') }}"
+                                       value="{{ $isOwner ? Auth::user()->name : old('owner_name') }}"
                                        placeholder="Enter owner's full name"
-                                       required>
+                                       {{ $isOwner ? 'readonly' : '' }}>
                                 @error('owner_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                @if($isOwner)
+                                    <div class="form-text">You are logged in as the owner. The library will be created under your account.</div>
+                                @endif
                             </div>
                             
+                            @if(!$isOwner)
                             <!-- Owner Email -->
                             <div class="col-md-6 mb-3">
                                 <label for="owner_email" class="form-label required-field">Owner Email</label>
@@ -107,37 +113,39 @@
                                        value="{{ old('owner_email') }}"
                                        placeholder="owner@example.com"
                                        required>
+                                <div class="form-text">If this email already exists, the new library will be attached to that owner. Otherwise, fill in name, phone, and password to create a new owner.</div>
                                 @error('owner_email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @endif
                             
                             <!-- Owner Phone -->
                             <div class="col-md-6 mb-3">
-                                <label for="owner_phone" class="form-label required-field">Owner Phone</label>
+                                <label for="owner_phone" class="form-label">Owner Phone</label>
                                 <input type="tel"
                                        class="form-control @error('owner_phone') is-invalid @enderror"
                                        id="owner_phone"
                                        name="owner_phone"
-                                       value="{{ old('owner_phone') }}"
+                                       value="{{ $isOwner ? Auth::user()->phone : old('owner_phone') }}"
                                        placeholder="+1234567890"
-                                       required>
+                                       {{ $isOwner ? 'readonly' : '' }}>
                                 <div class="form-text">Please include country code (e.g., +1234567890)</div>
                                 @error('owner_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             
+                            @if(!$isOwner)
                             <!-- Owner Password -->
                             <div class="col-md-6 mb-3">
-                                <label for="owner_password" class="form-label required-field">Owner Password</label>
+                                <label for="owner_password" class="form-label">Owner Password</label>
                                 <input type="password"
                                        class="form-control @error('owner_password') is-invalid @enderror"
                                        id="owner_password"
                                        name="owner_password"
-                                       placeholder="Create a secure password"
-                                       required>
-                                <div class="form-text">Password must be at least 8 characters</div>
+                                       placeholder="Create a secure password">
+                                <div class="form-text">Password must be at least 8 characters. Required only if you're creating a new owner.</div>
                                 @error('owner_password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -145,17 +153,17 @@
                             
                             <!-- Password Confirmation -->
                             <div class="col-md-6 mb-3">
-                                <label for="owner_password_confirmation" class="form-label required-field">Confirm Password</label>
+                                <label for="owner_password_confirmation" class="form-label">Confirm Password</label>
                                 <input type="password"
                                        class="form-control @error('owner_password_confirmation') is-invalid @enderror"
                                        id="owner_password_confirmation"
                                        name="owner_password_confirmation"
-                                       placeholder="Confirm your password"
-                                       required>
+                                       placeholder="Confirm your password">
                                 @error('owner_password_confirmation')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @endif
                             
                             <!-- Contact Information Section -->
                             <div class="col-12 mt-4">

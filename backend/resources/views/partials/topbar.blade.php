@@ -9,6 +9,25 @@
     </div>
 
     <div class="d-flex align-items-center gap-3">
+        @php($user = Auth::user())
+        @if($user && ($user->isOwner() || $user->isLibrarian()))
+            @php($ownerId = $user->isOwner() ? $user->id : $user->parent_owner_id)
+            @php($ownerLibraries = \App\Models\Library::where('owner_id', $ownerId)->orderBy('name')->get())
+            @if($ownerLibraries->count() > 1)
+                <form action="{{ route('libraries.switch') }}" method="POST" class="d-flex align-items-center">
+                    @csrf
+                    <label class="me-2 text-muted small">Active Library:</label>
+                    <select name="library_id" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 220px;">
+                        @foreach($ownerLibraries as $lib)
+                            <option value="{{ $lib->id }}" {{ session('active_library_id') == $lib->id ? 'selected' : '' }}>
+                                {{ $lib->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
+        @endif
+
         <!-- Notifications Dropdown -->
         <div class="dropdown">
             <button class="btn btn-link text-muted fs-5 p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">

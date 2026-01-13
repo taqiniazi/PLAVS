@@ -60,8 +60,32 @@
                 </div>
 
                 <div class="mt-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-submit">Update Profile</button>
-                    <a href="{{ route('dashboard') }}" class="btn btn-light">Cancel</a>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-submit w-100">
+                                <i class="fas fa-save me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </div>
+                    
+                    @if(Auth::user()->isCandidate() && !Auth::user()->requested_owner)
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <form action="{{ route('permissions.request-owner') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-warning w-100">
+                                        <i class="fas fa-user-shield me-2"></i>Request Owner Role
+                                    </button>
+                                </form>
+                                <small class="text-muted d-block mt-2">Your request will notify administrators. You will be upgraded to Owner once approved.</small>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </form>
         </div>

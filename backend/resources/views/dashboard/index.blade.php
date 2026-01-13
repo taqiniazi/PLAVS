@@ -7,6 +7,8 @@
     $user = auth()->user();
     $isTeacher = $user->isTeacher();
     $isStudent = $user->isStudent();
+    $isCandidate = $user->isCandidate();
+    $isStudentOrCandidate = $isStudent || $isCandidate;
     $hasAdminRole = $user->hasAdminRole();
 @endphp
 
@@ -103,7 +105,26 @@
                 </div>
             </div>
         </div>
-    @elseif($isStudent)
+    @elseif($isStudentOrCandidate)
+        {{-- Candidate: Request Owner Role action --}}
+        @if($isCandidate)
+            <div class="col-12 mb-3">
+                @if(!$user->requested_owner)
+                    <form method="POST" action="{{ route('permissions.request-owner') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-tie"></i> Request Owner Role
+                        </button>
+                        <small class="text-muted ms-2">If you own a library, request Owner access to create and manage it.</small>
+                    </form>
+                @else
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-hourglass-half"></i> Your request for Owner role is pending approval.
+                    </div>
+                @endif
+            </div>
+        @endif
+
         {{-- Student Stats --}}
         <div class="col-lg-3 col-md-6">
             <div class="stat-card">

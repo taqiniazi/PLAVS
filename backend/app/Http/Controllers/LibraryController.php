@@ -62,43 +62,94 @@ class LibraryController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Library::class);
-        $request->validate([
+        $user = Auth::user();
+
+        if ($user->isOwner()) {
+            // Logged-in owner: skip owner email/password validation and use current user
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'type' => 'required|in:public,private',
+                'location' => 'nullable|string',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'contact_email' => 'nullable|email|max:255',
+                'contact_phone' => 'nullable|string|max:20',
+            ]);
+
+            DB::transaction(function () use ($request, $user) {
+                // Create Library owned by the logged-in owner
+                $library = Library::create([
+                    'name' => $request->name,
+                    'type' => $request->type,
+                    'location' => $request->location,
+                    'description' => $request->description,
+                    'owner_id' => $user->id,
+                    'contact_email' => $request->contact_email,
+                    'contact_phone' => $request->contact_phone,
+                ]);
+
+                // Handle image upload
+                if ($request->hasFile('image')) {
+                    $imagePath = $request->file('image')->store('library_images', 'public');
+                    $library->image = $imagePath;
+                    $library->save();
+                }
+            });
+
+            return redirect()->route('libraries.index')
+                ->with('success', 'Library created successfully!');
+        }
+
+        // Admin/Superadmin creating a new owner + library (supports existing owner by email)
+        // Base validation for library and owner email
+        $baseRules = [
             // Library validation
             'name' => 'required|string|max:255',
             'type' => 'required|in:public,private',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            
-            // Owner validation
-            'owner_name' => 'required|string|max:255',
-            'owner_email' => [
-                'required',
-                'email',
-                Rule::unique('users', 'email'),
-                Rule::unique('users', 'username'),
-            ],
-            'owner_phone' => 'required|string|max:20',
-            'owner_password' => 'required|string|min:8|confirmed',
-            
             // Contact validation
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:20',
-        ]);
+            // Owner email is always required
+            'owner_email' => 'required|email',
+        ];
 
-        DB::transaction(function () use ($request) {
-            // 1. Check/Create User
-            $user = User::firstOrCreate(
-                ['email' => $request->owner_email],
-                [
-                    'name' => $request->owner_name,
-                    'username' => $request->owner_email,
-                    'email' => $request->owner_email,
-                    'phone' => $request->owner_phone,
-                    'password' => Hash::make($request->owner_password),
-                    'role' => 'owner',
-                ]
-            );
+        // Normalize email to avoid case/whitespace mismatches when checking existing owner
+        $ownerEmailNormalized = Str::lower(trim($request->owner_email));
+        $existingOwner = User::where(function ($q) use ($ownerEmailNormalized) {
+            $q->where('email', $ownerEmailNormalized)
+              ->orWhere('username', $ownerEmailNormalized);
+        })->first();
+
+        if ($existingOwner) {
+            $request->validate($baseRules);
+        } else {
+            $request->validate($baseRules + [
+                'owner_name' => 'required|string|max:255',
+                'owner_phone' => 'required|string|max:20',
+                'owner_password' => 'required|string|min:8|confirmed',
+                // enforce uniqueness when creating a new owner
+                'owner_email' => [
+                    'required',
+                    'email',
+                    Rule::unique('users', 'email'),
+                    Rule::unique('users', 'username'),
+                ],
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $existingOwner, $ownerEmailNormalized) {
+            // 1. Resolve Owner user
+            $user = $existingOwner ?: User::create([
+                'name' => $request->owner_name,
+                'username' => $ownerEmailNormalized,
+                'email' => $ownerEmailNormalized,
+                'phone' => $request->owner_phone,
+                'password' => Hash::make($request->owner_password),
+                'role' => User::ROLE_OWNER ?? 'owner',
+            ]);
 
             // 2. Create Library
             $library = Library::create([
@@ -120,7 +171,7 @@ class LibraryController extends Controller
         });
 
         return redirect()->route('libraries.index')
-            ->with('success', 'Library and Owner account created successfully!');
+            ->with('success', 'Library created successfully!');
     }
 
     /**
@@ -214,5 +265,30 @@ class LibraryController extends Controller
         // Add user to library (you might want to create a library_users pivot table)
         // For now, we'll just redirect with success
         return view('libraries.join', compact('library'));
+    }
+
+    /**
+     * Switch active library for the logged-in owner or librarian.
+     */
+    public function switch(Request $request)
+    {
+        $request->validate([
+            'library_id' => 'required|integer',
+        ]);
+
+        $user = Auth::user();
+        if (! ($user && ($user->isOwner() || $user->isLibrarian()))) {
+            abort(403);
+        }
+
+        $ownerId = $user->isOwner() ? $user->id : $user->parent_owner_id;
+
+        $library = Library::where('id', $request->library_id)
+            ->where('owner_id', $ownerId)
+            ->firstOrFail();
+
+        session(['active_library_id' => $library->id]);
+
+        return redirect()->back()->with('success', 'Switched to library: ' . $library->name);
     }
 }

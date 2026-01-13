@@ -7,68 +7,97 @@
         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="fas fa-th-large"></i> Dashboard
         </a>
-        
-       
 
-        {{-- Administrative Links: Librarian/Admin/Super Admin/Owner --}}
-        @if(auth()->user()->hasAdminRole())
-         {{-- All users can view books --}}
-            <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+        {{-- Administrative Links: Super Admin / Admin / Librarian / Owner --}}
+        @if(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'superadmin', 'Super Admin']))
+            <!-- <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
                 <i class="fas fa-search"></i> View Books
-            </a>
+            </a> -->
             <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
                 <i class="fas fa-box-open"></i> Manage Books
             </a>
-            
-            {{-- Library Management --}}
             <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
                 <i class="fas fa-building"></i> Libraries
             </a>
-            
-            {{-- Shelves Management --}}
             <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
                 <i class="fas fa-book"></i> Manage Shelves
             </a>
-        @endif
-
-        {{-- Owner Links --}}
-        @if(auth()->user()->isOwner())
-            <!-- <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
-                <i class="fas fa-building"></i> My Libraries
-            </a> -->
             <a href="{{ route('rooms.index') }}" class="nav-link {{ request()->routeIs('rooms.index') ? 'active' : '' }}">
-                <i class="fas fa-door-open"></i> My Rooms
+                <i class="fas fa-door-open"></i> Rooms
             </a>
-            <!-- <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
-                <i class="fas fa-book"></i> Manage Shelves
+            <a href="{{ route('owners.index') }}" class="nav-link {{ request()->routeIs('owners.index') ? 'active' : '' }}">
+                <i class="fas fa-users"></i> Owners
+            </a>
+            <a href="{{ route('permissions.index') }}" class="nav-link {{ request()->routeIs('permissions.index') ? 'active' : '' }}">
+                <i class="fas fa-user-shield"></i> Permissions
+            </a>
+            <a href="{{ route('teachers.students') }}" class="nav-link {{ request()->routeIs('teachers.students') ? 'active' : '' }}">
+                <i class="fas fa-user-graduate"></i> My Students
+            </a>
+            <!-- <a href="{{ route('teachers.assignments') }}" class="nav-link {{ request()->routeIs('teachers.assignments') ? 'active' : '' }}">
+                <i class="fas fa-tasks"></i> Book Assignments
             </a> -->
-        @endif
-            
-            {{-- Administrative Links: Librarian/Admin/Super Admin --}}
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin() || auth()->user()->isLibrarian())
-                {{-- Duplicate admin menu removed; rendered earlier under hasAdminRole() --}}
+            <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
+                <i class="fas fa-book-reader"></i> Assigned Books
+            </a>
+        @else
+            @php $user = auth()->check() ? auth()->user() : null; @endphp
+
+            {{-- All users can view books --}}
+            <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+                <i class="fas fa-search"></i> View Books
+            </a>
+            @if($user && ($user->isOwner() || $user->isLibrarian() || $user->isAdmin()))
+                <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
+                    <i class="fas fa-box-open"></i> Manage Books
+                </a>
             @endif
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin())
+
+            {{-- Library Management (view) --}}
+            <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i> Libraries
+            </a>
+
+            {{-- Shelves Management (owner/librarian only) --}}
+            @if($user && ($user->isOwner() || $user->isLibrarian()))
+                <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Manage Shelves
+                </a>
+            @endif
+
+            {{-- Owner specific links --}}
+            @if($user && $user->isOwner())
+                <a href="{{ route('rooms.index') }}" class="nav-link {{ request()->routeIs('rooms.index') ? 'active' : '' }}">
+                    <i class="fas fa-door-open"></i> My Rooms
+                </a>
+            @endif
+
+            {{-- Permissions (Admins/Superadmins) --}}
+            @if($user && ($user->isSuperAdmin() || $user->isAdmin()))
+                <a href="{{ route('permissions.index') }}" class="nav-link {{ request()->routeIs('permissions.index') ? 'active' : '' }}">
+                    <i class="fas fa-user-shield"></i> Permissions
+                </a>
                 <a href="{{ route('owners.index') }}" class="nav-link {{ request()->routeIs('owners.index') ? 'active' : '' }}">
                     <i class="fas fa-users"></i> Owners
                 </a>
             @endif
 
-        {{-- Teacher specific links --}}
-        @if(auth()->user()->isTeacher())
-            <a href="{{ route('teachers.students') }}" class="nav-link {{ request()->routeIs('teachers.students') ? 'active' : '' }}">
-                <i class="fas fa-user-graduate"></i> My Students
-            </a>
-            <a href="{{ route('teachers.assignments') }}" class="nav-link {{ request()->routeIs('teachers.assignments') ? 'active' : '' }}">
-                <i class="fas fa-tasks"></i> Book Assignments
-            </a>
-        @endif
+            {{-- Teacher specific links --}}
+            @if($user && $user->isTeacher())
+                <a href="{{ route('teachers.students') }}" class="nav-link {{ request()->routeIs('teachers.students') ? 'active' : '' }}">
+                    <i class="fas fa-user-graduate"></i> My Students
+                </a>
+                <a href="{{ route('teachers.assignments') }}" class="nav-link {{ request()->routeIs('teachers.assignments') ? 'active' : '' }}">
+                    <i class="fas fa-tasks"></i> Book Assignments
+                </a>
+            @endif
 
-        {{-- Student specific links --}}
-        @if(auth()->user()->isStudent())
-            <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
-                <i class="fas fa-book-reader"></i> Assigned Books
-            </a>
+            {{-- Student specific links --}}
+            @if($user && $user->isStudent())
+                <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
+                    <i class="fas fa-book-reader"></i> Assigned Books
+                </a>
+            @endif
         @endif
 
         {{-- Events - visible to all authenticated users --}}

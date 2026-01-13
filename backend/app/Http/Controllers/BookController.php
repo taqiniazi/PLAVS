@@ -25,6 +25,16 @@ class BookController extends Controller
             $query = Book::query();
         }
 
+        // Owner active library filter
+        if ($user && $user->isOwner()) {
+            $activeLibraryId = session('active_library_id');
+            if ($activeLibraryId) {
+                $query->whereHas('shelf.room.library', function($q) use ($activeLibraryId) {
+                    $q->where('id', $activeLibraryId);
+                });
+            }
+        }
+
         // Librarian scope: show only books under parent owner's libraries or unshelved books owned by parent
         if ($user && $user->isLibrarian()) {
             $query->where(function($q) use ($user) {
@@ -65,8 +75,15 @@ class BookController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $shelves = Shelf::whereHas('room.library', function ($q) use ($user) {
-            $q->where('owner_id', $user->id);
+        $activeLibraryId = session('active_library_id');
+        $ownerId = $user->isOwner() ? $user->id : ($user->isLibrarian() ? $user->parent_owner_id : null);
+        $shelves = Shelf::whereHas('room.library', function ($q) use ($ownerId, $activeLibraryId) {
+            if ($ownerId) {
+                $q->where('owner_id', $ownerId);
+            }
+            if ($activeLibraryId) {
+                $q->where('id', $activeLibraryId);
+            }
         })->orderBy('name')->get();
 
         return view('books.create', compact('shelves'));
