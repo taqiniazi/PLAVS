@@ -26,6 +26,7 @@ class User extends Authenticatable
         'avatar',
         'phone',
         'parent_owner_id',
+        'requested_owner',
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'requested_owner' => 'boolean',
     ];
 
     /**
@@ -57,6 +59,7 @@ class User extends Authenticatable
     public const ROLE_OWNER = 'owner';
     public const ROLE_TEACHER = 'teacher';
     public const ROLE_STUDENT = 'student';
+    public const ROLE_CANDIDATE = 'candidate';
 
     /**
      * Administrative roles
@@ -187,6 +190,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is Candidate
+     */
+    public function isCandidate(): bool
+    {
+        return $this->role === self::ROLE_CANDIDATE;
+    }
+
+    /**
      * Check if user has administrative role
      */
     public function hasAdminRole(): bool
@@ -231,6 +242,7 @@ class User extends Authenticatable
             self::ROLE_OWNER => 'Library Owner',
             self::ROLE_TEACHER => 'Teacher',
             self::ROLE_STUDENT => 'Student',
+            self::ROLE_CANDIDATE => 'Candidate',
             default => ucfirst($this->role),
         };
     }
