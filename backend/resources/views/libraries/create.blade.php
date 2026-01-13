@@ -16,7 +16,7 @@
                     <p class="mb-0 mt-2 opacity-75">Create a new library to organize your book collection</p>
                 </div>
                 
-                <div class="card-body">
+                <div class="card-body ">
                     <form action="{{ route('libraries.store') }}" method="POST">
                         @csrf
                         
@@ -93,23 +93,6 @@
                                        placeholder="Enter owner's full name"
                                        required>
                                 @error('owner_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <!-- Owner Username -->
-                            <div class="col-md-6 mb-3">
-                                <label for="owner_username" class="form-label required-field">Owner Username</label>
-                                <input type="text"
-                                       class="form-control @error('owner_username') is-invalid @enderror"
-                                       id="owner_username"
-                                       name="owner_username"
-                                       value="{{ old('owner_username') }}"
-                                       placeholder="Will be set to owner email"
-                                       readonly
-                                       required>
-                                <div class="form-text">Owner username will be the same as the owner email address.</div>
-                                @error('owner_username')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -236,24 +219,3 @@
 </div>
 
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('name').focus();
-    const form = document.querySelector('form');
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const ownerEmail = document.getElementById('owner_email');
-    const ownerUsername = document.getElementById('owner_username');
-
-    const syncOwner = () => { ownerUsername.value = (ownerEmail.value || '').trim(); };
-    ownerEmail.addEventListener('input', syncOwner);
-    syncOwner();
-    form.addEventListener('submit', function() {
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
-        submitBtn.disabled = true;
-        syncOwner();
-    });
-});
-</script>
-@endpush

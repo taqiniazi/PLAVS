@@ -49,8 +49,8 @@
         <div class="col-lg-3 col-md-6">
             <div class="stat-card">
                 <div>
-                    <small class="text-muted d-block mb-1">Active Members</small>
-                    <h4 class="fw-bold mb-0">{{ $stats['active_members'] }}</h4>
+                    <small class="text-muted d-block mb-1">{{ $user->isOwner() ? 'Total Librarians' : 'Active Members' }}</small>
+                    <h4 class="fw-bold mb-0">{{ $user->isOwner() ? ($stats['total_librarians'] ?? 0) : $stats['active_members'] }}</h4>
                 </div>
                 <div class="stat-icon">
                     <img src="{{ asset('images/users_icon.svg') }}" alt="" class="img-fluid">

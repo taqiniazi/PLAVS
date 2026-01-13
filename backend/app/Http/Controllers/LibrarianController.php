@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class LibrarianController extends Controller
 {
@@ -33,15 +34,20 @@ class LibrarianController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username',
-            'email' => 'required|email|max:255|unique:users,email',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email'),
+                Rule::unique('users', 'username'),
+            ],
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         User::create([
             'name' => $validated['name'],
-            'username' => $validated['username'],
+            'username' => $validated['email'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
@@ -51,5 +57,26 @@ class LibrarianController extends Controller
 
         return redirect()->route('libraries.index')
             ->with('success', 'Librarian account created successfully.');
+    }
+
+    /**
+     * Remove a librarian (Owner-only, must belong to the owner).
+     */
+    public function destroy(User $librarian)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isOwner()) {
+            abort(403);
+        }
+
+        // Ensure target is a librarian linked to this owner
+        if (!$librarian->isLibrarian() || $librarian->parent_owner_id !== $user->id) {
+            abort(403);
+        }
+
+        $librarian->delete();
+
+        return redirect()->route('libraries.index')
+            ->with('success', 'Librarian removed successfully.');
     }
 }

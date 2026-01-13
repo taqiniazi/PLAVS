@@ -21,26 +21,20 @@
 @endif
 
 <div class="row mt-3">
-    <div class="col-lg-9 mx-auto">
+    <div class="col-lg-8 mx-auto">
         <div class="card">
         <div class="card-header mb-3  d-flex justify-content-between align-items-center">
             <h4 class="page-title text-white mb-0">Add Librarian</h4>
             <a href="{{ route('libraries.index') }}" class="btn btn-outline-warning">Back to Libraries</a>
         </div>
         <div class="card-body">
-        <div class="form-container">
+        <div class="form-container p-0">
             <form action="{{ route('librarians.store') }}" method="POST">
                 @csrf
 
                 <div class="mb-3">
                     <label class="form-label">Full Name</label>
                     <input type="text" name="name" class="form-control" placeholder="Enter full name" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" placeholder="Will be set to email" readonly required>
-                    <div class="form-text">Username will be the same as the email address.</div>
                 </div>
 
                 <div class="mb-3">
@@ -73,17 +67,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
- document.addEventListener('DOMContentLoaded', function() {
-   const form = document.querySelector('form');
-   const emailInput = document.getElementById('email');
-   const usernameInput = document.getElementById('username');
-   const sync = () => { usernameInput.value = (emailInput.value || '').trim(); };
-   emailInput.addEventListener('input', sync);
-   sync();
-   form.addEventListener('submit', sync);
- });
-</script>
-@endpush

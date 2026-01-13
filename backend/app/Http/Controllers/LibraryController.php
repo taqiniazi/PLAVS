@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class LibraryController extends Controller
 {
@@ -35,7 +36,15 @@ class LibraryController extends Controller
             $libraries = $query->where('type', 'public')->get();
         }
 
-        return view('libraries.index', compact('libraries'));
+        // Provide owner-linked librarians list for management UI
+        $librarians = collect();
+        if ($user->isOwner()) {
+            $librarians = User::where('role', User::ROLE_LIBRARIAN)
+                ->where('parent_owner_id', $user->id)
+                ->get();
+        }
+
+        return view('libraries.index', compact('libraries', 'librarians'));
     }
 
     /**
@@ -63,8 +72,12 @@ class LibraryController extends Controller
             
             // Owner validation
             'owner_name' => 'required|string|max:255',
-            'owner_username' => 'required|string|max:255|unique:users,username',
-            'owner_email' => 'required|email|unique:users,email',
+            'owner_email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email'),
+                Rule::unique('users', 'username'),
+            ],
             'owner_phone' => 'required|string|max:20',
             'owner_password' => 'required|string|min:8|confirmed',
             
@@ -79,7 +92,7 @@ class LibraryController extends Controller
                 ['email' => $request->owner_email],
                 [
                     'name' => $request->owner_name,
-                    'username' => $request->owner_username,
+                    'username' => $request->owner_email,
                     'email' => $request->owner_email,
                     'phone' => $request->owner_phone,
                     'password' => Hash::make($request->owner_password),

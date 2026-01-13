@@ -45,8 +45,7 @@
             </div>
             @endcan
         </div>
-
-        <div class="table-card">
+  <div class="table-card">
             <div class="table-responsive">
                 <table id="librariesTable" class="table table-hover align-middle" style="width:100%">
                     <thead>
@@ -122,6 +121,51 @@
                 </table>
             </div>
         </div>
+        @if(auth()->user()->isOwner())
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>Your Librarians</h5>
+            </div>
+            <div class="card-body p-0">
+                @if(isset($librarians) && $librarians->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($librarians as $librarian)
+                            <tr>
+                                <td>{{ $librarian->name }}</td>
+                                <td>{{ $librarian->email }}</td>
+                                <td>{{ $librarian->phone ?? '-' }}</td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ route('librarians.destroy', $librarian) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to remove this librarian?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-user-minus me-1"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="p-3 text-muted">No librarians yet. Use "Add Librarian" to create one.</div>
+                @endif
+            </div>
+        </div>
+        @endif
+
+      
     </div>
 </div>
 @endsection

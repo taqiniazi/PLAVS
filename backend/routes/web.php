@@ -125,4 +125,5 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/librarians/create', [LibrarianController::class, 'create'])->name('librarians.create');
     Route::post('/librarians', [LibrarianController::class, 'store'])->name('librarians.store');
+    Route::delete('/librarians/{librarian}', [LibrarianController::class, 'destroy'])->name('librarians.destroy');
 });

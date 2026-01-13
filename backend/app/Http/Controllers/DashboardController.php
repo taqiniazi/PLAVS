@@ -23,6 +23,15 @@ class DashboardController extends Controller
         $stats['books_borrowed'] = number_format(Book::where('status', 'like', 'Borrowed%')->count());
         $stats['book_shelves'] = number_format(Shelf::count());
         
+        // Owner specific stat: total librarians linked to this owner
+        if ($user->isOwner()) {
+            $stats['total_librarians'] = number_format(
+                User::where('role', User::ROLE_LIBRARIAN)
+                    ->where('parent_owner_id', $user->id)
+                    ->count()
+            );
+        }
+        
         // Admin/Librarian/Owner specific stats
         if ($user->hasAdminRole()) {
             $stats['total_libraries'] = number_format(Library::count());
