@@ -90,7 +90,7 @@
                             <label class="text-muted small">Category</label>
                             <p class="mb-0">
                                 @if($book->category)
-                                    <span class="badge" style="background-color: {{ $book->category->color ?? '#3498db' }};">
+                                    <span class="badge" style="background-color: #3498db;">
                                         {{ $book->category->name }}
                                     </span>
                                 @else

@@ -25,7 +25,7 @@
         
         @if($assignedBooks->count() > 0)
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover datatable">
                 <thead>
                     <tr>
                         <th style="width: 80px;">Image</th>
@@ -34,7 +34,7 @@
                         <th>Assigned Date</th>
                         <th>Return Date</th>
                         <th>Status</th>
-                        <!-- <th style="width: 150px;">Actions</th> -->
+                        <th style="width: 150px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,11 +86,10 @@
                             <span class="badge bg-success">In Use</span>
                             @endif
                         </td>
-                        <!-- <td>
+                        <td>
                             @if(!$isReturned)
                             <form action="{{ route('student.return-book', $book) }}" method="POST" style="display: inline;">
                                 @csrf
-                                @method('POST')
                                 <button type="submit" class="btn btn-sm btn-outline-primary" title="Return Book">
                                     <i class="fas fa-undo"></i> Return
                                 </button>
@@ -98,7 +97,7 @@
                             @else
                             <span class="text-muted">-</span>
                             @endif
-                        </td> -->
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>

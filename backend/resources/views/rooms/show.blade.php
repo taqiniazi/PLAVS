@@ -4,40 +4,42 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-fluid px-0">
     <!-- Room Header Section -->
-    <div class="room-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h2 class="mb-2">{{ $room->name }}</h2>
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <span class="badge bg-secondary">
-                        <i class="fas fa-building me-1"></i>
-                        {{ $room->library->name }}
-                    </span>
-                    <span class="text-light">
-                        <i class="fas fa-shelf me-1"></i>
-                        {{ $room->shelves_count }} Shelves
-                    </span>
+     <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">{{ $room->name }}</h2>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-building me-1"></i>
+                            {{ $room->library->name }}
+                        </span>
+                        <span class="text-light">
+                            <i class="fas fa-shelf me-1"></i>
+                            {{ $room->shelves_count }} Shelves
+                        </span>
+                    </div>
+                    @if($room->description)
+                        <p class="mb-0 opacity-75">{{ $room->description }}</p>
+                    @endif
                 </div>
-                @if($room->description)
-                    <p class="mb-0 opacity-75">{{ $room->description }}</p>
-                @endif
-            </div>
-            <div class="col-md-4 text-md-end">
-                <a href="{{ route('libraries.show', $room->library) }}" class="btn btn-light me-2">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Library
-                </a>
-                @can('update', $room)
-                    <a href="{{ route('rooms.edit', $room) }}" class="btn btn-add-shelf">
-                        <i class="fas fa-edit me-2"></i>Edit Room
+                <div class="col-md-4 text-md-end">
+                    <a href="{{ route('libraries.show', $room->library) }}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Library
                     </a>
-                @endcan
+                    @can('update', $room)
+                        <a href="{{ route('rooms.edit', $room) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Room
+                        </a>
+                    @endcan
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Room Details Section -->
+        <div class="card-body">
+ <!-- Room Details Section -->
     <div class="row">
         <div class="col-lg-8">
             <div class="room-info-card">
@@ -45,9 +47,9 @@
                     <i class="fas fa-info-circle me-2"></i>
                     Room Details
                 </h5>
-                
-                <div class="info-item">
-                    <div class="info-icon">
+                <div class="d-flex">
+                    <div class="info-item d-flex">
+                    <div class="info-icon me-2">
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div>
@@ -56,19 +58,19 @@
                     </div>
                 </div>
                 
-                <div class="info-item">
-                    <div class="info-icon">
+                <div class="info-item d-flex">
+                    <div class="info-icon me-2">
                         <i class="fas fa-building"></i>
                     </div>
                     <div>
-                        <h6 class="mb-1">Library</h6>
+                        <h6 class="mb-1">Library Name</h6>
                         <p class="mb-0 text-muted">{{ $room->library->name }}</p>
                     </div>
                 </div>
                 
                 @if($room->description)
-                    <div class="info-item">
-                        <div class="info-icon">
+                    <div class="info-item d-flex">
+                        <div class="info-icon  me-2">
                             <i class="fas fa-align-left"></i>
                         </div>
                         <div>
@@ -77,6 +79,8 @@
                         </div>
                     </div>
                 @endif
+                </div>
+                
             </div>
         </div>
         
@@ -105,28 +109,28 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>
-                    <i class="fas fa-bookshelf me-2"></i>
+                <h5>
+                    <i class="fas fa-building me-2"></i>
                     Shelves
-                </h4>
-                <span class="text-muted">{{ $room->shelves_count }} shelves</span>
+                </h5>
+                <span class="text-muted"><strong>Total Shelves </strong> {{ $room->shelves_count }}</span>
             </div>
             
             @if($room->shelves->count() > 0)
-                <div class="row">
+                <div class="row mx-0">
                     @foreach($room->shelves as $shelf)
-                        <div class="col-md-6 col-lg-4">
-                            <div class="shelf-card">
-                                <div class="shelf-header">
-                                    <div>
-                                        <h5 class="mb-1">{{ $shelf->name }}</h5>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="mb-2">
+                                        <h6 class="mb-1">{{ $shelf->name }}</h6>
                                         @if($shelf->code)
-                                            <p class="mb-0 text-muted small">Code: {{ $shelf->code }}</p>
+                                            <p class="mb-0  small">Code: {{ $shelf->code }}</p>
                                         @endif
                                     </div>
                                     <div class="shelf-actions">
                                         <a href="{{ route('shelves.show', $shelf) }}" 
-                                           class="btn btn-outline-primary btn-sm" title="View Shelf">
+                                           class="btn btn-outline-light btn-sm" title="View Shelf">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @can('update', $shelf)
@@ -149,16 +153,17 @@
                                     </div>
                                 </div>
                                 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted small">
-                                        <i class="fas fa-book me-1"></i>
-                                        {{ $shelf->books_count }} Books
-                                    </span>
+                                <div class="card-body">
+                                    <div class="text-center">
+                                        <i class="fas fa-book h4 me-1"></i>
+                                        <h5>Total Books</h5>
+                                        {{ $shelf->books_count }} 
+                                    </div>
                                     @if($shelf->description)
-                                        <span class="text-muted small">
+                                        <div class="text-muted small">
                                             <i class="fas fa-info-circle me-1"></i>
                                             {{ Str::limit($shelf->description, 30) }}
-                                        </span>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -179,6 +184,10 @@
             @endif
         </div>
     </div>
+        </div>
+     </div>
+    
+   
 </div>
 
 @endsection

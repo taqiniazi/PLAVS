@@ -35,6 +35,7 @@ class ShelfController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Shelf::class);
         $user = Auth::user();
         
         if ($user->hasAdminRole()) {
@@ -55,26 +56,40 @@ class ShelfController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Shelf::class);
         $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'room_id' => 'required|exists:rooms,id',
+            'room_id' => 'nullable|exists:rooms,id',
         ]);
+
+        $user = Auth::user();
+        if ($request->filled('room_id')) {
+            $room = Room::with('library')->findOrFail($request->room_id);
+            if (!($user->hasAdminRole() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id))) {
+                abort(403, 'You are not authorized to create a shelf in this room.');
+            }
+        }
 
         // Generate shelf code if not provided
         $code = $request->code;
         if (empty($code)) {
-            $room = Room::find($request->room_id);
-            $shelfCount = Shelf::where('room_id', $request->room_id)->count() + 1;
-            $code = $room->library->name[0] . '-' . $room->id . '-' . $shelfCount;
+            if ($request->filled('room_id')) {
+                $room = isset($room) ? $room : Room::find($request->room_id);
+                $shelfCount = Shelf::where('room_id', $request->room_id)->count() + 1;
+                $code = ($room && $room->library && isset($room->library->name[0]) ? $room->library->name[0] : 'S') . '-' . ($room ? $room->id : '0') . '-' . $shelfCount;
+            } else {
+                // Fallback generic code when no room is selected
+                $code = 'S-' . time();
+            }
         }
 
         Shelf::create([
             'name' => $request->name,
             'code' => $code,
             'description' => $request->description,
-            'room_id' => $request->room_id,
+            'room_id' => $request->room_id, // can be null
         ]);
 
         return redirect()->route('shelves.index')
@@ -124,14 +139,14 @@ class ShelfController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'room_id' => 'required|exists:rooms,id',
+            'room_id' => 'nullable|exists:rooms,id',
         ]);
 
         $shelf->update([
             'name' => $request->name,
             'code' => $request->code,
             'description' => $request->description,
-            'room_id' => $request->room_id,
+            'room_id' => $request->room_id, // can be null
         ]);
 
         return redirect()->route('shelves.index')

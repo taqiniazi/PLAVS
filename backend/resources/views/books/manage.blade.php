@@ -156,23 +156,14 @@
                                         <i class="fa-solid fa-arrow-down-up-across-line"></i>
                                     </button>
                                     
-                                    @if($book->status === 'Assigned' || $book->status === 'transferred')
-                                        <form method="POST" action="{{ route('books.recall', $book) }}" style="display: inline;">
-                                            @csrf
-                                            @method('POST')
-                                            <button type="submit" class="btn-action btn-recall" data-bs-toggle="tooltip" title="Recall Book"
-                                                    onclick="return confirm('Are you sure you want to recall this book?')">
-                                                <i class="fas fa-undo"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                    @if(str_contains($book->status, 'Borrowed'))
+
+                                    @if(($isAdmin || $isOwner) && ($book->assigned_user_id || in_array(strtolower($book->status), ['assigned','borrowed'])))
                                     <form method="POST" action="{{ route('books.return') }}" style="display: inline;">
                                         @csrf
                                         <input type="hidden" name="book_id" value="{{ $book->id }}">
-                                        <input type="hidden" name="user_id" value="{{ $book->user_id }}">
-                                        <button type="submit" class="btn-action btn-return text-white" data-bs-toggle="tooltip" title="Return Book"
-                                                data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->user_id }}">
+                                        <input type="hidden" name="user_id" value="{{ $book->assigned_user_id }}">
+                                        <button type="button" class="btn-action btn-return text-white" data-bs-toggle="tooltip" title="Confirm Return"
+                                                data-id="{{ $book->id }}" data-title="{{ $book->title }}" data-user-id="{{ $book->assigned_user_id }}">
                                             <i class="fas fa-undo"></i>
                                         </button>
                                     </form>
@@ -342,8 +333,8 @@
     </div>
 </div>
 
-<!-- Single Return Modal (Admin only) -->
-@if(auth()->user()->hasAdminRole())
+<!-- Single Return Modal (Admin/Owner) -->
+@if(auth()->user()->hasAdminRole() || auth()->user()->isOwner())
 <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -389,7 +380,10 @@
 <script>
 $(document).ready(function () {
     // Initialize DataTables
-    var hasActionsColumn = {{ ($isAdmin || $isTeacher || $isStudent) ? 'true' : 'false' }};
+    var hasActionsColumn = {{ ($isAdmin || $isTeacher || $isStudent || $isOwner) ? 'true' : 'false' }};
+    // Current user info for UI updates after return confirmation
+    var currentUserName = '{{ auth()->user()->name }}';
+    var currentUserRole = '{{ auth()->user()->role ?? (auth()->user()->isOwner() ? "Owner" : "Admin") }}';
     var nonOrderableTargets = [];
     @if($isAdmin)
     nonOrderableTargets.push(0);
@@ -557,21 +551,31 @@ $(document).ready(function () {
             method: 'POST',
             data: form.serialize(),
             success: function(response) {
-                // Update table cell dynamically - find the row and update status
+                // Update table cell dynamically - find the row and update status and current holder
                 var bookId = response.book_id;
                 
-                // Find the row with this book and update status
+                // Find the row with this book and update status and holder
                 $('#booksTable tbody tr').each(function() {
                     var row = $(this);
                     // Look for the return button with this book ID
                     var returnBtn = row.find('.btn-return[data-id="' + bookId + '"]');
                     if (returnBtn.length) {
-                        // Update status cell - it's the 5th cell (index 5)
+                        // Update status cell - it's the 6th data column (index 5)
                         var statusCell = row.find('td:eq(5)');
                         var statusBadge = statusCell.find('.badge');
                         if (statusBadge.length) {
-                            statusBadge.removeClass('bg-info').addClass('bg-success').text('Available');
+                            statusBadge.removeClass('bg-success bg-warning').addClass('bg-info').text('Assigned');
                         }
+
+                        // Update Current Holder cell - it's the 5th data column (index 4)
+                        var holderCell = row.find('td:eq(4)');
+                        holderCell.html(
+                            '<span class="badge bg-primary">' +
+                                '<i class="fas fa-user me-1"></i>' + currentUserName +
+                            '</span>' +
+                            '<small class="text-muted d-block">' + currentUserRole + '</small>'
+                        );
+
                         // Remove the return button and its form
                         returnBtn.closest('form').remove();
                     }

@@ -32,7 +32,7 @@ class ShelfPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAdminRole();
+        return $user->hasAdminRole() || $user->isOwner();
     }
 
     /**

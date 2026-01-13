@@ -28,14 +28,46 @@
             <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
                 <i class="fas fa-book"></i> Manage Shelves
             </a>
+        @endif
+
+        {{-- Owner Links --}}
+        @if(auth()->user()->isOwner())
+            <!-- <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i> My Libraries
+            </a> -->
+            <a href="{{ route('rooms.index') }}" class="nav-link {{ request()->routeIs('rooms.index') ? 'active' : '' }}">
+                <i class="fas fa-door-open"></i> My Rooms
+            </a>
+            <!-- <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
+                <i class="fas fa-book"></i> Manage Shelves
+            </a> -->
+        @endif
             
-            {{-- Owners link for Admin/Super Admin --}}
+            {{-- Administrative Links: Librarian/Admin/Super Admin --}}
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin() || auth()->user()->isLibrarian())
+                {{-- All users can view books --}}
+                <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+                    <i class="fas fa-search"></i> View Books
+                </a>
+                <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
+                    <i class="fas fa-box-open"></i> Manage Books
+                </a>
+                
+                {{-- Library Management --}}
+                <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
+                    <i class="fas fa-building"></i> Libraries
+                </a>
+                
+                {{-- Shelves Management --}}
+                <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Manage Shelves
+                </a>
+            @endif
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin())
                 <a href="{{ route('owners.index') }}" class="nav-link {{ request()->routeIs('owners.index') ? 'active' : '' }}">
                     <i class="fas fa-users"></i> Owners
                 </a>
             @endif
-        @endif
 
         {{-- Teacher specific links --}}
         @if(auth()->user()->isTeacher())

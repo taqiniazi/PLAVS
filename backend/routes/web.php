@@ -74,6 +74,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/libraries/{library}/rooms/create', [App\Http\Controllers\RoomController::class, 'create'])->name('libraries.rooms.create');
     Route::post('/libraries/{library}/rooms', [App\Http\Controllers\RoomController::class, 'store'])->name('libraries.rooms.store');
 
+    // Rooms Index
+    Route::get('/rooms', [App\Http\Controllers\RoomController::class, 'index'])->name('rooms.index');
+
     // Route to view a specific room (Fixes the crash)
     Route::get('/libraries/{library}/rooms/{room}', [App\Http\Controllers\RoomController::class, 'show'])->name('libraries.rooms.show');
 

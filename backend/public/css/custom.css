@@ -380,8 +380,8 @@ textarea.form-control {
 }
 table.dataTable thead>tr>th,
 table thead>tr>th{
-    background-color: var(--hover-bg-navy);
-    color: var(--bg-light);
+    background-color: var(--hover-bg-navy) !important;
+    color: var(--bg-light) !important;
 }
 .form-check-input {
     border-color: #807c7c;
@@ -412,7 +412,9 @@ div.dataTables_wrapper div.dataTables_length select {
     font-size: 0.8rem;
     color: #888;
 }
-
+.room-info-card .info-item{
+    width: 50%;
+}
 /* Badges */
 .badge-shelf {
     background-color: #e8f0fe;
@@ -583,10 +585,13 @@ div.dataTables_wrapper div.dataTables_filter input {
 .modal-backdrop.show {
     display: none !important;
 }
- .card-header {
-        background: var(--primary-dark);
-        color: white;
-    }
+.card-header {
+    padding:15px;
+    background: var(--primary-dark);
+    border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important;
+    color: white;
+}
 .btn-primary {
     background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
     border: none;
@@ -595,7 +600,14 @@ div.dataTables_wrapper div.dataTables_filter input {
     font-weight: 500;
     transition: all 0.3s ease;
 }
-
+.card {
+    border: 0px;
+    box-shadow: 0 0 5px #eee;
+    border-radius: 15px;
+}
+.card-body{
+    padding: 25px;;
+}
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
@@ -623,4 +635,9 @@ div.dataTables_wrapper div.dataTables_filter input {
     font-size: 48px;
     color: #6c757d;
     margin-bottom: 15px;
+}
+@media screen and (max-width:480px) {
+    .room-info-card .info-item{
+        width: 100%;
+    }
 }

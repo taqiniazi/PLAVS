@@ -91,33 +91,26 @@
                     </div>
                     <div class="col-md-4 mb-3 mb-md-0">
                         <label class="form-label">Author</label>
-                        <select id="author" name="author" class="form-select" required>
-                            <option selected disabled>Select</option>
-                            @foreach($authors as $author)
-                            <option value="{{ $author }}">{{ $author }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" id="author" name="author" class="form-control" placeholder="Enter author name" required>
+                        <!-- <small class="text-muted">Auto-filled from Google Books or enter manually.</small> -->
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Shelf Location</label>
                         <select id="shelf" name="shelf" class="form-select" required>
-                            <option selected disabled>Select</option>
-                            @foreach($shelves as $shelf)
-                            <option value="{{ $shelf }}">{{ $shelf }}</option>
-                            @endforeach
+                            <option value="">Select shelf</option>
+                            @forelse($shelves as $shelf)
+                                <option value="{{ $shelf->name }}">{{ $shelf->name }}</option>
+                            @empty
+                                <option value="" disabled>No shelves found. Please create a shelf first.</option>
+                            @endforelse
                         </select>
+                        <!-- <small class="text-muted">Only shelves from your libraries are listed. Create shelves first in your library/room.</small> -->
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Owner</label>
-                    <select name="owner" class="form-select" required>
-                        <option selected disabled>Select</option>
-                        @foreach($owners as $owner)
-                        <option value="{{ $owner }}">{{ $owner }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Owner field removed: owner is set to the authenticated user server-side. --}}
+
+                {{-- Removed duplicate Shelf select block. Single shelf selector is provided above in the row. --}}
 
                 <div class="mb-4">
                     <label class="form-label">Description</label>
@@ -189,10 +182,6 @@ $(function(){
                     $('#title').val(info.title || '');
                     if (info.authors && info.authors.length) {
                         var authorName = info.authors[0];
-                        // Add author option if it doesn't exist
-                        if ($('#author option').filter(function(){ return $(this).text() === authorName; }).length === 0) {
-                            $('#author').append($('<option>').val(authorName).text(authorName));
-                        }
                         $('#author').val(authorName);
                     }
                     $('#isbn').val(isbn);
@@ -284,9 +273,6 @@ $(function(){
 
         if (info.authors && info.authors.length) {
             var authorName = info.authors.join(', ');
-            if ($('#author option').filter(function(){ return $(this).text() === authorName; }).length === 0) {
-                $('#author').append($('<option>').val(authorName).text(authorName));
-            }
             $('#author').val(authorName);
         }
 
