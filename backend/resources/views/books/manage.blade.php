@@ -565,18 +565,31 @@ $(document).ready(function () {
                         // Update status cell - it's the 6th data column (index 5)
                         var statusCell = row.find('td:eq(5)');
                         var statusBadge = statusCell.find('.badge');
+                        var isOwner = (currentUserRole || '').toLowerCase() === 'owner';
                         if (statusBadge.length) {
-                            statusBadge.removeClass('bg-success bg-warning').addClass('bg-info').text('Assigned');
+                            if (isOwner) {
+                                statusBadge.removeClass('bg-info bg-warning').addClass('bg-success').text('Available');
+                            } else {
+                                statusBadge.removeClass('bg-success bg-warning').addClass('bg-info').text('Assigned');
+                            }
                         }
 
                         // Update Current Holder cell - it's the 5th data column (index 4)
                         var holderCell = row.find('td:eq(4)');
-                        holderCell.html(
-                            '<span class="badge bg-primary">' +
-                                '<i class="fas fa-user me-1"></i>' + currentUserName +
-                            '</span>' +
-                            '<small class="text-muted d-block">' + currentUserRole + '</small>'
-                        );
+                        if (isOwner) {
+                            holderCell.html(
+                                '<span class="badge bg-success">' +
+                                    '<i class="fas fa-home me-1"></i> In Stock' +
+                                '</span>'
+                            );
+                        } else {
+                            holderCell.html(
+                                '<span class="badge bg-primary">' +
+                                    '<i class="fas fa-user me-1"></i>' + currentUserName +
+                                '</span>' +
+                                '<small class="text-muted d-block">' + currentUserRole + '</small>'
+                            );
+                        }
 
                         // Remove the return button and its form
                         returnBtn.closest('form').remove();
