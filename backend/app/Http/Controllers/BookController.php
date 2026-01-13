@@ -24,6 +24,11 @@ class BookController extends Controller
         } else {
             // Students/Teachers: only show their assigned books
             $query = $user ? $user->booksThroughAssignment() : Book::query();
+            
+            // For students, only show currently assigned (non-returned) books
+            if ($user && $user->isStudent()) {
+                 $query->wherePivot('is_returned', false);
+            }
         }
 
         // Owner Scope: Show only books in their libraries or owned by them
