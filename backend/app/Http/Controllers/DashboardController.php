@@ -56,15 +56,15 @@ class DashboardController extends Controller
         
         // Student specific stats
         if ($user->isStudent()) {
-            // Combine counts from direct assignment and pivot assignments
-            $stats['my_assigned_books'] = $user->assignedBooks()->count() + $user->booksThroughAssignment()->count();
+            // Use ONLY active assignments for accurate count
+            $stats['my_assigned_books'] = $user->assignedBooks()->count() + $user->activeAssignedBooks()->count();
             $stats['books_read'] = $user->assignedBooks()->where('status', 'Returned')->count()
                 + $user->booksThroughAssignment()->where('status', 'Returned')->count();
             $stats['currently_reading'] = $user->assignedBooks()->where('status', 'Borrowed')->count()
                 + $user->booksThroughAssignment()->where('status', 'Borrowed')->count();
             $stats['my_teachers'] = User::where('role', 'teacher')->count();
 
-            // Get both direct assigned books and pivot assigned books
+            // Get both direct assigned books and ACTIVE pivot assigned books
             $directBooks = $user->assignedBooks()
                 ->with('category')
                 ->get()
@@ -73,7 +73,7 @@ class DashboardController extends Controller
                     $book->assigned_date = $book->updated_at;
                 });
 
-            $pivotBooks = $user->booksThroughAssignment()
+            $pivotBooks = $user->activeAssignedBooks()
                 ->with('category')
                 ->get()
                 ->each(function ($book) {

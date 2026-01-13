@@ -1,4 +1,5 @@
 <div class="sidebar d-flex flex-column" id="sidebar">
+    <button class="btn btn-small btn-dark d-lg-none px-2 py-0 position-absolute" style="right: 8px; top: 8px;" onclick="document.getElementById('sidebar').classList.remove('show')"><i class="fa fa-times"></i></button>
     <div class="logo">
         <img src="{{ asset('images/logo.png') }}" class="img-fluid">
     </div>

@@ -28,10 +28,12 @@
     <!-- QR code scanner library -->
     <script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
     <script>
-        $(document).ready(fucntion(){
-            $(".datatable").datable();
-        })
-    </script>
+$(function () {
+    if ($.fn.DataTable) {
+        $('.datatable').DataTable();
+    }
+});
+</script>
     @stack('scripts')
 </body>
 </html>

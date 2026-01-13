@@ -309,28 +309,74 @@ class BookController extends Controller
             'condition' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
-
+    
         $book = Book::findOrFail($validated['book_id']);
-        $oldStatus = $book->status;
-        $oldUserId = $book->assigned_user_id;
+        $confirmer = Auth::user();
+
+        // Guard against mis-assigned pivot records: if a student is confirming a return, force the pivot to attach/update to the confirmer
+        if ($confirmer && method_exists($confirmer, 'isStudent') && $confirmer->isStudent()) {
+            $validated['user_id'] = $confirmer->id;
+        }
+        // Ensure the pivot user matches the book's direct assignment holder when present
+        if ($book->assigned_user_id && $validated['user_id'] !== $book->assigned_user_id) {
+            $validated['user_id'] = $book->assigned_user_id;
+        }
+
+        // Snapshot the last known assignment/update time before we modify the book
+        $assignedAtSnapshot = $book->updated_at;
         
-        // Update book status and reassign to the confirming admin/owner/superadmin
-        $book->status = 'Assigned';
-        $book->assigned_user_id = Auth::id();
+        // Update previous holder pivot record to reflect return
+        $previousHolder = User::find($validated['user_id']);
+        if ($previousHolder) {
+            $pivotRelation = $previousHolder->booksThroughAssignment();
+            // Only update pivot if it already exists for this (user, book)
+            $hasPivot = $pivotRelation->wherePivot('book_id', $book->id)->exists();
+            if ($hasPivot) {
+                $pivotRelation->updateExistingPivot($book->id, [
+                    'is_returned' => true,
+                    'return_date' => now(),
+                    'return_notes' => $validated['notes'] ?? null,
+                ]);
+            } else {
+                // Create a historical pivot record for direct assignments so Return History updates
+                $pivotRelation->attach($book->id, [
+                    'assignment_type' => 'admin_assign',
+                    'notes' => $validated['notes'] ?? null,
+                    'assigned_at' => $assignedAtSnapshot ?? now(),
+                    'return_date' => now(),
+                    'is_returned' => true,
+                    'return_notes' => $validated['notes'] ?? null,
+                ]);
+            }
+        }
+        
+        // Role-based status after return: Owner/Admin -> In Stock (Available)
+        if ($confirmer->isOwner() || $confirmer->hasAdminRole()) {
+            $book->status = 'Available';
+            $book->assigned_user_id = null;
+        } else {
+            // Fallback for non-admins: keep assigned to confirmer
+            $book->status = 'Assigned';
+            $book->assigned_user_id = $confirmer->id;
+        }
         $book->save();
 
-        $this->logActivity('book_return_confirmed', "Book '{$book->title}' return confirmed by user ID " . Auth::id() . ". Previous holder user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'), $book);
+        $this->logActivity(
+            'book_return_confirmed',
+            "Book '{$book->title}' return confirmed by user ID " . $confirmer->id . ". Previous holder user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'),
+            $book
+        );
 
         // Handle AJAX requests
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Book return confirmed and reassigned to you!',
+                'message' => 'Book return confirmed. Book is now In Stock.',
                 'book_id' => $book->id
             ]);
         }
 
-        return redirect()->route('books.manage')->with('success', 'Book return confirmed and reassigned to you!');
+        return redirect()->route('books.manage')->with('success', 'Book return confirmed. Book is now In Stock.');
     }
 
     public function destroy(Book $book)

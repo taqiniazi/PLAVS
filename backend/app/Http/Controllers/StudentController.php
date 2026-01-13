@@ -49,27 +49,35 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         
-        // Find the pivot record
-        $pivot = $user->booksThroughAssignment()->where('book_id', $book->id)->first();
+        // Snapshot assigned_at before modifying the book (fallback to updated_at)
+        $assignedAtSnapshot = $book->updated_at;
         
-        if (!$pivot) {
+        // Find the pivot record for this student's assignment
+        $pivotRecord = $user->booksThroughAssignment()->where('book_id', $book->id)->first();
+        
+        if ($pivotRecord && !$pivotRecord->pivot->is_returned) {
+            // Update existing pivot to mark as returned
+            $user->booksThroughAssignment()->updateExistingPivot($book->id, [
+                'is_returned' => true,
+                'return_date' => now(),
+                'return_notes' => $request->input('return_notes', '')
+            ]);
+        } elseif (!$pivotRecord && $book->assigned_user_id === $user->id) {
+            // Directly assigned book (no pivot yet): create historical pivot and mark as returned
+            $user->booksThroughAssignment()->attach($book->id, [
+                'assignment_type' => 'admin_assign',
+                'notes' => $request->input('return_notes', '') ?: null,
+                'assigned_at' => $assignedAtSnapshot ?? now(),
+                'return_date' => now(),
+                'is_returned' => true,
+                'return_notes' => $request->input('return_notes', '') ?: null,
+            ]);
+        } else {
             return redirect()->route('student.assigned-books')
-                ->with('error', 'Book not found in your assigned books.');
+                ->with('error', 'Book not found in your assigned books or already returned.');
         }
         
-        if ($pivot->pivot->is_returned) {
-            return redirect()->route('student.assigned-books')
-                ->with('error', 'This book has already been returned.');
-        }
-        
-        // Update the pivot record
-        $user->booksThroughAssignment()->updateExistingPivot($book->id, [
-            'is_returned' => true,
-            'return_date' => now(),
-            'return_notes' => $request->input('return_notes', '')
-        ]);
-        
-        // Update book status
+        // Update book status to Available and clear direct assignment
         $book->status = 'Available';
         $book->assigned_user_id = null;
         $book->save();
