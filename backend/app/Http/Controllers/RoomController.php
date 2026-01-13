@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Library;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
 {
@@ -40,7 +41,18 @@ class RoomController extends Controller
     public function create(Library $library)
     {
         $this->authorize('manageContent', $library);
-        return view('rooms.create', compact('library'));
+        // Provide libraries list for owners/librarians with multiple libraries to allow switching
+        $user = Auth::user();
+        if ($user->hasAdminRole()) {
+            $libraries = Library::all();
+        } elseif ($user->isOwner()) {
+            $libraries = Library::where('owner_id', $user->id)->get();
+        } elseif ($user->isLibrarian()) {
+            $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
+        } else {
+            $libraries = collect();
+        }
+        return view('rooms.create', compact('library', 'libraries'));
     }
 
     /**

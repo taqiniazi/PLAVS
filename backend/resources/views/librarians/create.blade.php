@@ -47,6 +47,19 @@
                     <input type="text" name="phone" class="form-control" placeholder="Enter phone number">
                 </div>
 
+                @if(isset($libraries) && $libraries->count() > 1)
+                <div class="mb-3">
+                    <label for="library_id" class="form-label">Assign to Library</label>
+                    <select class="form-select" id="library_id" name="library_id">
+                        <option value="">Select library</option>
+                        @foreach($libraries as $library)
+                            <option value="{{ $library->id }}">{{ $library->name }}{{ $library->location ? ' - ' . $library->location : '' }}</option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Optional: Select a library to set as the librarian's default context.</div>
+                </div>
+                @endif
+
                 <div class="mb-3">
                     <label class="form-label">Password</label>
                     <input type="password" name="password" class="form-control" placeholder="Enter password" required>

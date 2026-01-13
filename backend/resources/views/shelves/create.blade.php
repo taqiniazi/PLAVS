@@ -39,17 +39,35 @@
                             <!-- Library -->
                             <div class="col-md-6 mb-3">
                                 <label for="library_id" class="form-label required-field">Library</label>
-                                <select class="form-select @error('library_id') is-invalid @enderror" 
-                                        id="library_id" 
-                                        name="library_id" 
-                                        required>
-                                    <option value="">Select library</option>
-                                    @foreach($libraries as $library)
-                                        <option value="{{ $library->id }}" {{ old('library_id') == $library->id ? 'selected' : '' }}>
-                                            {{ $library->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                @if(isset($libraries) && $libraries->count() > 1)
+                                    <select class="form-select @error('library_id') is-invalid @enderror" 
+                                            id="library_id" 
+                                            name="library_id" 
+                                            required>
+                                        <option value="">Select library</option>
+                                        @foreach($libraries as $library)
+                                            <option value="{{ $library->id }}" {{ old('library_id') == $library->id ? 'selected' : '' }}>
+                                                {{ $library->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    @php($singleLibrary = isset($libraries) ? $libraries->first() : null)
+                                    @if($singleLibrary)
+                                        <input type="hidden" id="library_id" name="library_id" value="{{ $singleLibrary->id }}">
+                                        <div class="library-info p-2 border rounded">
+                                            <h6 class="mb-1"><i class="fas fa-building me-2"></i>Library: {{ $singleLibrary->name }}</h6>
+                                            <p class="mb-0 small"><i class="fas fa-map-marker-alt me-1"></i>{{ $singleLibrary->location ?? 'No location specified' }}</p>
+                                        </div>
+                                    @else
+                                        <select class="form-select @error('library_id') is-invalid @enderror" 
+                                                id="library_id" 
+                                                name="library_id" 
+                                                required>
+                                            <option value="">Select library</option>
+                                        </select>
+                                    @endif
+                                @endif
                                 @error('library_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -129,14 +147,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const librarySelect = document.getElementById('library_id');
     const roomSelect = document.getElementById('room_id');
     
-    librarySelect.addEventListener('change', function() {
-        const libraryId = this.value;
-        
+    function loadRooms(libraryId) {
         // Clear current options except the default
         roomSelect.innerHTML = '<option value="">Select room</option>';
-        
         if (libraryId) {
-            // Fetch rooms for the selected library
             fetch(`/api/libraries/${libraryId}/rooms`)
                 .then(response => response.json())
                 .then(data => {
@@ -152,7 +166,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     roomSelect.innerHTML = '<option value="">Error loading rooms</option>';
                 });
         }
-    });
+    }
+
+    if (librarySelect) {
+        librarySelect.addEventListener('change', function() {
+            loadRooms(this.value);
+        });
+        // Initial load: if single library (hidden input) or old selected value
+        const initialLibraryId = librarySelect.value || '{{ old('library_id') }}';
+        if (initialLibraryId) {
+            loadRooms(initialLibraryId);
+        }
+    }
     
     // Add some interactivity for better UX
     const form = document.querySelector('form');

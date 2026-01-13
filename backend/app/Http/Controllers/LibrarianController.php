@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\Library;
 
 class LibrarianController extends Controller
 {
@@ -19,7 +20,9 @@ class LibrarianController extends Controller
         if (!$user || !$user->isOwner()) {
             abort(403);
         }
-        return view('librarians.create');
+        // Fetch owner's libraries to optionally show selection when more than one
+        $libraries = Library::where('owner_id', $user->id)->get();
+        return view('librarians.create', compact('libraries'));
     }
 
     /**
