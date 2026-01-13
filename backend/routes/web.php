@@ -101,6 +101,12 @@ Route::middleware('auth')->group(function () {
     // Student Routes
     Route::get('/student/assigned-books', [StudentController::class, 'assignedBooks'])->name('student.assigned-books');
     Route::post('/student/return-book/{book}', [StudentController::class, 'returnBook'])->name('student.return-book');
+
+    // Notifications Routes
+    Route::post('/notifications/clear', function () {
+        session(['notifications_cleared_at' => now()]);
+        return back();
+    })->name('notifications.clear');
 });
 
 // API Routes

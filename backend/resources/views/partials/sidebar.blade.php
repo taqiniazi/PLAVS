@@ -46,23 +46,7 @@
             
             {{-- Administrative Links: Librarian/Admin/Super Admin --}}
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin() || auth()->user()->isLibrarian())
-                {{-- All users can view books --}}
-                <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
-                    <i class="fas fa-search"></i> View Books
-                </a>
-                <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
-                    <i class="fas fa-box-open"></i> Manage Books
-                </a>
-                
-                {{-- Library Management --}}
-                <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
-                    <i class="fas fa-building"></i> Libraries
-                </a>
-                
-                {{-- Shelves Management --}}
-                <a href="{{ route('shelves.index') }}" class="nav-link {{ request()->routeIs('shelves.*') ? 'active' : '' }}">
-                    <i class="fas fa-book"></i> Manage Shelves
-                </a>
+                {{-- Duplicate admin menu removed; rendered earlier under hasAdminRole() --}}
             @endif
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin())
                 <a href="{{ route('owners.index') }}" class="nav-link {{ request()->routeIs('owners.index') ? 'active' : '' }}">

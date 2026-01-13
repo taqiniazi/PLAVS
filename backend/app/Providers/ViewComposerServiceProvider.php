@@ -26,14 +26,23 @@ class ViewComposerServiceProvider extends ServiceProvider
             if (Auth::check()) {
                 try {
                     $user = Auth::user();
+                    // Added: track when user cleared notifications to filter out older entries
+                    $clearedAt = session('notifications_cleared_at');
                     
                     // Get recent activities as notifications
                     $notifications = collect(); // Default empty collection
                     $unreadNotifications = 0;
                     
-                    if (class_exists('App\Models\ActivityLog')) {
-                        $notifications = ActivityLog::with('user')
-                            ->where('user_id', '!=', $user->id) // Exclude own activities
+                    if (class_exists('App\\Models\\ActivityLog')) {
+                        // Build query with optional cleared timestamp filter
+                        $query = ActivityLog::with('user')
+                            ->where('user_id', '!=', $user->id); // Exclude own activities
+                        
+                        if ($clearedAt) {
+                            $query = $query->where('created_at', '>', $clearedAt);
+                        }
+                        
+                        $notifications = $query
                             ->latest()
                             ->take(5)
                             ->get()

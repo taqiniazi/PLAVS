@@ -21,7 +21,15 @@
                 </i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
-                <li><h6 class="dropdown-header">Notifications</h6></li>
+                <li class="d-flex align-items-center justify-content-between px-3">
+                    <h6 class="dropdown-header p-0 m-0">Notifications</h6>
+                    @if(($notifications ?? collect())->count() > 0)
+                    <form method="POST" action="{{ route('notifications.clear') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Clear all</button>
+                    </form>
+                    @endif
+                </li>
                 @forelse($notifications ?? [] as $notification)
                 <li>
                     <a class="dropdown-item py-2" href="#">
