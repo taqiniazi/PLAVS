@@ -545,7 +545,9 @@ $(document).ready(function () {
         var submitBtn = form.find('button[type="submit"]');
         var originalBtnText = submitBtn.html();
         submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
-        
+        var returnModalElement = document.getElementById('returnModal');
+        var returnModalInstance = bootstrap.Modal.getInstance(returnModalElement) || new bootstrap.Modal(returnModalElement);
+    
         $.ajax({
             url: form.attr('action'),
             method: 'POST',
@@ -580,6 +582,9 @@ $(document).ready(function () {
                         returnBtn.closest('form').remove();
                     }
                 });
+                
+                // Hide the return modal after successful update
+                returnModalInstance.hide();
                 
                 // Show success message
                 $('body').append('<div class="alert alert-success alert-dismissible fade show" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;">' +
