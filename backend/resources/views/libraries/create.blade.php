@@ -239,10 +239,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-focus on the first input field
     document.getElementById('name').focus();
-    
-    // Add some interactivity for better UX
     const form = document.querySelector('form');
     const submitBtn = form.querySelector('button[type="submit"]');
     

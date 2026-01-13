@@ -18,10 +18,16 @@ class ShelfController extends Controller
         
         if ($user->hasAdminRole()) {
             $shelves = Shelf::with(['room.library', 'books'])->get();
-        } else {
+        } elseif ($user->isOwner()) {
             $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })->with(['room.library', 'books'])->get();
+        } elseif ($user->isLibrarian()) {
+            $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
+                $query->where('owner_id', $user->parent_owner_id);
+            })->with(['room.library', 'books'])->get();
+        } else {
+            $shelves = collect();
         }
 
         // Group shelves by library and room for better display
@@ -41,11 +47,19 @@ class ShelfController extends Controller
         if ($user->hasAdminRole()) {
             $rooms = Room::with('library')->get();
             $libraries = \App\Models\Library::all();
-        } else {
+        } elseif ($user->isOwner()) {
             $rooms = Room::whereHas('library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })->with('library')->get();
             $libraries = \App\Models\Library::where('owner_id', $user->id)->get();
+        } elseif ($user->isLibrarian()) {
+            $rooms = Room::whereHas('library', function ($query) use ($user) {
+                $query->where('owner_id', $user->parent_owner_id);
+            })->with('library')->get();
+            $libraries = \App\Models\Library::where('owner_id', $user->parent_owner_id)->get();
+        } else {
+            $rooms = collect();
+            $libraries = collect();
         }
 
         return view('shelves.create', compact('rooms', 'libraries'));
@@ -67,7 +81,7 @@ class ShelfController extends Controller
         $user = Auth::user();
         if ($request->filled('room_id')) {
             $room = Room::with('library')->findOrFail($request->room_id);
-            if (!($user->hasAdminRole() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id))) {
+            if (!($user->hasAdminRole() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id) || ($user->isLibrarian() && $room->library && $room->library->owner_id === $user->parent_owner_id))) {
                 abort(403, 'You are not authorized to create a shelf in this room.');
             }
         }
@@ -119,10 +133,16 @@ class ShelfController extends Controller
         
         if ($user->hasAdminRole()) {
             $rooms = Room::with('library')->get();
-        } else {
+        } elseif ($user->isOwner()) {
             $rooms = Room::whereHas('library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })->with('library')->get();
+        } elseif ($user->isLibrarian()) {
+            $rooms = Room::whereHas('library', function ($query) use ($user) {
+                $query->where('owner_id', $user->parent_owner_id);
+            })->with('library')->get();
+        } else {
+            $rooms = collect();
         }
 
         return view('shelves.edit', compact('shelf', 'rooms'));

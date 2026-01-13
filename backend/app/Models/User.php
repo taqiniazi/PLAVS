@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'avatar',
         'phone',
+        'parent_owner_id',
     ];
 
     /**
@@ -118,6 +119,12 @@ class User extends Authenticatable
         return $this->hasMany(Library::class, 'owner_id');
     }
 
+    // Link librarian to their parent owner
+    public function parentOwner()
+    {
+        return $this->belongsTo(User::class, 'parent_owner_id');
+    }
+
     /**
      * Get the libraries this user has access to
      */
@@ -208,7 +215,8 @@ class User extends Authenticatable
      */
     public function canViewAllBooks(): bool
     {
-        return $this->hasAdminRole();
+        // Librarians should NOT see all system books; limit to their owner's libraries
+        return in_array($this->role, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_OWNER]);
     }
 
     /**

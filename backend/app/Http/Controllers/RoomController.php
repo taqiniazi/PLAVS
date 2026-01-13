@@ -14,11 +14,17 @@ class RoomController extends Controller
     public function index()
     {
         $user = auth()->user();
-        // Owners see only their libraries' rooms; admins/librarians see all
+        // Owners see only their libraries' rooms; admins see all; librarians see only parent owner's rooms
         if ($user->isOwner() && !$user->hasAdminRole()) {
             $rooms = Room::with('library')
                 ->whereHas('library', function($q) use ($user) {
                     $q->where('owner_id', $user->id);
+                })
+                ->paginate(10);
+        } elseif ($user->isLibrarian() && !$user->hasAdminRole()) {
+            $rooms = Room::with('library')
+                ->whereHas('library', function($q) use ($user) {
+                    $q->where('owner_id', $user->parent_owner_id);
                 })
                 ->paginate(10);
         } else {

@@ -9,34 +9,25 @@ use App\Models\ActivityLog;
 
 class ViewComposerServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     */
+
     public function register(): void
     {
-        //
     }
 
-    /**
-     * Bootstrap services.
-     */
     public function boot(): void
     {
         View::composer('partials.topbar', function ($view) {
             if (Auth::check()) {
                 try {
                     $user = Auth::user();
-                    // Added: track when user cleared notifications to filter out older entries
                     $clearedAt = session('notifications_cleared_at');
                     
-                    // Get recent activities as notifications
-                    $notifications = collect(); // Default empty collection
+                    $notifications = collect(); 
                     $unreadNotifications = 0;
                     
                     if (class_exists('App\\Models\\ActivityLog')) {
-                        // Build query with optional cleared timestamp filter
                         $query = ActivityLog::with('user')
-                            ->where('user_id', '!=', $user->id); // Exclude own activities
+                            ->where('user_id', '!=', $user->id); 
                         
                         if ($clearedAt) {
                             $query = $query->where('created_at', '>', $clearedAt);
@@ -60,14 +51,12 @@ class ViewComposerServiceProvider extends ServiceProvider
 
                     $view->with(compact('notifications', 'unreadNotifications'));
                 } catch (\Exception $e) {
-                    // Fallback to empty notifications if there's an error
                     $view->with([
                         'notifications' => collect(),
                         'unreadNotifications' => 0
                     ]);
                 }
             } else {
-                // Not authenticated, provide empty notifications
                 $view->with([
                     'notifications' => collect(),
                     'unreadNotifications' => 0

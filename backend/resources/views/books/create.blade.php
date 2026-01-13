@@ -144,6 +144,7 @@
 </div>
 
 @push('scripts')
+<script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
 <script>
 $(function(){
     var scanner = null;

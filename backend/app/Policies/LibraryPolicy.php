@@ -77,7 +77,7 @@ class LibraryPolicy
     {
         return $user->isSuperAdmin() || 
                $user->isAdmin() || 
-               $user->isLibrarian() ||
+               ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) ||
                ($user->isOwner() && $library->owner_id === $user->id);
     }
 }

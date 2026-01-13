@@ -25,8 +25,6 @@
     
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
-    <!-- QR code scanner library -->
-    <script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
     <script>
 $(function () {
     if ($.fn.DataTable) {

@@ -24,7 +24,8 @@ class RoomPolicy
     public function view(User $user, Room $room): bool
     {
         return $user->hasAdminRole() || 
-               ($user->isOwner() && $room->library->owner_id === $user->id);
+               ($user->isOwner() && $room->library->owner_id === $user->id) ||
+               ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }
 
     /**
@@ -32,7 +33,7 @@ class RoomPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAdminRole() || $user->isOwner();
+        return $user->hasAdminRole() || $user->isOwner() || $user->isLibrarian();
     }
 
     /**
@@ -41,7 +42,8 @@ class RoomPolicy
     public function update(User $user, Room $room): bool
     {
         return $user->hasAdminRole() || 
-               ($user->isOwner() && $room->library->owner_id === $user->id);
+               ($user->isOwner() && $room->library->owner_id === $user->id) ||
+               ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }
 
     /**
@@ -50,6 +52,7 @@ class RoomPolicy
     public function delete(User $user, Room $room): bool
     {
         return $user->hasAdminRole() || 
-               ($user->isOwner() && $room->library->owner_id === $user->id);
+               ($user->isOwner() && $room->library->owner_id === $user->id) ||
+               ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }
 }

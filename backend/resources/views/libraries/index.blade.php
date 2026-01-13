@@ -32,13 +32,16 @@
     <div class="col-lg-12">
         <div class="page-header mb-4">
             <h4 class="page-title">Libraries</h4>
-            @if($isSuperAdmin || $isAdmin || $isLibrarian)
+            @can('create', App\Models\Library::class)
             <div class="float-end">
                 <a href="{{ route('libraries.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Add Library
                 </a>
+                <a href="javascript:;" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Librarian
+                </a>
             </div>
-            @endif
+            @endcan
         </div>
 
         <div class="table-card">
@@ -51,9 +54,7 @@
                             <th>Map</th>
                             <th>Owner Name</th>
                             <th>Total Books</th>
-                            @if($isAdmin || $isSuperAdmin)
                             <th class="text-end" data-orderable="false">Actions</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -92,15 +93,18 @@
                             <td>
                                 <span class="badge bg-info">{{ $library->books_count }}</span>
                             </td>
-                            @if($isAdmin || $isSuperAdmin)
                             <td class="text-end">
+                                @can('view', $library)
                                 <a href="{{ route('libraries.show', $library) }}" class="btn-action btn-view" data-bs-toggle="tooltip" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @endcan
+                                @can('update', $library)
                                 <a href="{{ route('libraries.edit', $library) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                @if($library->owner_id === $user->id || $isSuperAdmin)
+                                @endcan
+                                @can('delete', $library)
                                 <form method="POST" action="{{ route('libraries.destroy', $library) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this library? This action cannot be undone.')">
                                     @csrf
                                     @method('DELETE')
@@ -108,9 +112,8 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
-                                @endif
+                                @endcan
                             </td>
-                            @endif
                         </tr>
                         @endforeach
                     </tbody>

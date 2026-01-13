@@ -24,11 +24,11 @@
     <div class="col-lg-12">
         <div class="page-header mb-4 d-flex justify-content-between align-items-center">
             <h4 class="page-title">Manage Shelves</h4>
-            @if($isAdmin)
+            @can('create', App\Models\Shelf::class)
                 <a href="{{ route('shelves.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Add New Shelf
                 </a>
-            @endif
+            @endcan
         </div>
 
         <div class="table-card">
@@ -79,13 +79,15 @@
                                                                             <i class="fas fa-bookmark me-1"></i>
                                                                             {{ $shelf->name }}
                                                                         </h6>
-                                                                        @if($isAdmin)
-                                                                            <div>
+                                                                        <div>
+                                                                            @can('update', $shelf)
                                                                                 <a href="{{ route('shelves.edit', $shelf) }}" 
                                                                                    class="btn btn-sm btn-outline-primary" 
                                                                                    data-bs-toggle="tooltip" title="Edit">
                                                                                     <i class="fas fa-edit"></i>
                                                                                 </a>
+                                                                            @endcan
+                                                                            @can('delete', $shelf)
                                                                                 <form method="POST" 
                                                                                       action="{{ route('shelves.destroy', $shelf) }}" 
                                                                                       style="display: inline;"
@@ -98,8 +100,8 @@
                                                                                         <i class="fas fa-trash"></i>
                                                                                     </button>
                                                                                 </form>
-                                                                            </div>
-                                                                        @endif
+                                                                            @endcan
+                                                                        </div>
                                                                     </div>
                                                                     <div class="card-body">
                                                                         @if($shelf->code)
@@ -163,11 +165,11 @@
                     <div class="text-center py-5">
                         <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
                         <p class="text-muted">No shelves found.</p>
-                        @if($isAdmin)
+                        @can('create', App\Models\Shelf::class)
                             <a href="{{ route('shelves.create') }}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Create Your First Shelf
                             </a>
-                        @endif
+                        @endcan
                     </div>
                 @endforelse
             </div>

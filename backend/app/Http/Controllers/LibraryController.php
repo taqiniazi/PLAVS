@@ -24,8 +24,10 @@ class LibraryController extends Controller
         // Base query with eager loading and count
         $query = Library::with('owner')->withCount('books');
 
-        if ($user->isSuperAdmin() || $user->isAdmin() || $user->isLibrarian()) {
+        if ($user->isSuperAdmin() || $user->isAdmin()) {
             $libraries = $query->get();
+        } elseif ($user->isLibrarian()) {
+            $libraries = $query->where('owner_id', $user->parent_owner_id)->get();
         } elseif ($user->isOwner()) {
             $libraries = $query->where('owner_id', $user->id)->get();
         } else {
@@ -41,6 +43,7 @@ class LibraryController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Library::class);
         return view('libraries.create');
     }
 
@@ -49,6 +52,7 @@ class LibraryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Library::class);
         $request->validate([
             // Library validation
             'name' => 'required|string|max:255',
