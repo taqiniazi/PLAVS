@@ -54,9 +54,16 @@
             @endif
 
             {{-- Library Management (view) --}}
-            <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') ? 'active' : '' }}">
+            <a href="{{ route('libraries.index') }}" class="nav-link {{ request()->routeIs('libraries.*') && !request()->routeIs('libraries.other*') ? 'active' : '' }}">
                 <i class="fas fa-building"></i> Libraries
             </a>
+
+            {{-- Other Libraries (Owner/Librarian only) --}}
+            @if($user && ($user->isOwner() || $user->isLibrarian()))
+                <a href="{{ route('libraries.other') }}" class="nav-link {{ request()->routeIs('libraries.other*') ? 'active' : '' }}">
+                    <i class="fas fa-globe"></i> Other Libraries
+                </a>
+            @endif
 
             {{-- Shelves Management (owner/librarian only) --}}
             @if($user && ($user->isOwner() || $user->isLibrarian()))

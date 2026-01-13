@@ -64,6 +64,11 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            // Update last login timestamp
+            $user = Auth::user();
+            $user->last_login_at = now();
+            $user->save();
 
             // Check for pending invitation
             if (session()->has('invitation_token')) {

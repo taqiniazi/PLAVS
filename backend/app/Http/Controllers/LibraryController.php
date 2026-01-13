@@ -274,6 +274,52 @@ class LibraryController extends Controller
     }
 
     /**
+     * Display a listing of other libraries (not owned by current user).
+     */
+    public function otherLibraries()
+    {
+        $user = Auth::user();
+        if (!$user || !($user->isOwner() || $user->isLibrarian())) {
+            abort(403);
+        }
+
+        $query = Library::with('owner')->withCount('books');
+
+        if ($user->isOwner()) {
+            $libraries = $query->where('owner_id', '!=', $user->id)->get();
+        } elseif ($user->isLibrarian()) {
+            $libraries = $query->where('owner_id', '!=', $user->parent_owner_id)->get();
+        } else {
+            $libraries = collect();
+        }
+
+        return view('libraries.other_index', compact('libraries'));
+    }
+
+    /**
+     * Display books of a specific other library.
+     */
+    public function otherLibraryBooks(Library $library)
+    {
+        $user = Auth::user();
+        if (!$user || !($user->isOwner() || $user->isLibrarian())) {
+            abort(403);
+        }
+        
+        // Ensure we are not viewing our own library via this route
+        $ownerId = $user->isOwner() ? $user->id : $user->parent_owner_id;
+        if ($library->owner_id == $ownerId) {
+             return redirect()->route('libraries.show', $library);
+        }
+
+        $books = \App\Models\Book::whereHas('shelf.room', function($q) use ($library) {
+            $q->where('library_id', $library->id);
+        })->get();
+
+        return view('libraries.other_books', compact('library', 'books'));
+    }
+
+    /**
      * Switch active library for the logged-in owner or librarian.
      */
     public function switch(Request $request)

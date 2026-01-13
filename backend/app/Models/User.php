@@ -27,6 +27,7 @@ class User extends Authenticatable
         'phone',
         'parent_owner_id',
         'requested_owner',
+        'last_login_at',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'requested_owner' => 'boolean',
+        'last_login_at' => 'datetime',
     ];
 
     /**

@@ -104,6 +104,7 @@ class ShelfController extends Controller
             'code' => $code,
             'description' => $request->description,
             'room_id' => $request->room_id, // can be null
+            'library_id' => isset($room) && $room->library ? $room->library->id : null,
         ]);
 
         return redirect()->route('shelves.index')
@@ -161,12 +162,21 @@ class ShelfController extends Controller
             'description' => 'nullable|string',
             'room_id' => 'nullable|exists:rooms,id',
         ]);
+        
+        $libraryId = $shelf->library_id;
+        if ($request->filled('room_id') && $request->room_id != $shelf->room_id) {
+            $room = Room::with('library')->find($request->room_id);
+            if ($room && $room->library) {
+                $libraryId = $room->library->id;
+            }
+        }
 
         $shelf->update([
             'name' => $request->name,
             'code' => $request->code,
             'description' => $request->description,
             'room_id' => $request->room_id, // can be null
+            'library_id' => $libraryId,
         ]);
 
         return redirect()->route('shelves.index')

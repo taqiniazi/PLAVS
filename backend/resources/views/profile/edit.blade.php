@@ -54,20 +54,28 @@
                 </div>
 
                 <div class="mb-4">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                           placeholder="Enter your phone number" value="{{ old('phone', $user->phone) }}">
+                    @error('phone')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label">Role</label>
                     <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" readonly>
                     <small class="text-muted">Role cannot be changed. Contact administrator if needed.</small>
                 </div>
 
-                <div class="mt-4 d-flex gap-2">
+                <div class="col-md-12 justify-content-center mt-4 d-flex gap-2">
                     <div class="row mt-4">
-                        <div class="col-md-6">
-                            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary w-100">
+                        <div class="col-md-12">
+                            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Cancel
                             </a>
-                        </div>
-                        <div class="col-md-6">
-                            <button type="submit" class="btn btn-submit w-100">
+                        
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Update Profile
                             </button>
                         </div>

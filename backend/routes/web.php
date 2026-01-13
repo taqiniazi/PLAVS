@@ -62,6 +62,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('books', BookController::class);
 
     // Library Routes
+    Route::get('/libraries/other', [LibraryController::class, 'otherLibraries'])->name('libraries.other');
+    Route::get('/libraries/other/{library}/books', [LibraryController::class, 'otherLibraryBooks'])->name('libraries.other.books');
     Route::resource('libraries', LibraryController::class);
     Route::post('/libraries/switch', [LibraryController::class, 'switch'])->name('libraries.switch');
     Route::get('/libraries/{library}/invite', [LibraryController::class, 'generateInvite'])->name('libraries.generate_invite');

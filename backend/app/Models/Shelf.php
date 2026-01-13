@@ -13,7 +13,8 @@ class Shelf extends Model
         'name',
         'code',
         'description',
-        'room_id'
+        'room_id',
+        'library_id'
     ];
 
     /**
