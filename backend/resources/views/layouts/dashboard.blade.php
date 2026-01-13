@@ -27,6 +27,11 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <!-- QR code scanner library -->
     <script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
+    <script>
+        $(document).ready(fucntion(){
+            $(".datatable").datable();
+        })
+    </script>
     @stack('scripts')
 </body>
 </html>

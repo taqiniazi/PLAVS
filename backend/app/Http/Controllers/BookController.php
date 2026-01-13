@@ -314,23 +314,23 @@ class BookController extends Controller
         $oldStatus = $book->status;
         $oldUserId = $book->assigned_user_id;
         
-        // Update book status and clear assignment
-        $book->status = 'Available';
-        $book->assigned_user_id = null;
+        // Update book status and reassign to the confirming admin/owner/superadmin
+        $book->status = 'Assigned';
+        $book->assigned_user_id = Auth::id();
         $book->save();
 
-        $this->logActivity('book_returned', "Book '{$book->title}' returned by user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'), $book);
+        $this->logActivity('book_return_confirmed', "Book '{$book->title}' return confirmed by user ID " . Auth::id() . ". Previous holder user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'), $book);
 
         // Handle AJAX requests
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Book returned successfully!',
+                'message' => 'Book return confirmed and reassigned to you!',
                 'book_id' => $book->id
             ]);
         }
 
-        return redirect()->route('books.manage')->with('success', 'Book returned successfully!');
+        return redirect()->route('books.manage')->with('success', 'Book return confirmed and reassigned to you!');
     }
 
     public function destroy(Book $book)
