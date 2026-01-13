@@ -34,13 +34,11 @@
                         <th>Assigned Date</th>
                         <th>Return Date</th>
                         <th>Status</th>
-                        <!-- <th style="width: 150px;">Actions</th> -->
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($assignedBooks as $book)
                     @php
-                        // Safely access pivot (may be null for directly assigned books)
                         $pivot = $book->pivot ?? null;
                         $isReturned = optional($pivot)->is_returned ?? false;
 
@@ -58,6 +56,10 @@
                             ? $assignedAtValue->copy()->setTimezone(date_default_timezone_get())->format('h:i A')
                             : \Carbon\Carbon::parse($assignedAtValue)->setTimezone(date_default_timezone_get())->format('h:i A'))
                             : '';
+                        // Device-local time: ISO used for client-side conversion
+                        $assignedIso = $assignedAtValue ? (($assignedAtValue instanceof \Carbon\Carbon)
+                            ? $assignedAtValue->copy()->toIso8601String()
+                            : \Carbon\Carbon::parse($assignedAtValue)->toIso8601String()) : null;
 
                         // Determine Return Date from pivot if available
                         $returnDateValue = optional($pivot)->return_date;
@@ -73,6 +75,10 @@
                             ? $returnDateValue->copy()->setTimezone(date_default_timezone_get())->format('h:i A')
                             : \Carbon\Carbon::parse($returnDateValue)->setTimezone(date_default_timezone_get())->format('h:i A'))
                             : '';
+                        // Device-local time: ISO used for client-side conversion
+                        $returnedIso = $returnDateValue ? (($returnDateValue instanceof \Carbon\Carbon)
+                            ? $returnDateValue->copy()->toIso8601String()
+                            : \Carbon\Carbon::parse($returnDateValue)->toIso8601String()) : null;
                     @endphp
                     <tr class="{{ $isReturned ? 'table-secondary' : '' }}" style="{{ $isReturned ? 'opacity: 0.7;' : '' }}">
                         <td>
@@ -87,8 +93,8 @@
                             </a>
                         </td>
                         <td>{{ $book->author }}</td>
-                        <td>{{ $assignedAt }} <div><small>{{ $assignedTime }}</small></div></td>
-                        <td>{{ $returnDate }} <div><small>{{ $returnTime }}</small></div></td>
+                        <td>{{ $assignedAt }} <div><small class="local-time" data-datetime="{{ $assignedIso }}"></small></div></td>
+                        <td>{{ $returnDate }} <div><small class="local-time" data-datetime="{{ $returnedIso }}"></small></div></td>
                         <td>
                             @if($isReturned)
                             <span class="badge bg-secondary">Returned</span>
@@ -96,23 +102,35 @@
                             <span class="badge bg-success">In Use</span>
                             @endif
                         </td>
-                        <!-- <td>
-                            {{-- No return action for students per requirement --}}
-                            <span class="text-muted">-</span>
-                        </td> -->
                     </tr>
                     @endforeach
-
-                    {{-- Returned books will be rendered in the combined table below; removed inline duplication --}}
                 </tbody>
             </table>
         </div>
-
         @else
-        <div class="text-center py-5">
-            <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">No books have been assigned to you yet.</h5>
-            <p class="text-muted">Check back later or contact your teacher/librarian.</p>
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Image</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Assigned Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" class="bg-gray text-light">
+                            <div class="text-center d-flex align-items-center justify-content-center py-1">
+                                <i class="fas fa-book-open fa-2x me-2"></i>
+                                <h5 class="mb-0">No books have been assigned to you yet.</h5>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         @endif
     </div>
@@ -148,7 +166,7 @@
                     @foreach($returnHistory as $book)
                     @php
                         $pivot = $book->pivot ?? null;
-                    
+                        
                         // Assigned date/time
                         $assignedAtValue = optional($pivot)->assigned_at ?? null;
                         if ($assignedAtValue instanceof \Carbon\Carbon) {
@@ -161,7 +179,11 @@
                             $assignedAt = 'N/A';
                             $assignedTime = '';
                         }
-                    
+                        // Device-local time: ISO used for client-side conversion
+                        $assignedIso = $assignedAtValue ? (($assignedAtValue instanceof \Carbon\Carbon)
+                            ? $assignedAtValue->copy()->toIso8601String()
+                            : \Carbon\Carbon::parse($assignedAtValue)->toIso8601String()) : null;
+                        
                         // Return date/time
                         $returnDateValue = optional($pivot)->return_date ?? null;
                         if ($returnDateValue instanceof \Carbon\Carbon) {
@@ -174,6 +196,10 @@
                             $returnedOn = '-';
                             $returnedTime = '';
                         }
+                        // Device-local time: ISO used for client-side conversion
+                        $returnedIso = $returnDateValue ? (($returnDateValue instanceof \Carbon\Carbon)
+                            ? $returnDateValue->copy()->toIso8601String()
+                            : \Carbon\Carbon::parse($returnDateValue)->toIso8601String()) : null;
                     @endphp
                         <tr class="table-secondary" style="opacity: 0.9;">
                             <td>
@@ -183,8 +209,8 @@
                                 <a href="{{ route('books.show', $book) }}" class="text-decoration-none text-muted">{{ $book->title }}</a>
                             </td>
                             <td>{{ $book->author }}</td>
-                            <td>{{ $assignedAt }} <div><small>{{ $assignedTime }}</small></div></td>
-                            <td>{{ $returnedOn }} <div><small>{{ $returnedTime }}</small></div></td>
+                            <td>{{ $assignedAt }} <div><small class="local-time" data-datetime="{{ $assignedIso }}"></small></div></td>
+                            <td>{{ $returnedOn }} <div><small class="local-time" data-datetime="{{ $returnedIso }}"></small></div></td>
                             <td><span class="badge bg-secondary">Returned</span></td>
                         </tr>
                     @endforeach
@@ -196,5 +222,20 @@
 @endif
 
 @endsection
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.local-time').forEach(function(el) {
+      var iso = el.getAttribute('data-datetime');
+      if (!iso) return;
+      var d = new Date(iso);
+      // Render device local time in 12-hour format with minutes
+      var formatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      el.textContent = formatted;
+    });
+  });
+</script>
 
 
