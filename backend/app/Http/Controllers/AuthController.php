@@ -46,6 +46,12 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Check for pending invitation
+        if (session()->has('invitation_token')) {
+             $token = session('invitation_token');
+             return app(InvitationController::class)->accept($token);
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -58,6 +64,13 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            // Check for pending invitation
+            if (session()->has('invitation_token')) {
+                $token = session('invitation_token');
+                return app(InvitationController::class)->accept($token);
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

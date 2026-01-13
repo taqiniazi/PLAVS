@@ -38,7 +38,7 @@
                     <i class="fas fa-plus me-2"></i>Add Library
                 </a>
                 @if(auth()->user()->isOwner())
-                <a href="{{ route('librarians.create') }}" class="btn btn-primary">
+                <a href="{{ route('librarians.create') }}" class="btn btn-success">
                     <i class="fas fa-user-plus me-2"></i>Add Librarian
                 </a>
                 @endif

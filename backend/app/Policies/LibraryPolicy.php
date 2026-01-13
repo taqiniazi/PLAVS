@@ -24,7 +24,7 @@ class LibraryPolicy
     public function view(User $user, Library $library): bool
     {
         // Admins, Super Admins can view all libraries
-        if ($user->isSuperAdmin() || $user->isAdmin() || $user->isLibrarian()) {
+        if ($user->isSuperAdmin() || $user->isAdmin()) {
             return true;
         }
 
@@ -32,11 +32,20 @@ class LibraryPolicy
         if ($user->isOwner() && $library->owner_id === $user->id) {
             return true;
         }
+        
+        // Librarians of the owner can view
+        if ($user->isLibrarian() && $user->parent_owner_id === $library->owner_id) {
+            return true;
+        }
 
-        // For private libraries, check if user has invite access
-        if ($library->isPrivate()) {
-            // User must have been invited (this would be checked via invite token)
-            return false;
+        // Members of the library can view
+        if ($library->members()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        // Public libraries are visible to all authenticated users
+        if ($library->isPublic()) {
+            return true;
         }
 
         return false;

@@ -129,6 +129,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Get libraries the user has joined as a member
+     */
+    public function joinedLibraries()
+    {
+        return $this->belongsToMany(Library::class, 'library_user')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the libraries this user has access to
      */
     public function libraries()
@@ -138,6 +147,16 @@ class User extends Authenticatable
             return Library::query();
         }
         
+        // Librarians see libraries of their parent owner
+        if ($this->isLibrarian()) {
+             return Library::where('owner_id', $this->parent_owner_id);
+        }
+
+        // Students/Teachers see joined libraries + owned libraries (if any)
+        if ($this->isStudent() || $this->isTeacher()) {
+             return $this->joinedLibraries();
+        }
+
         return $this->ownedLibraries();
     }
 

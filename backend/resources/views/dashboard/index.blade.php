@@ -15,6 +15,20 @@
 <div class="row">
     {{-- Admin/Librarian/Owner Stats --}}
     @if($hasAdminRole)
+        {{-- Action Buttons --}}
+        <div class="col-12 mb-4">
+            <div class="d-flex justify-content-end gap-2">
+                @if($user->isOwner())
+                    <a href="{{ route('libraries.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Library
+                    </a>
+                @endif
+                <a href="{{ route('invitations.create') }}" class="btn btn-success">
+                    <i class="fas fa-envelope me-2"></i>Invite Member
+                </a>
+            </div>
+        </div>
+
         <div class="col-lg-3 col-md-6">
             <div class="stat-card">
                 <div>

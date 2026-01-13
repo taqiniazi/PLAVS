@@ -214,7 +214,7 @@
                                 </a>
                             </div>
                             <div class="col-md-6">
-                                <button type="submit" class="btn btn-primary w-100">
+                                <button type="submit" class="btn btn-success w-100">
                                     <i class="fas fa-plus me-2"></i>Create Library
                                 </button>
                             </div>

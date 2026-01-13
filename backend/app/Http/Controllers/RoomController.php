@@ -16,20 +16,23 @@ class RoomController extends Controller
     {
         $user = auth()->user();
         // Owners see only their libraries' rooms; admins see all; librarians see only parent owner's rooms
-        if ($user->isOwner() && !$user->hasAdminRole()) {
+        if ($user->isAdmin()) {
+            $rooms = Room::with('library')->paginate(10);
+        } elseif ($user->isOwner()) {
             $rooms = Room::with('library')
                 ->whereHas('library', function($q) use ($user) {
                     $q->where('owner_id', $user->id);
                 })
                 ->paginate(10);
-        } elseif ($user->isLibrarian() && !$user->hasAdminRole()) {
+        } elseif ($user->isLibrarian()) {
             $rooms = Room::with('library')
                 ->whereHas('library', function($q) use ($user) {
                     $q->where('owner_id', $user->parent_owner_id);
                 })
                 ->paginate(10);
         } else {
-            $rooms = Room::with('library')->paginate(10);
+            // Others shouldn't see rooms management
+            $rooms = Room::where('id', 0)->paginate(10);
         }
 
         return view('rooms.index', compact('rooms'));
@@ -43,7 +46,7 @@ class RoomController extends Controller
         $this->authorize('manageContent', $library);
         // Provide libraries list for owners/librarians with multiple libraries to allow switching
         $user = Auth::user();
-        if ($user->hasAdminRole()) {
+        if ($user->isAdmin()) {
             $libraries = Library::all();
         } elseif ($user->isOwner()) {
             $libraries = Library::where('owner_id', $user->id)->get();

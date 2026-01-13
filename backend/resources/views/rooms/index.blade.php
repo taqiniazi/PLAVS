@@ -98,7 +98,18 @@
       <div class="modal-body">
         <p>Select a library to add a new room.</p>
         <div class="list-group">
-          @forelse($user->isOwner() ? $user->libraries : \App\Models\Library::all() as $library)
+          @php
+              if($user->isAdmin()) {
+                  $modalLibraries = \App\Models\Library::all();
+              } elseif($user->isOwner()) {
+                  $modalLibraries = \App\Models\Library::where('owner_id', $user->id)->get();
+              } elseif($user->isLibrarian()) {
+                  $modalLibraries = \App\Models\Library::where('owner_id', $user->parent_owner_id)->get();
+              } else {
+                  $modalLibraries = collect();
+              }
+          @endphp
+          @forelse($modalLibraries as $library)
             <a href="{{ route('libraries.rooms.create', $library) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
               <span>{{ $library->name }}</span>
               <i class="fas fa-angle-right"></i>

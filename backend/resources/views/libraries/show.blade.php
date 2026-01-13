@@ -124,6 +124,48 @@
         </div>
     </div>
 
+    <!-- Invite Section -->
+    @if(Auth::user()->can('update', $library) || (Auth::user()->isLibrarian() && Auth::user()->parent_owner_id === $library->owner_id))
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>
+                        Invite Members
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('invitations.store') }}" method="POST" class="row g-3 align-items-end">
+                        @csrf
+                        <input type="hidden" name="library_id" value="{{ $library->id }}">
+                        
+                        <div class="col-md-5">
+                            <label for="invite_email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="invite_email" name="email" required placeholder="Enter email to invite">
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="invite_role" class="form-label">Role</label>
+                            <select class="form-select" id="invite_role" name="role" required>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="librarian">Librarian</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Send Invite
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Rooms Section -->
     <div class="row mt-4">
         <div class="col-12">

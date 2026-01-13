@@ -597,13 +597,22 @@ div.dataTables_wrapper div.dataTables_filter input {
     border-top-right-radius: 15px !important;
     color: white;
 }
-.btn-primary {
+.btn-primary, .btn-success, .btn-warning, .btn-danger {
     background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
     border: none;
     padding: 10px 30px;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+}
+.btn-success {
+    background: linear-gradient(135deg, #01790a 0%, #01a00d 100%);
+}
+.btn-warning {
+    background: linear-gradient(135deg, #868200 0%, #c6cd01 100%);
+}
+.btn-danger {
+    background: linear-gradient(135deg, #7a1202 0%, #b73e3e 100%);
 }
 .card {
     border: 0px;
@@ -613,7 +622,7 @@ div.dataTables_wrapper div.dataTables_filter input {
 .card-body{
     padding: 25px;;
 }
-.btn-primary:hover {
+.btn-primary:hover, .btn-success:hover, .btn-warning:hover, .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }

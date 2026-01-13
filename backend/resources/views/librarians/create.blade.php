@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="mt-4 text-center">
-                    <button type="submit" class="btn btn-primary">Create Librarian</button>
+                    <button type="submit" class="btn btn-success">Create Librarian</button>
                 </div>
             </form>
         </div>

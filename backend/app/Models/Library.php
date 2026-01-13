@@ -79,6 +79,23 @@ class Library extends Model
     }
 
     /**
+     * Get the members of the library
+     */
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'library_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get invitations for this library
+     */
+    public function invitations()
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
+    /**
      * Check if library is private
      */
     public function isPrivate(): bool

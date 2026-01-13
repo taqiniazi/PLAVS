@@ -33,6 +33,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
+// Invitation Routes (Public)
+Route::get('/invitations/accept/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invitations.accept');
+
 // Protected Routes
 Route::middleware('auth')->group(function () {
     // Dashboard Routes
@@ -63,6 +66,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/libraries/switch', [LibraryController::class, 'switch'])->name('libraries.switch');
     Route::get('/libraries/{library}/invite', [LibraryController::class, 'generateInvite'])->name('libraries.generate_invite');
     Route::get('/join/{token}', [LibraryController::class, 'join'])->name('libraries.join');
+
+    // Invitation Routes
+    Route::get('/invitations/create', [App\Http\Controllers\InvitationController::class, 'create'])->name('invitations.create');
+    Route::post('/invitations', [App\Http\Controllers\InvitationController::class, 'store'])->name('invitations.store');
 
     // Wishlist Routes
     Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
