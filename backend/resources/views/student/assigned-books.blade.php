@@ -87,22 +87,100 @@
                             @endif
                         </td>
                         <td>
-                            @if(!$isReturned)
-                            <form action="{{ route('student.return-book', $book) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Return Book">
-                                    <i class="fas fa-undo"></i> Return
-                                </button>
-                            </form>
-                            @else
+                            {{-- No return action for students per requirement --}}
                             <span class="text-muted">-</span>
-                            @endif
                         </td>
                     </tr>
+                    @endforeach
+
+                    @php
+                        $returnHistory = auth()->user()->booksThroughAssignment()
+                            ->wherePivot('is_returned', true)
+                            ->get()
+                            ->sortByDesc(function($b){
+                                $d = optional($b->pivot)->return_date;
+                                return $d ? \Carbon\Carbon::parse($d) : $b->updated_at;
+                            });
+                    @endphp
+                    @if($returnHistory->count() > 0)
+                        @foreach($returnHistory as $book)
+                            @php
+                                $pivot = $book->pivot;
+                                $assignedAtValue = optional($pivot)->assigned_at ?? null;
+                                $assignedAt = $assignedAtValue ? \Carbon\Carbon::parse($assignedAtValue)->format('M d, Y') : 'N/A';
+                                $returnDateValue = optional($pivot)->return_date ?? null;
+                                $returnedOn = $returnDateValue ? \Carbon\Carbon::parse($returnDateValue)->format('M d, Y') : '-';
+                            @endphp
+                            <tr class="table-secondary" style="opacity: 0.9;">
+                                <td>
+                                    <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="img-thumbnail" style="width: 60px; height: 80px; object-fit: cover;">
+                                </td>
+                                <td>
+                                    <a href="{{ route('books.show', $book) }}" class="text-decoration-none text-muted">{{ $book->title }}</a>
+                                </td>
+                                <td>{{ $book->author }}</td>
+                                <td>{{ $assignedAt }}</td>
+                                <td>{{ $returnedOn }}</td>
+                                <td><span class="badge bg-secondary">Returned</span></td>
+                                <td><span class="text-muted">-</span></td>
+                            </tr>
+                        @endforeach
+                    @endif
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Standalone Return History Section (optional separate view) --}}
+        @php
+            $returnHistory = auth()->user()->booksThroughAssignment()
+                ->wherePivot('is_returned', true)
+                ->get()
+                ->sortByDesc(function($b){
+                    $d = optional($b->pivot)->return_date;
+                    return $d ? \Carbon\Carbon::parse($d) : $b->updated_at;
+                });
+        @endphp
+        @if($returnHistory->count() > 0)
+        <div class="table-responsive mt-4">
+            <h5 class="mb-3">Return History</h5>
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Image</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Assigned Date</th>
+                        <th>Returned On</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($returnHistory as $book)
+                        @php
+                            $pivot = $book->pivot;
+                            $assignedAtValue = optional($pivot)->assigned_at ?? null;
+                            $assignedAt = $assignedAtValue ? \Carbon\Carbon::parse($assignedAtValue)->format('M d, Y') : 'N/A';
+                            $returnDateValue = optional($pivot)->return_date ?? null;
+                            $returnedOn = $returnDateValue ? \Carbon\Carbon::parse($returnDateValue)->format('M d, Y') : '-';
+                        @endphp
+                        <tr class="table-secondary" style="opacity: 0.9;">
+                            <td>
+                                <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="img-thumbnail" style="width: 60px; height: 80px; object-fit: cover;">
+                            </td>
+                            <td>
+                                <a href="{{ route('books.show', $book) }}" class="text-decoration-none text-muted">{{ $book->title }}</a>
+                            </td>
+                            <td>{{ $book->author }}</td>
+                            <td>{{ $assignedAt }}</td>
+                            <td>{{ $returnedOn }}</td>
+                            <td><span class="badge bg-secondary">Returned</span></td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
+        @endif
+
         @else
         <div class="text-center py-5">
             <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
@@ -113,3 +191,5 @@
     </div>
 </div>
 @endsection
+
+
