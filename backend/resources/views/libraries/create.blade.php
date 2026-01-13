@@ -105,9 +105,10 @@
                                        id="owner_username"
                                        name="owner_username"
                                        value="{{ old('owner_username') }}"
-                                       placeholder="Enter unique username"
+                                       placeholder="Will be set to owner email"
+                                       readonly
                                        required>
-                                <div class="form-text">This will be used for library login</div>
+                                <div class="form-text">Owner username will be the same as the owner email address.</div>
                                 @error('owner_username')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -242,10 +243,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('name').focus();
     const form = document.querySelector('form');
     const submitBtn = form.querySelector('button[type="submit"]');
-    
+    const ownerEmail = document.getElementById('owner_email');
+    const ownerUsername = document.getElementById('owner_username');
+
+    const syncOwner = () => { ownerUsername.value = (ownerEmail.value || '').trim(); };
+    ownerEmail.addEventListener('input', syncOwner);
+    syncOwner();
     form.addEventListener('submit', function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
         submitBtn.disabled = true;
+        syncOwner();
     });
 });
 </script>

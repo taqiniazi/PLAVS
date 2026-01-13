@@ -587,6 +587,9 @@ div.dataTables_wrapper div.dataTables_filter input {
 .modal-backdrop.show {
     display: none !important;
 }
+.text-white{
+    color: #fff !important;
+}
 .card-header {
     padding:15px;
     background: var(--primary-dark);

@@ -11,6 +11,7 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ShelfController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\LibrarianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -118,4 +119,10 @@ Route::middleware('auth')->group(function () {
         $rooms = $library->rooms()->get(['id', 'name']);
         return response()->json(['rooms' => $rooms]);
     })->name('api.libraries.rooms');
+});
+
+// Librarian management (Owner-only)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/librarians/create', [LibrarianController::class, 'create'])->name('librarians.create');
+    Route::post('/librarians', [LibrarianController::class, 'store'])->name('librarians.store');
 });

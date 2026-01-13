@@ -37,9 +37,11 @@
                 <a href="{{ route('libraries.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Add Library
                 </a>
-                <a href="javascript:;" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Add Librarian
+                @if(auth()->user()->isOwner())
+                <a href="{{ route('librarians.create') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Add Librarian
                 </a>
+                @endif
             </div>
             @endcan
         </div>
