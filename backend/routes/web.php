@@ -9,8 +9,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ShelfController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\PublicController;
 use App\Http\Controllers\LibrarianController;
 use App\Http\Controllers\PermissionsController;
 
@@ -108,13 +107,9 @@ Route::middleware('auth')->group(function () {
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
 
-    // Teacher Routes
-    Route::get('/teachers/students', [TeacherController::class, 'students'])->name('teachers.students');
-    Route::get('/teachers/assignments', [TeacherController::class, 'assignments'])->name('teachers.assignments');
-
-    // Student Routes
-    Route::get('/student/assigned-books', [StudentController::class, 'assignedBooks'])->name('student.assigned-books');
-    Route::post('/student/return-book/{book}', [StudentController::class, 'returnBook'])->name('student.return-book');
+    // Public Routes
+    Route::get('/public/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');
+    Route::post('/public/return-book/{book}', [PublicController::class, 'returnBook'])->name('public.return-book');
 
     // Notifications Routes
     Route::post('/notifications/clear', function () {

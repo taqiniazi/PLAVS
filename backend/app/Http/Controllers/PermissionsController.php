@@ -18,7 +18,7 @@ class PermissionsController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $candidates = User::where('role', User::ROLE_CANDIDATE)->get();
+        $candidates = User::where('role', User::ROLE_PUBLIC)->get();
         $ownerRequests = User::where('requested_owner', true)->get();
 
         return view('permissions.index', compact('candidates', 'ownerRequests'));
@@ -30,8 +30,8 @@ class PermissionsController extends Controller
     public function requestOwner(Request $request)
     {
         $user = Auth::user();
-        if (!$user->isCandidate()) {
-            return redirect()->back()->with('error', 'Only candidates can request owner role.');
+        if (!$user->isPublic()) {
+            return redirect()->back()->with('error', 'Only public users can request owner role.');
         }
 
         $user->requested_owner = true;
@@ -55,8 +55,7 @@ class PermissionsController extends Controller
             'role' => 'required|in:' . implode(',', [
                 User::ROLE_OWNER,
                 User::ROLE_LIBRARIAN,
-                User::ROLE_TEACHER,
-                User::ROLE_STUDENT,
+                User::ROLE_PUBLIC,
                 User::ROLE_ADMIN,
             ]),
         ]);

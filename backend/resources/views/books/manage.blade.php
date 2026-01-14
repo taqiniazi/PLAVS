@@ -10,8 +10,7 @@
 @php
     $user = auth()->user();
     $isAdmin = $user->hasAdminRole();
-    $isTeacher = $user->isTeacher();
-    $isStudent = $user->isStudent();
+    $isPublic = $user->isPublic();
     $isOwner = $user->isOwner();
 @endphp
 @if(session('success'))
@@ -67,7 +66,7 @@
                             <th>Visibility</th>
                             <th>Current Holder</th>
                             <th>Status</th>
-                            @if($isAdmin || $isTeacher || $isStudent  || $isOwner)
+                            @if($isAdmin || $isPublic  || $isOwner)
                             <th class="text-end" data-orderable="false">Actions</th>
                             @endif
                         </tr>
@@ -176,15 +175,6 @@
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
-                                @elseif($isTeacher)
-                                    {{-- Teachers can view and assign to students --}}
-                                    <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="Assign to Student" 
-                                            data-id="{{ $book->id }}" data-title="{{ $book->title }}">
-                                        <i class="fas fa-user-plus"></i>
-                                    </button>
-                                @elseif($isStudent)
-                                    {{-- Students can only view book details via clicking --}}
-                                    {{-- No action buttons needed --}}
                                 @endif
                             </td>
                         </tr>
@@ -380,8 +370,7 @@
 <script>
 $(document).ready(function () {
     // Initialize DataTables
-    var hasActionsColumn = {{ ($isAdmin || $isTeacher || $isStudent || $isOwner) ? 'true' : 'false' }};
-    // Current user info for UI updates after return confirmation
+    var hasActionsColumn = {{ ($isAdmin || $isPublic || $isOwner) ? 'true' : 'false' }};
     var currentUserName = '{{ auth()->user()->name }}';
     var currentUserRole = '{{ auth()->user()->role ?? (auth()->user()->isOwner() ? "Owner" : "Admin") }}';
     var nonOrderableTargets = [];

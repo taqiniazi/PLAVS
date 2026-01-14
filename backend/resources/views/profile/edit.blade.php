@@ -68,9 +68,8 @@
                     <small class="text-muted">Role cannot be changed. Contact administrator if needed.</small>
                 </div>
 
-                <div class="col-md-12 justify-content-center mt-4 d-flex gap-2">
-                    <div class="row mt-4">
-                        <div class="col-md-12">
+                <div class="col-md-12 justify-content-center align-items-center mt-4 d-flex gap-2">
+                    <div class="mt-4">
                             <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Cancel
                             </a>
@@ -78,21 +77,15 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Update Profile
                             </button>
-                        </div>
-                    </div>
                     
-                    @if(Auth::user()->isCandidate() && !Auth::user()->requested_owner)
-                        <div class="row mt-4">
-                            <div class="col-12">
+                    @if(Auth::user()->isPublic() && !Auth::user()->requested_owner)
                                 <form action="{{ route('permissions.request-owner') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-warning w-100">
+                                    <button type="submit" class="btn btn-warning">
                                         <i class="fas fa-user-shield me-2"></i>Request Owner Role
                                     </button>
                                 </form>
                                 <small class="text-muted d-block mt-2">Your request will notify administrators. You will be upgraded to Owner once approved.</small>
-                            </div>
-                        </div>
                     @endif
                 </div>
             </form>

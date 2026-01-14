@@ -59,9 +59,7 @@ class User extends Authenticatable
     public const ROLE_ADMIN = 'admin';
     public const ROLE_LIBRARIAN = 'librarian';
     public const ROLE_OWNER = 'owner';
-    public const ROLE_TEACHER = 'teacher';
-    public const ROLE_STUDENT = 'student';
-    public const ROLE_CANDIDATE = 'candidate';
+    public const ROLE_PUBLIC = 'public';
 
     /**
      * Administrative roles
@@ -154,8 +152,8 @@ class User extends Authenticatable
              return Library::where('owner_id', $this->parent_owner_id);
         }
 
-        // Students/Teachers see joined libraries + owned libraries (if any)
-        if ($this->isStudent() || $this->isTeacher()) {
+        // Public users see joined libraries + owned libraries (if any)
+        if ($this->isStudent()) {
              return $this->joinedLibraries();
         }
 
@@ -171,6 +169,8 @@ class User extends Authenticatable
         $norm = preg_replace('/[\s\-]+/', '_', $raw); // spaces or hyphens to underscores
         $aliases = [
             'superadmin' => 'super_admin',
+            'student' => 'public',
+            'candidate' => 'public',
         ];
         return $aliases[$norm] ?? $norm;
     }
@@ -215,28 +215,14 @@ class User extends Authenticatable
         return $this->roleKey() === self::ROLE_OWNER;
     }
 
-    /**
-     * Check if user is Teacher
-     */
-    public function isTeacher(): bool
+    public function isPublic(): bool
     {
-        return $this->roleKey() === self::ROLE_TEACHER;
+        return $this->roleKey() === self::ROLE_PUBLIC;
     }
 
-    /**
-     * Check if user is Student
-     */
     public function isStudent(): bool
     {
-        return $this->roleKey() === self::ROLE_STUDENT;
-    }
-
-    /**
-     * Check if user is Candidate
-     */
-    public function isCandidate(): bool
-    {
-        return $this->roleKey() === self::ROLE_CANDIDATE;
+        return $this->isPublic();
     }
 
     /**
@@ -252,7 +238,7 @@ class User extends Authenticatable
      */
     public function canAssignBooks(): bool
     {
-        return in_array($this->roleKey(), [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_LIBRARIAN, self::ROLE_TEACHER], true);
+        return in_array($this->roleKey(), [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN, self::ROLE_LIBRARIAN], true);
     }
 
     /**
@@ -298,32 +284,9 @@ class User extends Authenticatable
             self::ROLE_ADMIN => 'Admin',
             self::ROLE_LIBRARIAN => 'Librarian',
             self::ROLE_OWNER => 'Library Owner',
-            self::ROLE_TEACHER => 'Teacher',
-            self::ROLE_STUDENT => 'Student',
-            self::ROLE_CANDIDATE => 'Candidate',
+            self::ROLE_PUBLIC => 'Public',
             default => ucwords(str_replace('_', ' ', $key)),
         };
-    }
-
-    /**
-     * Get students assigned to this teacher
-     */
-    public function assignedStudents()
-    {
-        return $this->belongsToMany(User::class, 'book_user', 'user_id', 'book_id')
-            ->where('assignment_type', 'teacher_assign')
-            ->whereHas('books', function ($query) {
-                $query->whereIn('book_user.user_id', [$this->id]);
-            });
-    }
-
-    /**
-     * Get teachers who assigned books to this student
-     */
-    public function assignedByTeachers()
-    {
-        return $this->belongsToMany(User::class, 'book_user', 'user_id', 'book_id')
-            ->where('assignment_type', 'teacher_assign');
     }
 
     /**

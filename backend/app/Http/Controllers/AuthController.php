@@ -39,14 +39,13 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'username' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => User::ROLE_CANDIDATE,
+            'role' => User::ROLE_PUBLIC,
             'requested_owner' => false,
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Check for pending invitation
         if (session()->has('invitation_token')) {
              $token = session('invitation_token');
              return app(InvitationController::class)->accept($token);

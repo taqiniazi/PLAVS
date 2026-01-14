@@ -5,7 +5,7 @@
 @section('content')
 @php
     $user = auth()->user();
-    $canAddBooks = $user && ($user->hasAdminRole() || $user->isTeacher());
+    $canAddBooks = $user && $user->hasAdminRole();
     $isStudent = $user && !$user->canViewAllBooks();
     $totalBooks = isset($books) && is_object($books) && method_exists($books, 'total') ? $books->total() : (is_countable($books) ? count($books) : 0);
 @endphp

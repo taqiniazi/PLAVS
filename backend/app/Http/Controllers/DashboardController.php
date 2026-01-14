@@ -83,34 +83,18 @@ class DashboardController extends Controller
             $libraries = collect();
         }
         
-        // Teacher specific stats
-        if ($user->isTeacher()) {
-            $stats['my_students'] = User::where('role', 'student')->count();
-            $stats['books_assigned'] = Book::whereNotNull('assigned_user_id')->count();
-            $stats['available_books'] = Book::where('status', 'Available')->count();
-            $stats['my_libraries'] = Library::count();
-            
-            $my_students = User::where('role', 'student')->with('books')->get();
-            $recently_assigned = Book::whereNotNull('assigned_user_id')
-                ->with(['user', 'assignedUser'])
-                ->latest()
-                ->take(4)
-                ->get();
-                
-        } else {
-            $my_students = collect();
-            $recently_assigned = collect();
-        }
+        $my_students = collect();
+        $recently_assigned = collect();
         
-        // Student specific stats
-        if ($user->isStudent()) {
+        // Public specific stats
+        if ($user->isPublic()) {
             // Use ONLY active assignments for accurate count
             $stats['my_assigned_books'] = $user->assignedBooks()->count() + $user->activeAssignedBooks()->count();
             $stats['books_read'] = $user->assignedBooks()->where('status', 'Returned')->count()
                 + $user->booksThroughAssignment()->where('status', 'Returned')->count();
             $stats['currently_reading'] = $user->assignedBooks()->where('status', 'Borrowed')->count()
                 + $user->booksThroughAssignment()->where('status', 'Borrowed')->count();
-            $stats['my_teachers'] = User::where('role', 'teacher')->count();
+            $stats['my_teachers'] = 0;
 
             // Get both direct assigned books and ACTIVE pivot assigned books
             $directBooks = $user->assignedBooks()

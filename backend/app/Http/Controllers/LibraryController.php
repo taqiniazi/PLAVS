@@ -38,7 +38,6 @@ class LibraryController extends Controller
                   });
             })->get();
         } else {
-            // Students and Teachers can only see public libraries
             $libraries = $query->where('type', 'public')->get();
         }
 

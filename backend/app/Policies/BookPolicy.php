@@ -20,8 +20,8 @@ class BookPolicy
             return true;
         }
 
-        // Teachers and Students can only view their assigned books
-        return $user->isTeacher() || $user->isStudent();
+        // Public users can only view their assigned books
+        return $user->isPublic();
     }
 
     /**

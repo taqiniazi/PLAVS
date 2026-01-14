@@ -148,8 +148,7 @@
                         <div class="col-md-3">
                             <label for="invite_role" class="form-label">Role</label>
                             <select class="form-select" id="invite_role" name="role" required>
-                                <option value="student">Student</option>
-                                <option value="teacher">Teacher</option>
+                                <option value="public">Public</option>
                                 <option value="librarian">Librarian</option>
                             </select>
                         </div>

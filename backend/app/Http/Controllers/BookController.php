@@ -22,11 +22,9 @@ class BookController extends Controller
             // Admins, Owners, Librarians start with all books (then filtered)
             $query = Book::query();
         } else {
-            // Students/Teachers: only show their assigned books
             $query = $user ? $user->booksThroughAssignment() : Book::query();
             
-            // For students, only show currently assigned (non-returned) books
-            if ($user && $user->isStudent()) {
+            if ($user && $user->isPublic()) {
                  $query->wherePivot('is_returned', false);
             }
         }
@@ -358,8 +356,7 @@ class BookController extends Controller
         $book = Book::findOrFail($validated['book_id']);
         $confirmer = Auth::user();
 
-        // Guard against mis-assigned pivot records: if a student is confirming a return, force the pivot to attach/update to the confirmer
-        if ($confirmer && method_exists($confirmer, 'isStudent') && $confirmer->isStudent()) {
+        if ($confirmer && method_exists($confirmer, 'isPublic') && $confirmer->isPublic()) {
             $validated['user_id'] = $confirmer->id;
         }
         // Ensure the pivot user matches the book's direct assignment holder when present

@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         // MySQL ENUM needs raw SQL to modify allowed values
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin','librarian','owner','student','teacher','candidate') DEFAULT 'student'");
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin','librarian','owner','public','candidate') DEFAULT 'public'");
     }
 
     /**

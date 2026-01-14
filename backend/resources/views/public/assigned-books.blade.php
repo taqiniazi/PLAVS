@@ -42,7 +42,6 @@
                         $pivot = $book->pivot ?? null;
                         $isReturned = optional($pivot)->is_returned ?? false;
 
-                        // Determine Assigned Date: prefer pivot assigned_at, fallback to controller-provided assigned_date, then N/A
                         $assignedAtValue = optional($pivot)->assigned_at ?? ($book->assigned_date ?? null);
                         if ($assignedAtValue instanceof \Carbon\Carbon) {
                             $assignedAt = $assignedAtValue->copy()->setTimezone(date_default_timezone_get())->format('M d, Y');
@@ -51,17 +50,14 @@
                         } else {
                             $assignedAt = 'N/A';
                         }
-                        // Assigned time (12-hour format, machine local)
                         $assignedTime = $assignedAtValue ? (($assignedAtValue instanceof \Carbon\Carbon)
                             ? $assignedAtValue->copy()->setTimezone(date_default_timezone_get())->format('h:i A')
                             : \Carbon\Carbon::parse($assignedAtValue)->setTimezone(date_default_timezone_get())->format('h:i A'))
                             : '';
-                        // Device-local time: ISO used for client-side conversion
                         $assignedIso = $assignedAtValue ? (($assignedAtValue instanceof \Carbon\Carbon)
                             ? $assignedAtValue->copy()->toIso8601String()
                             : \Carbon\Carbon::parse($assignedAtValue)->toIso8601String()) : null;
 
-                        // Determine Return Date from pivot if available
                         $returnDateValue = optional($pivot)->return_date;
                         if ($returnDateValue instanceof \Carbon\Carbon) {
                             $returnDate = $returnDateValue->copy()->setTimezone(date_default_timezone_get())->format('M d, Y');
@@ -70,12 +66,10 @@
                         } else {
                             $returnDate = '-';
                         }
-                        // Return time (12-hour format, machine local)
                         $returnTime = $returnDateValue ? (($returnDateValue instanceof \Carbon\Carbon)
                             ? $returnDateValue->copy()->setTimezone(date_default_timezone_get())->format('h:i A')
                             : \Carbon\Carbon::parse($returnDateValue)->setTimezone(date_default_timezone_get())->format('h:i A'))
                             : '';
-                        // Device-local time: ISO used for client-side conversion
                         $returnedIso = $returnDateValue ? (($returnDateValue instanceof \Carbon\Carbon)
                             ? $returnDateValue->copy()->toIso8601String()
                             : \Carbon\Carbon::parse($returnDateValue)->toIso8601String()) : null;
@@ -167,7 +161,6 @@
                     @php
                         $pivot = $book->pivot ?? null;
                         
-                        // Assigned date/time
                         $assignedAtValue = optional($pivot)->assigned_at ?? null;
                         if ($assignedAtValue instanceof \Carbon\Carbon) {
                             $assignedAt = $assignedAtValue->copy()->setTimezone(date_default_timezone_get())->format('M d, Y');
@@ -179,12 +172,10 @@
                             $assignedAt = 'N/A';
                             $assignedTime = '';
                         }
-                        // Device-local time: ISO used for client-side conversion
                         $assignedIso = $assignedAtValue ? (($assignedAtValue instanceof \Carbon\Carbon)
                             ? $assignedAtValue->copy()->toIso8601String()
                             : \Carbon\Carbon::parse($assignedAtValue)->toIso8601String()) : null;
                         
-                        // Return date/time
                         $returnDateValue = optional($pivot)->return_date ?? null;
                         if ($returnDateValue instanceof \Carbon\Carbon) {
                             $returnedOn = $returnDateValue->copy()->setTimezone(date_default_timezone_get())->format('M d, Y');
@@ -196,23 +187,28 @@
                             $returnedOn = '-';
                             $returnedTime = '';
                         }
-                        // Device-local time: ISO used for client-side conversion
                         $returnedIso = $returnDateValue ? (($returnDateValue instanceof \Carbon\Carbon)
                             ? $returnDateValue->copy()->toIso8601String()
                             : \Carbon\Carbon::parse($returnDateValue)->toIso8601String()) : null;
                     @endphp
-                        <tr class="table-secondary" style="opacity: 0.9;">
-                            <td>
-                                <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="img-thumbnail" style="width: 60px; height: 80px; object-fit: cover;">
-                            </td>
-                            <td>
-                                <a href="{{ route('books.show', $book) }}" class="text-decoration-none text-muted">{{ $book->title }}</a>
-                            </td>
-                            <td>{{ $book->author }}</td>
-                            <td>{{ $assignedAt }} <div><small class="local-time" data-datetime="{{ $assignedIso }}"></small></div></td>
-                            <td>{{ $returnedOn }} <div><small class="local-time" data-datetime="{{ $returnedIso }}"></small></div></td>
-                            <td><span class="badge bg-secondary">Returned</span></td>
-                        </tr>
+                    <tr>
+                        <td>
+                            <img src="{{ $book->cover_url }}"
+                                 alt="{{ $book->title }}" class="img-thumbnail"
+                                 style="width: 60px; height: 80px; object-fit: cover;">
+                        </td>
+                        <td>
+                            <a href="{{ route('books.show', $book) }}" class="text-decoration-none">
+                                {{ $book->title }}
+                            </a>
+                        </td>
+                        <td>{{ $book->author }}</td>
+                        <td>{{ $assignedAt }} <div><small class="local-time" data-datetime="{{ $assignedIso }}"></small></div></td>
+                        <td>{{ $returnedOn }} <div><small class="local-time" data-datetime="{{ $returnedIso }}"></small></div></td>
+                        <td>
+                            <span class="badge bg-secondary">Returned</span>
+                        </td>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>
@@ -220,22 +216,3 @@
     </div>
 </div>
 @endif
-
-@endsection
-
-
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.local-time').forEach(function(el) {
-      var iso = el.getAttribute('data-datetime');
-      if (!iso) return;
-      var d = new Date(iso);
-      // Render device local time in 12-hour format with minutes
-      var formatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-      el.textContent = formatted;
-    });
-  });
-</script>
-
-

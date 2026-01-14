@@ -5,10 +5,7 @@
 @section('content')
 @php
     $user = auth()->user();
-    $isTeacher = $user->isTeacher();
-    $isStudent = $user->isStudent();
-    $isCandidate = $user->isCandidate();
-    $isStudentOrCandidate = $isStudent || $isCandidate;
+    $isPublic = $user->isPublic();
     $hasAdminRole = $user->hasAdminRole();
 @endphp
 
@@ -73,55 +70,9 @@
                 </div>
             </div>
         </div>
-    @elseif($isTeacher)
-        {{-- Teacher Stats --}}
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div>
-                    <small class="text-muted d-block mb-1">My Students</small>
-                    <h4 class="fw-bold mb-0">{{ $stats['my_students'] ?? 0 }}</h4>
-                </div>
-                <div class="stat-icon">
-                    <img src="{{ asset('images/users_icon.svg') }}" alt="" class="img-fluid">
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div>
-                    <small class="text-muted d-block mb-1">Books Assigned</small>
-                    <h4 class="fw-bold mb-0">{{ $stats['books_assigned'] ?? 0 }}</h4>
-                </div>
-                <div class="stat-icon">
-                    <img src="{{ asset('images/total_books.svg') }}" alt="" class="img-fluid">
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div>
-                    <small class="text-muted d-block mb-1">Available Books</small>
-                    <h4 class="fw-bold mb-0">{{ $stats['available_books'] ?? 0 }}</h4>
-                </div>
-                <div class="stat-icon">
-                    <img src="{{ asset('images/book_shelves_icon.svg') }}" alt="" class="img-fluid">
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div>
-                    <small class="text-muted d-block mb-1">My Library</small>
-                    <h4 class="fw-bold mb-0">{{ $stats['my_libraries'] ?? 0 }}</h4>
-                </div>
-                <div class="stat-icon">
-                    <img src="{{ asset('images/total_books.svg') }}" alt="" class="img-fluid">
-                </div>
-            </div>
-        </div>
-    @elseif($isStudentOrCandidate)
-        {{-- Candidate: Request Owner Role action --}}
-        @if($isCandidate)
+    @elseif($isPublic)
+        {{-- Public: Request Owner Role action --}}
+        @if($isPublic)
             <div class="col-12 mb-3">
                 @if(!$user->requested_owner)
                     <form method="POST" action="{{ route('permissions.request-owner') }}">
@@ -302,76 +253,6 @@
                 @endforeach
             </div>
         </div>
-    @elseif($isTeacher)
-        {{-- Teacher: Students and Assignments --}}
-        <div class="col-lg-9">
-            <h6 class="fw-bold mb-3">My Students</h6>
-            <div class="table-card mb-4">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Student Name</th>
-                                <th>Books Assigned</th>
-                                <th>Last Activity</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($my_students ?? [] as $student)
-                            <tr>
-                                <td>
-                                    <i class="fas fa-user-graduate me-2"></i>
-                                    {{ $student->name }}
-                                </td>
-                                <td>{{ $student->books->count() }}</td>
-                                <td>{{ $student->updated_at->diffForHumans() }}</td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-book"></i> Assign Book
-                                    </a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-4">
-                                    <i class="fas fa-users fa-2x text-muted mb-2 d-block"></i>
-                                    No students assigned yet.
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <h6 class="fw-bold mb-3">Recently Assigned Books</h6>
-            <div class="row">
-                @forelse($recently_assigned ?? [] as $assignment)
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">{{ $assignment->book->title }}</h6>
-                            <p class="card-text small text-muted">
-                                Assigned to: {{ $assignment->user->name }}
-                            </p>
-                            <small class="text-muted">
-                                {{ $assignment->created_at->diffForHumans() }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div class="col-12">
-                    <p class="text-muted text-center py-4">
-                        <i class="fas fa-book fa-2x mb-2 d-block"></i>
-                        No books assigned yet.
-                    </p>
-                </div>
-                @endforelse
-            </div>
-        </div>
-    @elseif($isStudent)
         {{-- Student: Assigned Books --}}
         <div class="col-lg-9">
             <h6 class="fw-bold mb-3">My Assigned Books</h6>

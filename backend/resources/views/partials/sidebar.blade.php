@@ -31,13 +31,8 @@
             <a href="{{ route('permissions.index') }}" class="nav-link {{ request()->routeIs('permissions.index') ? 'active' : '' }}">
                 <i class="fas fa-user-shield"></i> Permissions
             </a>
-            <a href="{{ route('teachers.students') }}" class="nav-link {{ request()->routeIs('teachers.students') ? 'active' : '' }}">
-                <i class="fas fa-user-graduate"></i> My Students
-            </a>
-            <!-- <a href="{{ route('teachers.assignments') }}" class="nav-link {{ request()->routeIs('teachers.assignments') ? 'active' : '' }}">
-                <i class="fas fa-tasks"></i> Book Assignments
-            </a> -->
-            <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
+            <!-- Teacher-specific links removed -->
+            <a href="{{ route('public.assigned-books') }}" class="nav-link {{ request()->routeIs('public.assigned-books') ? 'active' : '' }}">
                 <i class="fas fa-book-reader"></i> Assigned Books
             </a>
         @else
@@ -89,19 +84,11 @@
                 </a>
             @endif
 
-            {{-- Teacher specific links --}}
-            @if($user && $user->isTeacher())
-                <a href="{{ route('teachers.students') }}" class="nav-link {{ request()->routeIs('teachers.students') ? 'active' : '' }}">
-                    <i class="fas fa-user-graduate"></i> My Students
-                </a>
-                <a href="{{ route('teachers.assignments') }}" class="nav-link {{ request()->routeIs('teachers.assignments') ? 'active' : '' }}">
-                    <i class="fas fa-tasks"></i> Book Assignments
-                </a>
-            @endif
+            {{-- Teacher specific links removed --}}
 
-            {{-- Student specific links --}}
-            @if($user && $user->isStudent())
-                <a href="{{ route('student.assigned-books') }}" class="nav-link {{ request()->routeIs('student.assigned-books') ? 'active' : '' }}">
+            {{-- Public specific links --}}
+            @if($user && $user->isPublic())
+                <a href="{{ route('public.assigned-books') }}" class="nav-link {{ request()->routeIs('public.assigned-books') ? 'active' : '' }}">
                     <i class="fas fa-book-reader"></i> Assigned Books
                 </a>
             @endif

@@ -93,8 +93,7 @@
                                             <select name="role" class="form-select form-select-sm" style="max-width: 220px;">
                                                 <option value="owner">Owner</option>
                                                 <option value="librarian">Librarian</option>
-                                                <option value="teacher">Teacher</option>
-                                                <option value="student">Student</option>
+                                                <option value="public">Public</option>
                                                 <option value="admin">Admin</option>
                                             </select>
                                             <button class="btn btn-sm btn-primary">
