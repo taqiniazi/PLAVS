@@ -61,12 +61,13 @@
                             @if($isAdmin)
                             <th width="40" data-orderable="false"><input type="checkbox" class="form-check-input" id="selectAll"></th>
                             @endif
-                            <th width="30%">Book Details</th>
-                            <th>Shelf Location</th>
+                            <th width="350px">Book Details</th>
+                            <!-- <th>Shelf Location</th> -->
                             <th>Visibility</th>
                             <th>Current Holder</th>
                             <th>Status</th>
                             @if($isAdmin || $isPublic  || $isOwner)
+                            <th>QR Code</th>
                             <th class="text-end" data-orderable="false">Actions</th>
                             @endif
                         </tr>
@@ -84,19 +85,18 @@
                                     <div>
                                         <span class="book-title">{{ $book->title }}</span>
                                         <span class="book-author">ISBN: {{ $book->isbn ?? 'N/A' }}</span>
+                                        @if($book->shelf)
+                                        <br>
+                                        <span class="badge-shelf">
+                                            {{ $book->shelf->room->library->name }} > 
+                                            <!-- {{ $book->shelf->room->name }} >  -->
+                                            <!-- {{ $book->shelf->name }} -->
+                                        </span>
+                                    @else
+                                        <span class="badge-shelf">Not Assigned</span>
+                                    @endif
                                     </div>
                                 </div>
-                            </td>
-                            <td>
-                                @if($book->shelf)
-                                    <span class="badge-shelf">
-                                        {{ $book->shelf->room->library->name }} > 
-                                        {{ $book->shelf->room->name }} > 
-                                        {{ $book->shelf->name }}
-                                    </span>
-                                @else
-                                    <span class="badge-shelf">Not Assigned</span>
-                                @endif
                             </td>
                             <td>
                                 @if($isAdmin)
@@ -137,6 +137,24 @@
                                     {{ $book->status }}
                                 </span>
                             </td>
+                            @if($isAdmin || $isPublic  || $isOwner)
+                            <td class="text-center">
+                                @if($book->shelf && $book->shelf->room && $book->shelf->room->library)
+                                    <button
+                                        class="btn-action p-1 btn-primary btn-qr-code"
+                                        data-bs-toggle="tooltip"
+                                        title="QR Code"
+                                        data-book-title="{{ $book->title }}"
+                                        data-library-name="{{ $book->shelf->room->library->name }}"
+                                        data-library-location="{{ $book->shelf->room->library->location ?? '' }}"
+                                        data-library-phone="{{ $book->shelf->room->library->contact_phone ?? '' }}"
+                                    >
+                                        <i class="fas fa-qrcode"></i>
+                                    </button>
+                                @else
+                                    <span class="text-muted small">N/A</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 @if($isAdmin)
                                     <a href="{{ route('books.edit', $book) }}" class="btn btn-action btn-dark btn-edit" data-bs-toggle="tooltip" title="Edit">
@@ -154,8 +172,6 @@
                                             data-id="{{ $book->id }}" data-title="{{ $book->title }}">
                                         <i class="fa-solid fa-arrow-down-up-across-line"></i>
                                     </button>
-                                    
-
                                     @if(($isAdmin || $isOwner) && ($book->assigned_user_id || in_array(strtolower($book->status), ['assigned','borrowed'])))
                                     <form method="POST" action="{{ route('books.return') }}" style="display: inline;">
                                         @csrf
@@ -177,6 +193,7 @@
                                     </form>
                                 @endif
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -278,8 +295,29 @@
             </form>
         </div>
     </div>
+        </div>
+    </div>
 </div>
 @endif
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-qrcode me-2"></i> Book QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted small mb-3" id="qrCodeDescription"></p>
+                <div id="qrCodeContainer" style="width: 150px; height: 150px; margin: 0 auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Single Assign Modal -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
@@ -366,6 +404,7 @@
 @push('scripts')
 <script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('js/dataTables.bootstrap.min.js') }}"></script>
+<script src="{{ asset('js/qrcode.min.js') }}"></script>
 
 <script>
 $(document).ready(function () {
@@ -378,7 +417,7 @@ $(document).ready(function () {
     nonOrderableTargets.push(0);
     @endif
     if (hasActionsColumn) {
-        nonOrderableTargets.push(-1);
+        nonOrderableTargets.push(-1, -2);
     }
 
     var table = $('#booksTable').DataTable({
@@ -411,6 +450,52 @@ $(document).ready(function () {
 
     // Move modals to body to fix z-index issues
     $('.modal').appendTo('body');
+
+    $(document).on('click', '.btn-qr-code', function () {
+        var bookTitle = $(this).data('book-title') || '';
+        var libraryName = $(this).data('library-name') || '';
+        var libraryLocation = $(this).data('library-location') || '';
+        var libraryPhone = $(this).data('library-phone') || '';
+
+        var parts = [];
+        if (bookTitle) {
+            parts.push('Book: ' + bookTitle);
+        }
+        if (libraryName) {
+            parts.push('Library: ' + libraryName);
+        }
+        if (libraryLocation) {
+            parts.push('Location: ' + libraryLocation);
+        }
+        if (libraryPhone) {
+            parts.push('Phone: ' + libraryPhone);
+        }
+        var qrText = parts.join('\n');
+
+        if (!qrText) {
+            return;
+        }
+
+        // $('#qrCodeDescription').text(bookTitle && libraryName
+        //     ? 'QR code for "' + bookTitle + '" at ' + libraryName
+        //     : (libraryName ? 'QR code for ' + libraryName : 'Library QR code')
+        // );
+
+        var container = document.getElementById('qrCodeContainer');
+        if (container) {
+            container.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, {
+                    text: qrText,
+                    width: 150,
+                    height: 150
+                });
+            }
+        }
+
+        var qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+        qrModal.show();
+    });
 
     // ========== TRANSFER MODAL LOGIC ==========
     $(document).on('click', '.btn-transfer', function () {
