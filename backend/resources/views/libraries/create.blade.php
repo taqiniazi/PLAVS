@@ -115,7 +115,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 @if($isOwner)
-                                    <div class="form-text">You are logged in as the owner. The library will be created under your account.</div>
+                                    <!-- <div class="form-text">You are logged in as the owner. The library will be created under your account.</div> -->
                                 @endif
                             </div>
                             

@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <h4 class="page-title">Permissions</h4>
+    <h4 class="page-title mb-3">Permissions</h4>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -70,7 +70,7 @@
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Candidates</h5>
+            <h5 class="mb-0">Users List</h5>
         </div>
         <div class="card-body">
             @if($candidates->isEmpty())

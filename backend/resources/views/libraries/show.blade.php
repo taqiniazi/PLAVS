@@ -153,7 +153,7 @@
                             </select>
                         </div>
                         
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <button type="submit" class="btn btn-success w-100">
                                 <i class="fas fa-paper-plane me-2"></i>Send Invite
                             </button>
