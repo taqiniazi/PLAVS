@@ -22,7 +22,7 @@
                 
                 <div class="text-center mb-4">
                     <div class="position-relative d-inline-block">
-                        <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/user.png') }}" 
+                        <img id="profile-avatar-preview" src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/user.png') }}" 
                              alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover;">
                         <label for="avatar" class="change-avatar" 
                                style="width: 35px; height: 35px; cursor: pointer;">
@@ -107,7 +107,10 @@ document.getElementById('avatar').addEventListener('change', function(e) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.querySelector('img').src = e.target.result;
+            const previewImg = document.getElementById('profile-avatar-preview');
+            if (previewImg) {
+                previewImg.src = e.target.result;
+            }
         };
         reader.readAsDataURL(file);
     }
