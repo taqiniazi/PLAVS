@@ -27,23 +27,35 @@
                             <tr>
                                 <th>User</th>
                                 <th>Email</th>
-                                <th>Current Role</th>
+                                <th>Library Name</th>
+                                <th>City</th>
+                                <th>Country</th>
+                                <th>Phone</th>
+                                <th>Submitted</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($ownerRequests as $user)
+                            @foreach($ownerRequests as $req)
                                 <tr>
-                                    <td>{{ $user->name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->getRoleDisplayName() }}</td>
-                                    <td>
-                                        <form action="{{ route('permissions.assign-role') }}" method="POST" class="d-inline">
+                                    <td>{{ $req->user->name }}</td>
+                                    <td>{{ $req->user->email }}</td>
+                                    <td>{{ $req->library_name }}</td>
+                                    <td>{{ $req->library_city ?? '-' }}</td>
+                                    <td>{{ $req->library_country ?? '-' }}</td>
+                                    <td>{{ $req->library_phone ?? '-' }}</td>
+                                    <td>{{ $req->created_at->format('M d, Y') }}</td>
+                                    <td class="d-flex gap-2">
+                                        <form action="{{ route('permissions.owner-requests.approve', $req) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <input type="hidden" name="user_id" value="{{ $user->id }}">
-                                            <input type="hidden" name="role" value="owner">
                                             <button class="btn btn-sm btn-success">
-                                                <i class="fas fa-user-check me-1"></i> Approve Owner
+                                                <i class="fas fa-user-check me-1"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('permissions.owner-requests.reject', $req) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times me-1"></i> Reject
                                             </button>
                                         </form>
                                     </td>
@@ -80,7 +92,10 @@
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
-                                        @if($user->requested_owner)
+                                        @php
+                                            $hasPendingOwnerRequest = \App\Models\OwnerRequest::where('user_id', $user->id)->where('status', 'pending')->exists();
+                                        @endphp
+                                        @if($hasPendingOwnerRequest)
                                             <span class="badge bg-warning text-dark">Requested</span>
                                         @else
                                             <span class="badge bg-secondary">No</span>

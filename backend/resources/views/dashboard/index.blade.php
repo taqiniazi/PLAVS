@@ -73,15 +73,15 @@
     @elseif($isPublic)
         {{-- Public: Request Owner Role action --}}
         @if($isPublic)
-            <div class="col-12 mb-3">
-                @if(!$user->requested_owner)
-                    <form method="POST" action="{{ route('permissions.request-owner') }}">
-                        @csrf
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-user-tie"></i> Request Owner Role
-                        </button>
-                        <small class="text-muted ms-2">If you own a library, request Owner access to create and manage it.</small>
-                    </form>
+            <div class="col-12 text-end mb-3">
+                @php
+                    $hasPendingOwnerRequest = \App\Models\OwnerRequest::where('user_id', $user->id)->where('status', 'pending')->exists();
+                @endphp
+                @if(!$hasPendingOwnerRequest)
+                    <button type="button" class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#ownerRequestModal">
+                        <i class="fas fa-user-tie"></i> Request Owner Role
+                    </button>
+                    <!-- <small class="text-muted ms-2">If you own a library, request Owner access to create and manage it.</small> -->
                 @else
                     <div class="alert alert-info" role="alert">
                         <i class="fas fa-hourglass-half"></i> Your request for Owner role is pending approval.
@@ -322,4 +322,87 @@
         </div>
     </div>
 </div>
+@if($isPublic)
+<!-- Owner Request Modal -->
+<div class="modal fade" id="ownerRequestModal" tabindex="-1" aria-labelledby="ownerRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ownerRequestModalLabel">Request Owner Role</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ route('permissions.request-owner') }}">
+        @csrf
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Library Name</label>
+              <input type="text" name="library_name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Library Phone No.</label>
+              <input type="text" name="library_phone" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Country</label>
+              <select name="library_country" id="owner_request_country" class="form-select">
+                <option value="">Select country</option>
+                @foreach(array_keys(config('countries')) as $country)
+                  <option value="{{ $country }}" {{ old('library_country') === $country ? 'selected' : '' }}>{{ $country }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City</label>
+              <select name="library_city" id="owner_request_city" class="form-select">
+                <option value="">Select city</option>
+              </select>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Address</label>
+              <input type="text" name="library_address" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-1"></i> Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endif
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var mapping = @json(config('countries'));
+        var countrySelect = document.getElementById('owner_request_country');
+        var citySelect = document.getElementById('owner_request_city');
+        if (!countrySelect || !citySelect) {
+            return;
+        }
+        function populateOwnerRequestCities() {
+            var selectedCountry = countrySelect.value;
+            var cities = mapping[selectedCountry] || [];
+            citySelect.innerHTML = '';
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Select city';
+            citySelect.appendChild(emptyOption);
+            cities.forEach(function (city) {
+                var opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                citySelect.appendChild(opt);
+            });
+        }
+        countrySelect.addEventListener('change', function () {
+            citySelect.value = '';
+            populateOwnerRequestCities();
+        });
+        populateOwnerRequestCities();
+    });
+</script>
 @endsection

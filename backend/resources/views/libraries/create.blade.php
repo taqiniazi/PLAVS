@@ -66,6 +66,23 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="library_country" class="form-label">Country</label>
+                                <select id="library_country" name="library_country" class="form-select">
+                                    <option value="">Select country</option>
+                                    @foreach(array_keys(config('countries')) as $country)
+                                        <option value="{{ $country }}" {{ old('library_country') === $country ? 'selected' : '' }}>{{ $country }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="library_city" class="form-label">City</label>
+                                <select id="library_city" name="library_city" class="form-select">
+                                    <option value="">Select city</option>
+                                </select>
+                            </div>
                             
                             <!-- Map Link -->
                             <div class="col-md-6 mb-3">
@@ -225,5 +242,40 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var mapping = @json(config('countries'));
+        var countrySelect = document.getElementById('library_country');
+        var citySelect = document.getElementById('library_city');
+        if (!countrySelect || !citySelect) {
+            return;
+        }
+        function populateCities() {
+            var selectedCountry = countrySelect.value;
+            var cities = mapping[selectedCountry] || [];
+            var previous = "{{ old('library_city') }}";
+            citySelect.innerHTML = '';
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Select city';
+            citySelect.appendChild(emptyOption);
+            cities.forEach(function (city) {
+                var opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                if (city === previous) {
+                    opt.selected = true;
+                }
+                citySelect.appendChild(opt);
+            });
+        }
+        countrySelect.addEventListener('change', function () {
+            citySelect.value = '';
+            populateCities();
+        });
+        populateCities();
+    });
+</script>
 
 @endsection

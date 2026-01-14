@@ -121,6 +121,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/permissions', [PermissionsController::class, 'index'])->name('permissions.index');
     Route::post('/permissions/assign-role', [PermissionsController::class, 'assignRole'])->name('permissions.assign-role');
     Route::post('/permissions/request-owner', [PermissionsController::class, 'requestOwner'])->name('permissions.request-owner');
+    Route::post('/permissions/owner-requests/{ownerRequest}/approve', [PermissionsController::class, 'approveOwnerRequest'])->name('permissions.owner-requests.approve');
+    Route::post('/permissions/owner-requests/{ownerRequest}/reject', [PermissionsController::class, 'rejectOwnerRequest'])->name('permissions.owner-requests.reject');
 });
 
 // API Routes

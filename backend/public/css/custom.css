@@ -380,7 +380,7 @@ textarea.form-control {
 }
 table.dataTable thead>tr>th,
 table thead>tr>th{
-    background-color: var(--hover-bg-navy) !important;
+    background-color: #009688 !important;
     color: var(--bg-light) !important;
 }
 .form-check-input {
@@ -491,7 +491,7 @@ div.dataTables_wrapper div.dataTables_filter input {
 
 /* Modal Styles */
 .modal-header {
-    background-color: var(--primary-dark);
+    background-color:#009688;
     color: white;
 }
 .btn-modal-save {

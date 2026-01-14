@@ -19,7 +19,9 @@ class PermissionsController extends Controller
         }
 
         $candidates = User::where('role', User::ROLE_PUBLIC)->get();
-        $ownerRequests = User::where('requested_owner', true)->get();
+        $ownerRequests = \App\Models\OwnerRequest::where('status', 'pending')
+            ->with('user')
+            ->get();
 
         return view('permissions.index', compact('candidates', 'ownerRequests'));
     }
@@ -34,8 +36,31 @@ class PermissionsController extends Controller
             return redirect()->back()->with('error', 'Only public users can request owner role.');
         }
 
-        $user->requested_owner = true;
-        $user->save();
+        $validated = $request->validate([
+            'library_name' => 'required|string|max:255',
+            'library_city' => 'nullable|string|max:120',
+            'library_country' => 'nullable|string|max:120',
+            'library_address' => 'nullable|string|max:255',
+            'library_phone' => 'nullable|string|max:30',
+        ]);
+
+        // Avoid duplicate pending requests from same user
+        $existing = \App\Models\OwnerRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'You already have a pending owner request.');
+        }
+
+        \App\Models\OwnerRequest::create([
+            'user_id' => $user->id,
+            'library_name' => $validated['library_name'],
+            'library_city' => $validated['library_city'] ?? null,
+            'library_country' => $validated['library_country'] ?? null,
+            'library_address' => $validated['library_address'] ?? null,
+            'library_phone' => $validated['library_phone'] ?? null,
+            'status' => 'pending',
+        ]);
 
         return redirect()->back()->with('success', 'Owner role request submitted successfully.');
     }
@@ -64,11 +89,57 @@ class PermissionsController extends Controller
 
         // Enforce business rule: if assigning OWNER, clear request flag
         $user->role = $validated['role'];
-        if ($validated['role'] === User::ROLE_OWNER) {
-            $user->requested_owner = false;
-        }
         $user->save();
 
         return redirect()->route('permissions.index')->with('success', 'Role updated for user: ' . $user->name);
+    }
+
+    /**
+     * Approve an owner request and assign role to the requester
+     */
+    public function approveOwnerRequest(Request $request, \App\Models\OwnerRequest $ownerRequest)
+    {
+        $admin = Auth::user();
+        if (!$admin->isSuperAdmin() && !$admin->isAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($ownerRequest->status !== 'pending') {
+            return redirect()->route('permissions.index')->with('error', 'Request is not pending.');
+        }
+
+        $user = $ownerRequest->user;
+        $user->role = User::ROLE_OWNER;
+        $user->save();
+
+        $ownerRequest->status = 'approved';
+        $ownerRequest->approved_by = $admin->id;
+        $ownerRequest->approved_at = now();
+        $ownerRequest->save();
+
+        return redirect()->route('permissions.index')->with('success', 'Owner request approved for user: ' . $user->name);
+    }
+
+    /**
+     * Reject an owner request (admin/superadmin only)
+     */
+    public function rejectOwnerRequest(Request $request, \App\Models\OwnerRequest $ownerRequest)
+    {
+        $admin = Auth::user();
+        if (!$admin->isSuperAdmin() && !$admin->isAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($ownerRequest->status !== 'pending') {
+            return redirect()->route('permissions.index')->with('error', 'Request is not pending.');
+        }
+
+        $ownerRequest->status = 'rejected';
+        $ownerRequest->approved_by = $admin->id;
+        $ownerRequest->approved_at = now();
+        $ownerRequest->notes = $request->input('notes');
+        $ownerRequest->save();
+
+        return redirect()->route('permissions.index')->with('success', 'Owner request rejected for user: ' . $ownerRequest->user->name);
     }
 }
