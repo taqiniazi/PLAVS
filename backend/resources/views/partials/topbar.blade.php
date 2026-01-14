@@ -18,6 +18,7 @@
                     @csrf
                     <label class="me-2 text-muted small">Active Library:</label>
                     <select name="library_id" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 220px;">
+                        <option value="" {{ session('active_library_id') ? '' : 'selected' }}>All Libraries</option>
                         @foreach($ownerLibraries as $lib)
                             <option value="{{ $lib->id }}" {{ session('active_library_id') == $lib->id ? 'selected' : '' }}>
                                 {{ $lib->name }}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Models\Book;
 use App\Models\User;
 use App\Models\ActivityLog;
@@ -93,7 +94,7 @@ class BookController extends Controller
             if ($activeLibraryId) {
                 $q->where('id', $activeLibraryId);
             }
-        })->orderBy('name')->get();
+        })->with('room.library')->orderBy('name')->get();
 
         return view('books.create', compact('shelves'));
     }
@@ -108,7 +109,7 @@ class BookController extends Controller
             'edition' => 'nullable|string|max:50',
             'publisher' => 'nullable|string|max:255',
             'publish_date' => 'nullable|date',
-            'shelf' => 'required|string|max:50',
+            'shelf' => 'required|integer|exists:shelves,id',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'scanned_image_url' => 'nullable|string'
@@ -120,6 +121,8 @@ class BookController extends Controller
             return redirect()->back()->withErrors(['cover_image' => 'Please upload a cover image or use the scanner.'])->withInput();
         }
 
+        $shelfModel = Shelf::findOrFail($validated['shelf']);
+
         $bookData = [
             'title' => $validated['title'],
             'author' => $validated['author'],
@@ -127,18 +130,14 @@ class BookController extends Controller
             'edition' => $validated['edition'] ?? null,
             'publisher' => $validated['publisher'] ?? null,
             'publish_date' => $validated['publish_date'] ?? null,
-            'shelf_location' => $validated['shelf'],
+            'shelf_location' => $shelfModel->name,
             'owner' => Auth::user()->name,
             'description' => $validated['description'] ?? null,
             'visibility' => true,
             'status' => 'Available'
         ];
 
-        // Map shelf name to shelf_id if it exists
-        $shelfModel = Shelf::where('name', $validated['shelf'])->first();
-        if ($shelfModel) {
-            $bookData['shelf_id'] = $shelfModel->id;
-        }
+        $bookData['shelf_id'] = $shelfModel->id;
 
         // Scenario A: user uploaded a file
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
@@ -207,16 +206,17 @@ class BookController extends Controller
             'Uncle Bob'
         ];
 
-        $shelves = [
-            'Shelf A-1',
-            'Shelf A-2',
-            'Shelf B-1',
-            'Shelf B-2',
-            'Shelf C-1',
-            'Shelf C-2',
-            'Shelf C-3',
-            'Shelf C-4'
-        ];
+        $user = Auth::user();
+        $activeLibraryId = session('active_library_id');
+        $ownerId = $user->isOwner() ? $user->id : ($user->isLibrarian() ? $user->parent_owner_id : null);
+        $shelves = Shelf::whereHas('room.library', function ($q) use ($ownerId, $activeLibraryId) {
+            if ($ownerId) {
+                $q->where('owner_id', $ownerId);
+            }
+            if ($activeLibraryId) {
+                $q->where('id', $activeLibraryId);
+            }
+        })->with('room.library')->orderBy('name')->get();
 
         $owners = [
             'Taqi Raza Khan',
@@ -237,17 +237,30 @@ class BookController extends Controller
             'edition' => 'nullable|string|max:50',
             'publisher' => 'nullable|string|max:255',
             'publish_date' => 'nullable|date',
-            'shelf_location' => 'required|string|max:50',
+            'shelf' => 'required|integer|exists:shelves,id',
             'owner' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'visibility' => 'boolean',
+            'visibility' => 'nullable|boolean',
             'status' => 'required|string|max:100',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'scanned_image_url' => 'nullable|string'
         ]);
 
-        // Update core fields
-        $book->update($validated);
+        $shelfModel = Shelf::findOrFail($validated['shelf']);
+
+        $book->title = $validated['title'];
+        $book->author = $validated['author'];
+        $book->isbn = $validated['isbn'] ?? null;
+        $book->edition = $validated['edition'] ?? null;
+        $book->publisher = $validated['publisher'] ?? null;
+        $book->publish_date = $validated['publish_date'] ?? null;
+        $book->owner = $validated['owner'];
+        $book->description = $validated['description'] ?? null;
+        $book->status = $validated['status'];
+        $book->visibility = $request->boolean('visibility');
+        $book->shelf_id = $shelfModel->id;
+        $book->shelf_location = $shelfModel->name;
+        $book->save();
 
         // Handle new cover upload or scanned image URL
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
@@ -460,6 +473,13 @@ class BookController extends Controller
             });
         }
 
+        $activeLibraryId = session('active_library_id');
+        if ($activeLibraryId) {
+            $query->whereHas('shelf.room.library', function($q) use ($activeLibraryId) {
+                $q->where('id', $activeLibraryId);
+            });
+        }
+
         // Check if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
         
@@ -474,8 +494,8 @@ class BookController extends Controller
         }
 
         $books = $query->with(['shelf.room.library'])->get();
-        $users = User::all();
-        $shelves = \App\Models\Shelf::all();
+        $users = User::select('id', 'name', 'email', 'role')->orderBy('name')->get();
+        $shelves = \App\Models\Shelf::select('id', 'name')->orderBy('name')->get();
         return view('books.manage', compact('books', 'users', 'shelves'));
     }
 
@@ -584,6 +604,15 @@ class BookController extends Controller
             'book_id' => $book->id,
             'new_visibility' => $book->visibility
         ]);
+    }
+
+    public function apiIndex(): JsonResponse
+    {
+        $books = Book::where('visibility', true)
+            ->select('id', 'title', 'author', 'isbn', 'publisher', 'status', 'cover_image', 'shelf_location')
+            ->get();
+
+        return response()->json(['data' => $books]);
     }
 
     public function details(Book $book)

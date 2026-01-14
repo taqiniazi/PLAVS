@@ -19,12 +19,15 @@ class PermissionsController extends Controller
         }
 
         $ownerRequests = \App\Models\OwnerRequest::where('status', 'pending')
-            ->with('user')
+            ->with('user:id,name,email')
+            ->latest()
             ->get();
 
         $candidates = User::whereDoesntHave('ownerRequests', function ($q) {
                 $q->where('status', 'pending');
             })
+            ->select('id', 'name', 'email', 'role')
+            ->orderBy('name')
             ->get();
 
         return view('permissions.index', compact('candidates', 'ownerRequests'));

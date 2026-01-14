@@ -27,7 +27,7 @@ class DashboardController extends Controller
                 $stats['total_libraries'] = number_format(Library::count());
                 $stats['total_rooms'] = \App\Models\Room::count();
                 
-                $libraries = Library::with(['rooms', 'shelves', 'books'])->get();
+                $libraries = Library::withCount(['rooms', 'shelves', 'books'])->get();
             } elseif ($user->isOwner()) {
                 // Owner sees only their own data
                 $ownerId = $user->id;
@@ -53,7 +53,7 @@ class DashboardController extends Controller
                     $q->where('owner_id', $ownerId);
                 })->count());
                 
-                $libraries = Library::where('owner_id', $ownerId)->with(['rooms', 'shelves', 'books'])->get();
+                $libraries = Library::where('owner_id', $ownerId)->withCount(['rooms', 'shelves', 'books'])->get();
             } elseif ($user->isLibrarian()) {
                 // Librarian sees parent owner's data
                 $ownerId = $user->parent_owner_id;
@@ -77,7 +77,7 @@ class DashboardController extends Controller
                     $q->where('owner_id', $ownerId);
                 })->count());
                 
-                $libraries = Library::where('owner_id', $ownerId)->with(['rooms', 'shelves', 'books'])->get();
+                $libraries = Library::where('owner_id', $ownerId)->withCount(['rooms', 'shelves', 'books'])->get();
             }
         } else {
             $libraries = collect();

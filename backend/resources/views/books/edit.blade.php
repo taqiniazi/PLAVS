@@ -83,15 +83,19 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Shelf Location</label>
-                        <select name="shelf_location" class="form-select @error('shelf_location') is-invalid @enderror" required>
-                            <option disabled>Select</option>
+                        <select name="shelf" class="form-select @error('shelf') is-invalid @enderror" disabled>
+                            <option value="">Select</option>
                             @foreach($shelves as $shelf)
-                            <option value="{{ $shelf }}" {{ old('shelf_location', $book->shelf_location) == $shelf ? 'selected' : '' }}>
-                                {{ $shelf }}
-                            </option>
+                                <option value="{{ $shelf->id }}"
+                                    {{ (string) old('shelf', $book->shelf_id) === (string) $shelf->id ? 'selected' : '' }}>
+                                    {{ $shelf->name }}
+                                    @if($shelf->room && $shelf->room->library)
+                                        ({{ $shelf->room->library->name }})
+                                    @endif
+                                </option>
                             @endforeach
                         </select>
-                        @error('shelf_location')
+                        @error('shelf')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -100,7 +104,7 @@
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <label class="form-label">Owner</label>
-                        <select name="owner" class="form-select @error('owner') is-invalid @enderror" required>
+                        <select name="owner" class="form-select @error('owner') is-invalid @enderror" disabled>
                             <option disabled>Select</option>
                             @foreach($owners as $owner)
                             <option value="{{ $owner }}" {{ old('owner', $book->owner) == $owner ? 'selected' : '' }}>

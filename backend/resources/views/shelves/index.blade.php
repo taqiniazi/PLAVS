@@ -81,9 +81,12 @@
                                                                         </h6>
                                                                         <div>
                                                                             @can('update', $shelf)
-                                                                                <a href="{{ route('shelves.edit', $shelf) }}" 
-                                                                                   class="btn btn-sm btn-outline-primary" 
-                                                                                   data-bs-toggle="tooltip" title="Edit">
+                                                                                <a href="#" 
+                                                                                   class="btn btn-sm btn-outline-primary btn-edit-shelf" 
+                                                                                   data-bs-toggle="tooltip" title="Edit"
+                                                                                   data-shelf-id="{{ $shelf->id }}"
+                                                                                   data-shelf-name="{{ $shelf->name }}"
+                                                                                   data-library-id="{{ optional($shelf->room->library)->id }}">
                                                                                     <i class="fas fa-edit"></i>
                                                                                 </a>
                                                                             @endcan
@@ -176,17 +179,89 @@
         </div>
     </div>
 </div>
+@can('create', App\Models\Shelf::class)
+@php
+    $canSelectLibrary = isset($libraries) && $libraries->count() > 1;
+@endphp
+<div class="modal fade" id="editShelfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Edit Shelf</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editShelfForm" method="POST" action="">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Shelf Name</label>
+                        <input type="text" class="form-control" name="name" id="edit_shelf_name" required>
+                    </div>
+                    @if($canSelectLibrary)
+                        <div class="mb-3">
+                            <label class="form-label">Library</label>
+                            <select class="form-select" name="library_id" id="edit_library_id">
+                                @foreach($libraries as $library)
+                                    <option value="{{ $library->id }}">{{ $library->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
+
 @endsection
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/accordion/3.0.7/accordion.min.js"></script>
 <script>
 $(document).ready(function () {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=\"tooltip\"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
+
+    $('.btn-edit-shelf').on('click', function (e) {
+        e.preventDefault();
+        var button = $(this);
+        var shelfId = button.data('shelf-id');
+        var shelfName = button.data('shelf-name');
+        var libraryId = button.data('library-id');
+        var form = $('#editShelfForm');
+
+        form.attr('action', '{{ route('shelves.update', ['shelf' => '__ID__']) }}'.replace('__ID__', shelfId));
+        $('#edit_shelf_name').val(shelfName);
+
+        var librarySelect = $('#edit_library_id');
+        if (librarySelect.length) {
+            if (libraryId) {
+                librarySelect.val(String(libraryId));
+            } else {
+                librarySelect.val('');
+            }
+        }
+
+        var modalEl = document.getElementById('editShelfModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    });
+
+    var editShelfId = '{{ request('edit_shelf') }}';
+    if (editShelfId) {
+        var triggerButton = document.querySelector('.btn-edit-shelf[data-shelf-id=\"' + editShelfId + '\"]');
+        if (triggerButton) {
+            triggerButton.click();
+        }
+    }
 });
 </script>
 @endpush

@@ -217,9 +217,9 @@
                                             {{ ucfirst($library->type) }}
                                         </span>
                                     </td>
-                                    <td>{{ $library->rooms->count() }}</td>
-                                    <td>{{ $library->shelves->count() }}</td>
-                                    <td>{{ $library->books->count() }}</td>
+                                    <td>{{ $library->rooms_count }}</td>
+                                    <td>{{ $library->shelves_count }}</td>
+                                    <td>{{ $library->books_count }}</td>
                                     <td>
                                         <a href="{{ route('libraries.show', $library) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye"></i>

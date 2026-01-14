@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shelf;
 use App\Models\Room;
+use App\Models\Library;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,22 +19,26 @@ class ShelfController extends Controller
         
         if ($user->isAdmin()) {
             $shelves = Shelf::with(['room.library', 'books'])->get();
+            $libraries = Library::all();
         } elseif ($user->isOwner()) {
             $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })->with(['room.library', 'books'])->get();
+            $libraries = Library::where('owner_id', $user->id)->get();
         } elseif ($user->isLibrarian()) {
             $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
                 $query->where('owner_id', $user->parent_owner_id);
             })->with(['room.library', 'books'])->get();
+            $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
         } else {
             $shelves = collect();
+            $libraries = collect();
         }
 
         // Group shelves by library and room for better display
         $shelvesByLibrary = $shelves->groupBy(fn($shelf) => $shelf->room->library->name);
 
-        return view('shelves.index', compact('shelves', 'shelvesByLibrary'));
+        return view('shelves.index', compact('shelves', 'shelvesByLibrary', 'libraries'));
     }
 
     /**
@@ -129,24 +134,8 @@ class ShelfController extends Controller
     public function edit(Shelf $shelf)
     {
         $this->authorize('update', $shelf);
-        
-        $user = Auth::user();
-        
-        if ($user->isAdmin()) {
-            $rooms = Room::with('library')->get();
-        } elseif ($user->isOwner()) {
-            $rooms = Room::whereHas('library', function ($query) use ($user) {
-                $query->where('owner_id', $user->id);
-            })->with('library')->get();
-        } elseif ($user->isLibrarian()) {
-            $rooms = Room::whereHas('library', function ($query) use ($user) {
-                $query->where('owner_id', $user->parent_owner_id);
-            })->with('library')->get();
-        } else {
-            $rooms = collect();
-        }
 
-        return view('shelves.edit', compact('shelf', 'rooms'));
+        return redirect()->route('shelves.index', ['edit_shelf' => $shelf->id]);
     }
 
     /**
@@ -161,10 +150,13 @@ class ShelfController extends Controller
             'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'room_id' => 'nullable|exists:rooms,id',
+            'library_id' => 'nullable|exists:libraries,id',
         ]);
         
         $libraryId = $shelf->library_id;
-        if ($request->filled('room_id') && $request->room_id != $shelf->room_id) {
+        if ($request->filled('library_id')) {
+            $libraryId = $request->library_id;
+        } elseif ($request->filled('room_id') && $request->room_id != $shelf->room_id) {
             $room = Room::with('library')->find($request->room_id);
             if ($room && $room->library) {
                 $libraryId = $room->library->id;
@@ -175,7 +167,7 @@ class ShelfController extends Controller
             'name' => $request->name,
             'code' => $request->code,
             'description' => $request->description,
-            'room_id' => $request->room_id, // can be null
+            'room_id' => $request->filled('room_id') ? $request->room_id : $shelf->room_id,
             'library_id' => $libraryId,
         ]);
 

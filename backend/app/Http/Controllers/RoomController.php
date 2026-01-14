@@ -91,7 +91,19 @@ class RoomController extends Controller
     public function edit(Room $room)
     {
         $this->authorize('update', $room);
-        return view('rooms.edit', compact('room'));
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            $libraries = Library::all();
+        } elseif ($user->isOwner()) {
+            $libraries = Library::where('owner_id', $user->id)->get();
+        } elseif ($user->isLibrarian()) {
+            $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
+        } else {
+            $libraries = collect();
+        }
+
+        return view('rooms.edit', compact('room', 'libraries'));
     }
 
     /**
@@ -105,7 +117,36 @@ class RoomController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $room->update($validated);
+        $user = Auth::user();
+        $libraryId = $room->library_id;
+
+        if ($request->filled('library_id')) {
+            $request->validate([
+                'library_id' => 'integer|exists:libraries,id',
+            ]);
+
+            if ($user->isAdmin()) {
+                $library = Library::where('id', $request->library_id)->firstOrFail();
+            } elseif ($user->isOwner()) {
+                $library = Library::where('id', $request->library_id)
+                    ->where('owner_id', $user->id)
+                    ->firstOrFail();
+            } elseif ($user->isLibrarian()) {
+                $library = Library::where('id', $request->library_id)
+                    ->where('owner_id', $user->parent_owner_id)
+                    ->firstOrFail();
+            } else {
+                abort(403);
+            }
+
+            $libraryId = $library->id;
+        }
+
+        $room->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'library_id' => $libraryId,
+        ]);
 
         return redirect()->route('libraries.show', $room->library_id)
             ->with('success', 'Room updated successfully.');

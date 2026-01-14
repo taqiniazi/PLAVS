@@ -22,6 +22,36 @@
                         @method('PUT')
                         
                         <div class="row">
+                            @if(isset($libraries) && $libraries->count() > 0)
+                                <div class="col-md-12 mb-3">
+                                    <label for="library_id" class="form-label required-field">Library</label>
+                                    @if($libraries->count() > 1)
+                                        <select class="form-select @error('library_id') is-invalid @enderror"
+                                                id="library_id"
+                                                name="library_id"
+                                                required>
+                                            <option value="">Select library</option>
+                                            @php($currentLibraryId = old('library_id', $room->library_id))
+                                            @foreach($libraries as $library)
+                                                <option value="{{ $library->id }}" {{ (string) $currentLibraryId === (string) $library->id ? 'selected' : '' }}>
+                                                    {{ $library->name }}{{ $library->location ? ' - ' . $library->location : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        @php($singleLibrary = $libraries->first())
+                                        <input type="hidden" id="library_id" name="library_id" value="{{ $singleLibrary->id }}">
+                                        <div class="library-info p-2 border rounded">
+                                            <h6 class="mb-1"><i class="fas fa-building me-2"></i>Library: {{ $singleLibrary->name }}</h6>
+                                            <p class="mb-0 small"><i class="fas fa-map-marker-alt me-1"></i>{{ $singleLibrary->location ?? 'No location specified' }}</p>
+                                        </div>
+                                    @endif
+                                    @error('library_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            @endif
+                            
                             <!-- Room Name -->
                             <div class="col-md-12 mb-3">
                                 <label for="name" class="form-label required-field">Room Name</label>

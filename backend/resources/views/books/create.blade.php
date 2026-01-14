@@ -99,7 +99,12 @@
                         <select id="shelf" name="shelf" class="form-select" required>
                             <option value="">Select shelf</option>
                             @forelse($shelves as $shelf)
-                                <option value="{{ $shelf->name }}">{{ $shelf->name }}</option>
+                                <option value="{{ $shelf->id }}">
+                                    {{ $shelf->name }}
+                                    @if($shelf->room && $shelf->room->library)
+                                        ({{ $shelf->room->library->name }})
+                                    @endif
+                                </option>
                             @empty
                                 <option value="" disabled>No shelves found. Please create a shelf first.</option>
                             @endforelse
