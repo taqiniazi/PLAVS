@@ -24,7 +24,7 @@
                     <div class="position-relative d-inline-block">
                         <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/user.png') }}" 
                              alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover;">
-                        <label for="avatar" class="position-absolute bottom-0 end-0 btn btn-sm btn-primary rounded-circle" 
+                        <label for="avatar" class="change-avatar" 
                                style="width: 35px; height: 35px; cursor: pointer;">
                             <i class="fas fa-camera"></i>
                         </label>

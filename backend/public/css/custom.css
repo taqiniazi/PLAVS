@@ -663,3 +663,14 @@ div.dataTables_wrapper div.dataTables_filter input {
         width: 100%;
     }
 }
+.change-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--primary-dark);
+    line-height: 2;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #fff;
+}

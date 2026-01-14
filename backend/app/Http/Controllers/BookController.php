@@ -360,7 +360,6 @@ class BookController extends Controller
 
         $this->logActivity('book_shelf_changed', "Book '{$book->title}' moved from {$old} to {$book->shelf_location}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
 
-        // Handle AJAX requests
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -387,6 +386,16 @@ class BookController extends Controller
         $book->save();
 
         $this->logActivity('book_assigned', "Book '{$book->title}' assigned to user ID {$validated['assigned_user_id']}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Book assigned successfully!',
+                'book_id' => $book->id,
+                'assigned_user_id' => $book->assigned_user_id,
+                'status' => $book->status,
+            ]);
+        }
 
         return redirect()->route('books.manage')->with('success', 'Book assigned successfully!');
     }
@@ -456,12 +465,13 @@ class BookController extends Controller
             $book
         );
 
-        // Handle AJAX requests
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Book return confirmed. Book is now In Stock.',
-                'book_id' => $book->id
+                'book_id' => $book->id,
+                'status' => $book->status,
+                'assigned_user_id' => $book->assigned_user_id,
             ]);
         }
 
@@ -471,6 +481,14 @@ class BookController extends Controller
     public function destroy(Book $book)
     {
         $book->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Book disposed successfully!',
+            ]);
+        }
+
         return redirect()->route('books.manage')->with('success', 'Book disposed successfully!');
     }
 
@@ -528,9 +546,16 @@ class BookController extends Controller
         }
 
         $books = $query->with(['shelf.room.library'])->get();
+
+        $stockCounts = (clone $query)
+            ->whereNotNull('isbn')
+            ->selectRaw('isbn, COUNT(*) as total_copies')
+            ->groupBy('isbn')
+            ->pluck('total_copies', 'isbn');
+
         $users = User::select('id', 'name', 'email', 'role')->orderBy('name')->get();
         $shelves = \App\Models\Shelf::select('id', 'name')->orderBy('name')->get();
-        return view('books.manage', compact('books', 'users', 'shelves'));
+        return view('books.manage', compact('books', 'users', 'shelves', 'stockCounts'));
     }
 
     /**
@@ -579,25 +604,25 @@ class BookController extends Controller
      */
     public function transfer(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'book_id' => 'required|exists:books,id',
             'transfer_to' => 'required|in:library,user', // specific target type
             'target_id' => 'required', // ID of the library or user
         ]);
 
-        $book = Book::findOrFail($request->book_id);
+        $book = Book::findOrFail($validated['book_id']);
 
         // Authorization: Only Owner/Admin can transfer
         // if (!auth()->user()->isOwnerOf($book)) { abort(403); }
 
-        if ($request->transfer_to === 'library') {
+        if ($validated['transfer_to'] === 'library') {
             // Transfer to another Library
             // 1. You might want to set a 'transferred_to_library_id' column
             // 2. Or change the shelf/room to the new library's default.
             // For now, let's assume we mark it as transferred:
             $book->update([
                 'status' => 'transferred',
-                // 'current_library_id' => $request->target_id
+                // 'current_library_id' => $validated['target_id']
                 // Add specific logic here based on your Schema
             ]);
             $msg = "Book transferred to Library successfully.";
@@ -605,7 +630,7 @@ class BookController extends Controller
         } else {
             // Transfer/Assign to a User (Teacher/Student)
             // Check if user exists
-            $user = \App\Models\User::findOrFail($request->target_id);
+            $user = \App\Models\User::findOrFail($validated['target_id']);
             
             // Attach to pivot table
             $user->assignedBooks()->attach($book->id, [
@@ -618,7 +643,17 @@ class BookController extends Controller
             $msg = "Book assigned to User successfully.";
         }
 
-        return response()->json(['success' => true, 'message' => $msg]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'book_id' => $book->id,
+                'status' => $book->status,
+                'assigned_user_id' => $book->assigned_user_id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 
     public function toggleVisibility(Request $request, Book $book)

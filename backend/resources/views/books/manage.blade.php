@@ -85,6 +85,12 @@
                                     <div>
                                         <span class="book-title">{{ $book->title }}</span>
                                         <span class="book-author">ISBN: {{ $book->isbn ?? 'N/A' }}</span>
+                                        @php
+                                            $copiesCount = ($book->isbn && isset($stockCounts[$book->isbn]))
+                                                ? $stockCounts[$book->isbn]
+                                                : 1;
+                                        @endphp
+                                        <span class="text-muted small d-block">Copies in this library: {{ $copiesCount }}</span>
                                         @if($book->shelf)
                                         <br>
                                         <span class="badge-shelf">
