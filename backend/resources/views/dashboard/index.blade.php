@@ -83,7 +83,7 @@
                     </button>
                     <!-- <small class="text-muted ms-2">If you own a library, request Owner access to create and manage it.</small> -->
                 @else
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert alert-info text-center" role="alert">
                         <i class="fas fa-hourglass-half"></i> Your request for Owner role is pending approval.
                     </div>
                 @endif
