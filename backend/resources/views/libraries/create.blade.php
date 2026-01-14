@@ -54,7 +54,7 @@
                             
                             <!-- Location -->
                             <div class="col-md-6 mb-3">
-                                <label for="location" class="form-label required-field">Location</label>
+                                <label for="location" class="form-label required-field">Address</label>
                                 <input type="text" 
                                        class="form-control @error('location') is-invalid @enderror" 
                                        id="location" 
