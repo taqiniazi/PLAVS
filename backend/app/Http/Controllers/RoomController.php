@@ -15,21 +15,36 @@ class RoomController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $activeLibraryId = session('active_library_id');
         // Owners see only their libraries' rooms; admins see all; librarians see only parent owner's rooms
         if ($user->isAdmin()) {
-            $rooms = Room::with('library')->paginate(10);
+            $roomsQuery = Room::with('library');
+            if ($activeLibraryId) {
+                $roomsQuery->where('library_id', $activeLibraryId);
+            }
+            $rooms = $roomsQuery->paginate(10);
         } elseif ($user->isOwner()) {
-            $rooms = Room::with('library')
+            $roomsQuery = Room::with('library')
                 ->whereHas('library', function($q) use ($user) {
                     $q->where('owner_id', $user->id);
-                })
-                ->paginate(10);
+                });
+
+            if ($activeLibraryId) {
+                $roomsQuery->where('library_id', $activeLibraryId);
+            }
+
+            $rooms = $roomsQuery->paginate(10);
         } elseif ($user->isLibrarian()) {
-            $rooms = Room::with('library')
+            $roomsQuery = Room::with('library')
                 ->whereHas('library', function($q) use ($user) {
                     $q->where('owner_id', $user->parent_owner_id);
-                })
-                ->paginate(10);
+                });
+
+            if ($activeLibraryId) {
+                $roomsQuery->where('library_id', $activeLibraryId);
+            }
+
+            $rooms = $roomsQuery->paginate(10);
         } else {
             // Others shouldn't see rooms management
             $rooms = Room::where('id', 0)->paginate(10);

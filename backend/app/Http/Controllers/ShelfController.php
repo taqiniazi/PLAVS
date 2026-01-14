@@ -16,20 +16,58 @@ class ShelfController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $activeLibraryId = session('active_library_id');
         
         if ($user->isAdmin()) {
-            $shelves = Shelf::with(['room.library', 'books'])->get();
-            $libraries = Library::all();
+            $shelvesQuery = Shelf::with(['room.library', 'books']);
+            if ($activeLibraryId) {
+                $shelvesQuery->whereHas('room.library', function ($query) use ($activeLibraryId) {
+                    $query->where('id', $activeLibraryId);
+                });
+            }
+            $shelves = $shelvesQuery->get();
+
+            $librariesQuery = Library::query();
+            if ($activeLibraryId) {
+                $librariesQuery->where('id', $activeLibraryId);
+            }
+            $libraries = $librariesQuery->get();
         } elseif ($user->isOwner()) {
-            $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
+            $shelvesQuery = Shelf::whereHas('room.library', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
-            })->with(['room.library', 'books'])->get();
-            $libraries = Library::where('owner_id', $user->id)->get();
+            })->with(['room.library', 'books']);
+
+            if ($activeLibraryId) {
+                $shelvesQuery->whereHas('room.library', function ($query) use ($activeLibraryId) {
+                    $query->where('id', $activeLibraryId);
+                });
+            }
+
+            $shelves = $shelvesQuery->get();
+
+            $librariesQuery = Library::where('owner_id', $user->id);
+            if ($activeLibraryId) {
+                $librariesQuery->where('id', $activeLibraryId);
+            }
+            $libraries = $librariesQuery->get();
         } elseif ($user->isLibrarian()) {
-            $shelves = Shelf::whereHas('room.library', function ($query) use ($user) {
+            $shelvesQuery = Shelf::whereHas('room.library', function ($query) use ($user) {
                 $query->where('owner_id', $user->parent_owner_id);
-            })->with(['room.library', 'books'])->get();
-            $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
+            })->with(['room.library', 'books']);
+
+            if ($activeLibraryId) {
+                $shelvesQuery->whereHas('room.library', function ($query) use ($activeLibraryId) {
+                    $query->where('id', $activeLibraryId);
+                });
+            }
+
+            $shelves = $shelvesQuery->get();
+
+            $librariesQuery = Library::where('owner_id', $user->parent_owner_id);
+            if ($activeLibraryId) {
+                $librariesQuery->where('id', $activeLibraryId);
+            }
+            $libraries = $librariesQuery->get();
         } else {
             $shelves = collect();
             $libraries = collect();

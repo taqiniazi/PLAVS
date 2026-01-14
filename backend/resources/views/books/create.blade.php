@@ -92,14 +92,30 @@
                     <div class="col-md-4 mb-3 mb-md-0">
                         <label class="form-label">Author</label>
                         <input type="text" id="author" name="author" class="form-control" placeholder="Enter author name" required>
-                        <!-- <small class="text-muted">Auto-filled from Google Books or enter manually.</small> -->
                     </div>
                     <div class="col-md-4">
+                        @if(isset($libraries) && $libraries->count() > 1)
+                            <label class="form-label">Library</label>
+                            <select id="library_select" name="library_id" class="form-select" required>
+                                <option value="">Select library</option>
+                                @foreach($libraries as $library)
+                                    <option value="{{ $library->id }}">{{ $library->name }}{{ $library->location ? ' - ' . $library->location : '' }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
                         <label class="form-label">Shelf Location</label>
                         <select id="shelf" name="shelf" class="form-select" required>
                             <option value="">Select shelf</option>
                             @forelse($shelves as $shelf)
-                                <option value="{{ $shelf->id }}">
+                                <option value="{{ $shelf->id }}"
+                                        @if($shelf->room && $shelf->room->library)
+                                            data-library-id="{{ $shelf->room->library->id }}"
+                                        @endif>
                                     {{ $shelf->name }}
                                     @if($shelf->room && $shelf->room->library)
                                         ({{ $shelf->room->library->name }})
@@ -109,7 +125,6 @@
                                 <option value="" disabled>No shelves found. Please create a shelf first.</option>
                             @endforelse
                         </select>
-                        <!-- <small class="text-muted">Only shelves from your libraries are listed. Create shelves first in your library/room.</small> -->
                     </div>
                 </div>
 
@@ -253,7 +268,40 @@ $(function(){
         stopScanner();
     });
 
-    // Hide scan area on page load
+    var librarySelect = $('#library_select');
+    var shelfSelect = $('#shelf');
+
+    if (librarySelect.length && shelfSelect.length) {
+        var shelfOptions = [];
+        shelfSelect.find('option').each(function () {
+            shelfOptions.push({
+                value: this.value,
+                text: $(this).text(),
+                libraryId: $(this).data('library-id') ? String($(this).data('library-id')) : null
+            });
+        });
+
+        function filterShelves() {
+            var selectedLibraryId = librarySelect.val();
+            shelfSelect.empty();
+            shelfSelect.append($('<option>').val('').text('Select shelf'));
+
+            shelfOptions.forEach(function (opt) {
+                if (!opt.value) {
+                    return;
+                }
+                if (!selectedLibraryId || !opt.libraryId || opt.libraryId === String(selectedLibraryId)) {
+                    shelfSelect.append($('<option>').val(opt.value).text(opt.text));
+                }
+            });
+        }
+
+        librarySelect.on('change', function () {
+            filterShelves();
+        });
+
+        filterShelves();
+    }
 
     // Smart Fetch (Google Books) functionality
     function renderResults(items) {

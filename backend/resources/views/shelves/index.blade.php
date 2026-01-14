@@ -3,7 +3,7 @@
 @section('title', 'MyBookShelf - Manage Shelves')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/accordion/3.0.7/accordion.min.css">
 @endpush
 

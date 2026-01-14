@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\Shelf;
+use App\Models\Library;
 
 class BookController extends Controller
 {
@@ -96,7 +97,19 @@ class BookController extends Controller
             }
         })->with('room.library')->orderBy('name')->get();
 
-        return view('books.create', compact('shelves'));
+        $libraries = collect();
+
+        if (! $activeLibraryId && $user) {
+            if ($user->isAdmin()) {
+                $libraries = Library::all();
+            } elseif ($user->isOwner()) {
+                $libraries = Library::where('owner_id', $user->id)->get();
+            } elseif ($user->isLibrarian()) {
+                $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
+            }
+        }
+
+        return view('books.create', compact('shelves', 'libraries'));
     }
 
     public function store(Request $request)
@@ -110,6 +123,7 @@ class BookController extends Controller
             'publisher' => 'nullable|string|max:255',
             'publish_date' => 'nullable|date',
             'shelf' => 'required|integer|exists:shelves,id',
+            'library_id' => 'nullable|integer|exists:libraries,id',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'scanned_image_url' => 'nullable|string'
@@ -121,7 +135,27 @@ class BookController extends Controller
             return redirect()->back()->withErrors(['cover_image' => 'Please upload a cover image or use the scanner.'])->withInput();
         }
 
-        $shelfModel = Shelf::findOrFail($validated['shelf']);
+        $shelfModel = Shelf::with('room.library')->findOrFail($validated['shelf']);
+
+        $user = Auth::user();
+
+        if ($shelfModel->room && $shelfModel->room->library) {
+            $library = $shelfModel->room->library;
+
+            if ($user->isOwner() && $library->owner_id !== $user->id) {
+                abort(403);
+            }
+
+            if ($user->isLibrarian() && $library->owner_id !== $user->parent_owner_id) {
+                abort(403);
+            }
+
+            if ($request->filled('library_id') && (int) $request->input('library_id') !== (int) $library->id) {
+                return redirect()->back()
+                    ->withErrors(['shelf' => 'Selected shelf does not belong to the chosen library.'])
+                    ->withInput();
+            }
+        }
 
         $bookData = [
             'title' => $validated['title'],

@@ -3,7 +3,7 @@
 @section('title', 'MyBookShelf - Book Owners')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<!-- <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}"> -->
 @endpush
 
 @section('content')
@@ -67,9 +67,8 @@
 @endsection
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('js/dataTables.bootstrap5.min.js') }}"></script>
 
 <script>
 $(document).ready(function () {

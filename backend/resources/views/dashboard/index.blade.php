@@ -252,9 +252,8 @@
                 </div>
                 @endforeach
             </div>
-        </div>
         {{-- Student: Assigned Books --}}
-        <div class="col-lg-9">
+        
             <h6 class="fw-bold mb-3">My Assigned Books</h6>
             <div class="row">
                 @forelse($my_assigned_books ?? [] as $book)
@@ -286,10 +285,10 @@
                 </div>
                 @endforelse
             </div>
-        </div>
+        
     @else
         {{-- Default: Recently Added Books --}}
-        <div class="col-lg-9">
+        
             <h6 class="fw-bold mb-3">Recently Added</h6>
             <div class="row">
                 @foreach($recent_books as $book)
@@ -302,9 +301,8 @@
                 </div>
                 @endforeach
             </div>
+            @endif
         </div>
-    @endif
-
     <div class="col-lg-3">
         <h6 class="fw-bold mb-3">Recent Activities</h6>
         <div class="bg-white p-3 rounded-3 border-0">

@@ -3,7 +3,7 @@
 @section('title', 'MyBookShelf - Events Calendar')
 
 @push('styles')
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+<link href="{{ asset('css/fullcalendar.global.min.css') }}" rel='stylesheet' />
 @endpush
 
 @section('content')
@@ -69,7 +69,7 @@
 @endsection
 
 @push('scripts')
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src="{{ asset('js/index.global.min.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
