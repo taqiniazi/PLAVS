@@ -279,7 +279,7 @@
                     <div class="text-center py-5">
                         <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
                         <p class="text-muted">No books assigned to you yet.</p>
-                        <a href="{{ route('books.index') }}" class="btn btn-primary">
+                        <a href="{{ route('libraries.other') }}" class="btn btn-primary">
                             <i class="fas fa-search"></i> Browse Library
                         </a>
                     </div>

@@ -18,9 +18,13 @@ class PermissionsController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $candidates = User::where('role', User::ROLE_PUBLIC)->get();
         $ownerRequests = \App\Models\OwnerRequest::where('status', 'pending')
             ->with('user')
+            ->get();
+
+        $candidates = User::whereDoesntHave('ownerRequests', function ($q) {
+                $q->where('status', 'pending');
+            })
             ->get();
 
         return view('permissions.index', compact('candidates', 'ownerRequests'));

@@ -122,6 +122,11 @@ class User extends Authenticatable
         return $this->hasMany(Library::class, 'owner_id');
     }
 
+    public function ownerRequests()
+    {
+        return $this->hasMany(OwnerRequest::class);
+    }
+
     // Link librarian to their parent owner
     public function parentOwner()
     {
