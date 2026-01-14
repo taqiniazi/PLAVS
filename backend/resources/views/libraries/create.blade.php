@@ -17,7 +17,7 @@
                 </div>
                 
                 <div class="card-body ">
-                    <form action="{{ route('libraries.store') }}" method="POST">
+                    <form action="{{ route('libraries.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <div class="row">
@@ -36,7 +36,6 @@
                                 @enderror
                             </div>
                             
-                            <!-- Library Type -->
                             <div class="col-md-6 mb-3">
                                 <label for="type" class="form-label required-field">Library Type</label>
                                 <select class="form-select @error('type') is-invalid @enderror" 
@@ -48,6 +47,19 @@
                                     <option value="private" {{ old('type') == 'private' ? 'selected' : '' }}>Private</option>
                                 </select>
                                 @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="image" class="form-label required-field">Library Logo</label>
+                                <input type="file" 
+                                       class="form-control @error('image') is-invalid @enderror" 
+                                       id="image" 
+                                       name="image" 
+                                       accept="image/*"
+                                       {{ Auth::user()->isOwner() ? 'required' : '' }}>
+                                @error('image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

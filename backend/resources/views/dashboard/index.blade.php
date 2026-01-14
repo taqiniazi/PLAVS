@@ -12,7 +12,6 @@
 <div class="row">
     {{-- Admin/Librarian/Owner Stats --}}
     @if($hasAdminRole)
-        {{-- Action Buttons --}}
         <div class="col-12 mb-4">
             <div class="d-flex justify-content-end gap-2">
                 @if($user->isOwner())
@@ -25,6 +24,20 @@
                 </a>
             </div>
         </div>
+
+        @if($user->isOwner() && (($stats['total_libraries'] ?? 0) == 0))
+            <div class="col-12 mb-3">
+                <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-semibold">You have no libraries yet.</span>
+                        <span class="ms-1">Create your library and upload its logo to start managing books.</span>
+                    </div>
+                    <a href="{{ route('libraries.create') }}" class="btn btn-sm btn-primary">
+                        Create Library
+                    </a>
+                </div>
+            </div>
+        @endif
 
         <div class="col-lg-3 col-md-6">
             <div class="stat-card">

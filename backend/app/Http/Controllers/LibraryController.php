@@ -77,7 +77,7 @@ class LibraryController extends Controller
                 'type' => 'required|in:public,private',
                 'location' => 'nullable|string',
                 'description' => 'nullable|string',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'contact_email' => 'nullable|email|max:255',
                 'contact_phone' => 'nullable|string|max:20',
             ]);
@@ -214,6 +214,7 @@ class LibraryController extends Controller
             'type' => 'required|in:public,private',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // Update library information
@@ -223,6 +224,12 @@ class LibraryController extends Controller
             'location' => $request->location,
             'description' => $request->description,
         ]);
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('library_images', 'public');
+            $library->image = $imagePath;
+            $library->save();
+        }
 
         return redirect()->route('libraries.index')
             ->with('success', 'Library updated successfully.');

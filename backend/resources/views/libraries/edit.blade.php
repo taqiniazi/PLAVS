@@ -17,7 +17,7 @@
                 </div>
                 
                 <div class="card-body">
-                    <form action="{{ route('libraries.update', $library) }}" method="POST">
+                    <form action="{{ route('libraries.update', $library) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         
@@ -68,7 +68,6 @@
                                 @enderror
                             </div>
                             
-                            <!-- Map Link -->
                             <div class="col-md-6 mb-3">
                                 <label for="map_link" class="form-label">Map Link</label>
                                 <input type="url" 
@@ -79,6 +78,23 @@
                                        placeholder="https://maps.google.com/...">
                                 <!-- <div class="form-text">Optional: Add a Google Maps link for easy navigation</div> -->
                                 @error('map_link')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="image" class="form-label">Library Logo</label>
+                                @if($library->image)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/' . $library->image) }}" alt="Library Logo" class="img-fluid rounded" style="max-height: 120px;">
+                                    </div>
+                                @endif
+                                <input type="file"
+                                       class="form-control @error('image') is-invalid @enderror"
+                                       id="image"
+                                       name="image"
+                                       accept="image/*">
+                                @error('image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
