@@ -64,4 +64,60 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.password')->with('success', 'Password updated successfully!');
     }
+
+    public function apiShow(Request $request)
+    {
+        return response()->json([
+            'user' => $request->user(),
+        ]);
+    }
+
+    public function apiUpdate(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
+            'phone' => 'nullable|string|max:20',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $avatarPath;
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'user' => $user,
+        ]);
+    }
+
+    public function apiUpdatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        if (! Hash::check($request->current_password, $request->user()->password)) {
+            return response()->json([
+                'message' => 'The current password is incorrect.',
+            ], 422);
+        }
+
+        $request->user()->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
 }
