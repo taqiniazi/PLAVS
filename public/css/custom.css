@@ -600,13 +600,20 @@ div.dataTables_wrapper div.dataTables_filter input {
     border-top-right-radius: 15px !important;
     color: white;
 }
-.btn-primary, .btn-success, .btn-warning, .btn-danger,.btn-outline-secondary, .btn-info{
-    background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
-    border: none;
+
+.btn-primary, .btn-success, .btn-warning, .btn-danger,.btn-outline-secondary, .btn-info,
+.btn-outline-dark, .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger{
+    border: 1px solid inherit;
     padding: 10px 30px;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+}
+.btn-sm{
+    padding: 5px 8px;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
 }
 .btn-outline-secondary{
     background: transparent;

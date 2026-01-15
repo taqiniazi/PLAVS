@@ -5,28 +5,25 @@
 @section('content')
 
 <div class="container-fluid px-0">
-    <!-- Room Header Section -->
-     <div class="card">
-        <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col-md-8">
+    <div class="row mb-4 align-items-center">
+                <div class="col-md-7">
                     <h2 class="mb-2">{{ $room->name }}</h2>
                     <div class="d-flex align-items-center gap-3">
-                        <span class="badge bg-secondary">
+                        <span class="badge bg-success text-light">
                             <i class="fas fa-building me-1"></i>
                             {{ $room->library->name }}
                         </span>
-                        <span class="text-light">
+                        <span class="badge bg-primary text-light">
                             <i class="fas fa-shelf me-1"></i>
-                            {{ $room->shelves_count }} Shelves
+                            {{ $room->total_shelves }} Shelves
                         </span>
                     </div>
                     @if($room->description)
                         <p class="mb-0 opacity-75">{{ $room->description }}</p>
                     @endif
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="{{ route('libraries.show', $room->library) }}" class="btn btn-outline-light me-2">
+                <div class="col-md-5 text-md-end">
+                    <a href="{{ route('libraries.show', $room->library) }}" class="btn btn-outline-dark me-2">
                         <i class="fas fa-arrow-left me-2"></i>Back to Library
                     </a>
                     @can('update', $room)
@@ -36,7 +33,9 @@
                     @endcan
                 </div>
             </div>
-        </div>
+    <!-- Room Header Section -->
+     <div class="card">
+       
 
         <div class="card-body">
  <!-- Room Details Section -->
@@ -94,12 +93,12 @@
                 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">Total Shelves</span>
-                    <span class="badge bg-info">{{ $room->shelves_count }}</span>
+                    <span class="badge bg-info">{{ $room->total_shelves }}</span>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="text-muted">Total Books</span>
-                    <span class="badge bg-primary">{{ $room->shelves->sum('books_count') }}</span>
+                    <span class="badge bg-primary">{{ $room->total_books }}</span>
                 </div>
             </div>
         </div>
@@ -113,62 +112,59 @@
                     <i class="fas fa-building me-2"></i>
                     Shelves
                 </h5>
-                <span class="text-muted"><strong>Total Shelves </strong> {{ $room->shelves_count }}</span>
+                <span class="text-muted"><strong>Total Shelves </strong> {{ $room->total_shelves }}</span>
             </div>
             
             @if($room->shelves->count() > 0)
-                <div class="row mx-0">
-                    @foreach($room->shelves as $shelf)
-                        <div class="col-md-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="mb-2">
-                                        <h6 class="mb-1">{{ $shelf->name }}</h6>
-                                        @if($shelf->code)
-                                            <p class="mb-0  small">Code: {{ $shelf->code }}</p>
-                                        @endif
-                                    </div>
-                                    <div class="shelf-actions">
-                                        <a href="{{ route('shelves.show', $shelf) }}" 
-                                           class="btn btn-outline-light btn-sm" title="View Shelf">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @can('update', $shelf)
-                                            <a href="{{ route('shelves.edit', $shelf) }}" 
-                                               class="btn btn-outline-warning btn-sm" title="Edit Shelf">
-                                                <i class="fas fa-edit"></i>
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Total Books</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($room->shelves as $shelf)
+                                <tr>
+                                    <td>{{ $shelf->name }}</td>
+                                    <td>{{ $shelf->code ?? 'N/A' }}</td>
+                                    <td>{{ $shelf->total_books }}</td>
+                                    <td>{{ $shelf->description ? Str::limit($shelf->description, 50) : 'No description' }}</td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('shelves.show', $shelf) }}" 
+                                               class="btn btn-outline-primary btn-sm" title="View Shelf">
+                                                <i class="fas fa-eye"></i>
                                             </a>
-                                        @endcan
-                                        @can('delete', $shelf)
-                                            <form method="POST" action="{{ route('shelves.destroy', $shelf) }}" 
-                                                  style="display: inline;" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this shelf?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Shelf">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </div>
-                                
-                                <div class="card-body">
-                                    <div class="text-center">
-                                        <i class="fas fa-book h4 me-1"></i>
-                                        <h5>Total Books</h5>
-                                        {{ $shelf->books_count }} 
-                                    </div>
-                                    @if($shelf->description)
-                                        <div class="text-muted small">
-                                            <i class="fas fa-info-circle me-1"></i>
-                                            {{ Str::limit($shelf->description, 30) }}
+                                            @can('update', $shelf)
+                                                <a href="{{ route('shelves.edit', $shelf) }}" 
+                                                   class="btn btn-outline-warning btn-sm" title="Edit Shelf">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            @can('delete', $shelf)
+                                                <form method="POST" action="{{ route('shelves.destroy', $shelf) }}" 
+                                                      style="display: inline;" 
+                                                      onsubmit="return confirm('Are you sure you want to delete this shelf?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Shelf">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
                                         </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             @else
                 <div class="empty-state">
@@ -189,24 +185,5 @@
     
    
 </div>
-
+ 
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add some interactivity for better UX
-    const shelfCards = document.querySelectorAll('.shelf-card');
-    
-    shelfCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-});
-</script>
-@endpush
