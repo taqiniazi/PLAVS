@@ -367,6 +367,9 @@ textarea.form-control {
     background-color: #0a2a33;
     color: white;
 }
+.table{
+    font-size: 14px;
+}
 .dataTables_wrapper .page-item.active .page-link {
     background-color: var(--primary-dark);
     border-color: var(--primary-dark);
