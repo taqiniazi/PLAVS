@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -24,7 +23,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        if (!$super->wasRecentlyCreated) {
+        if (! $super->wasRecentlyCreated) {
             $super->update([
                 'name' => 'Super Admin',
                 'username' => 'superadmin',

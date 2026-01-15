@@ -14,7 +14,7 @@ class Category extends Model
         'name',
         'slug',
         'description',
-        'color'
+        'color',
     ];
 
     /**
@@ -23,13 +23,13 @@ class Category extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($category) {
             if (empty($category->slug)) {
                 $category->slug = Str::slug($category->name);
             }
         });
-        
+
         static::updating(function ($category) {
             if (empty($category->slug)) {
                 $category->slug = Str::slug($category->name);

@@ -32,13 +32,13 @@ class Library extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($library) {
             if ($library->type === 'private' && empty($library->invite_token)) {
                 $library->invite_token = Str::random(32);
             }
         });
-        
+
         static::updating(function ($library) {
             if ($library->type === 'private' && empty($library->invite_token)) {
                 $library->invite_token = Str::random(32);

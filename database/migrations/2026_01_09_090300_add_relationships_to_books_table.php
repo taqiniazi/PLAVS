@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('books', function (Blueprint $table) {
             $table->foreignId('shelf_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
-            
+
             // Remove old shelf_location column as we now have proper relationships
             $table->dropColumn('shelf_location');
         });

@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Book;
 
 class OwnerController extends Controller
 {
@@ -17,7 +15,7 @@ class OwnerController extends Controller
                 'email' => $user->email,
                 'role' => ucfirst($user->role),
                 'books_count' => $user->owned_books_count,
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : asset('images/user.png'),
+                'avatar' => $user->avatar ? asset('storage/'.$user->avatar) : asset('images/user.png'),
                 'joined_date' => $user->created_at->format('M d, Y'),
             ];
         });

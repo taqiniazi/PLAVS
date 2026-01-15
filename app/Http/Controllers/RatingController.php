@@ -44,7 +44,7 @@ class RatingController extends Controller
             'review' => $rating->review,
             'average_rating' => round($averageRating, 1),
             'rating_count' => $ratingCount,
-            'user_rating' => $rating->rating
+            'user_rating' => $rating->rating,
         ]);
     }
 
@@ -54,7 +54,7 @@ class RatingController extends Controller
     public function getUserRating(Book $book)
     {
         $user = Auth::user();
-        
+
         $rating = Rating::where('user_id', $user->id)
             ->where('book_id', $book->id)
             ->first();

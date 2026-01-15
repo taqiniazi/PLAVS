@@ -25,12 +25,12 @@ class Book extends Model
         'image',
         'cover_image',
         'shelf_id',
-        'category_id'
+        'category_id',
     ];
 
     protected $casts = [
         'visibility' => 'boolean',
-        'publish_date' => 'date'
+        'publish_date' => 'date',
     ];
 
     /**
@@ -112,64 +112,64 @@ class Book extends Model
      */
     public function getFullLocationAttribute(): string
     {
-        if (!$this->shelf) {
+        if (! $this->shelf) {
             return 'Not assigned';
         }
-        
-        return $this->shelf->room->library->name . ' > ' . 
-               $this->shelf->room->name . ' > ' .
+
+        return $this->shelf->room->library->name.' > '.
+               $this->shelf->room->name.' > '.
                $this->shelf->name;
-   }
+    }
 
-   /**
-    * Get users who have this book in their wishlist
-    */
-   public function wishlistUsers()
-   {
-       return $this->hasMany(Wishlist::class);
-   }
+    /**
+     * Get users who have this book in their wishlist
+     */
+    public function wishlistUsers()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
 
-   /**
-    * Get ratings for this book
-    */
-   public function ratings()
-   {
-       return $this->hasMany(Rating::class);
-   }
+    /**
+     * Get ratings for this book
+     */
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
 
-   /**
-    * Get average rating for this book
-    */
-   public function getAverageRatingAttribute()
-   {
-       return $this->ratings()->avg('rating') ?? 0;
-   }
+    /**
+     * Get average rating for this book
+     */
+    public function getAverageRatingAttribute()
+    {
+        return $this->ratings()->avg('rating') ?? 0;
+    }
 
-   /**
-    * Get rating count for this book
-    */
-   public function getRatingCountAttribute()
-   {
-       return $this->ratings()->count();
-   }
+    /**
+     * Get rating count for this book
+     */
+    public function getRatingCountAttribute()
+    {
+        return $this->ratings()->count();
+    }
 
-   /**
-    * Get the cover URL for this book
-    * Handles both local storage paths and external URLs (Google Books API)
-    */
-   public function getCoverUrlAttribute()
-   {
-       // If it's already a full URL (Google Books API), return as-is
-       if (filter_var($this->cover_image, FILTER_VALIDATE_URL)) {
-           return $this->cover_image;
-       }
-       
-       // If it's a local file in storage, return the asset URL
-       if ($this->cover_image) {
-           return asset('storage/' . $this->cover_image);
-       }
-       
-       // Fallback to default book cover
-       return asset('images/book1.png');
-   }
+    /**
+     * Get the cover URL for this book
+     * Handles both local storage paths and external URLs (Google Books API)
+     */
+    public function getCoverUrlAttribute()
+    {
+        // If it's already a full URL (Google Books API), return as-is
+        if (filter_var($this->cover_image, FILTER_VALIDATE_URL)) {
+            return $this->cover_image;
+        }
+
+        // If it's a local file in storage, return the asset URL
+        if ($this->cover_image) {
+            return asset('storage/'.$this->cover_image);
+        }
+
+        // Fallback to default book cover
+        return asset('images/book1.png');
+    }
 }

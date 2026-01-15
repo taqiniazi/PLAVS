@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Book;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class BookPolicy
@@ -69,20 +69,22 @@ class BookPolicy
     public function update(User $user, Book $book): bool
     {
         // Admins unrestricted
-        if ($user->hasAdminRole()) return true;
+        if ($user->hasAdminRole()) {
+            return true;
+        }
 
         // Owners: only their books
         if ($user->isOwner()) {
             return ($book->shelf && $book->shelf->room && $book->shelf->room->library && $book->shelf->room->library->owner_id === $user->id)
                 || $book->owner === $user->name;
         }
-        
+
         // Librarians: only parent owner's books
         if ($user->isLibrarian()) {
             return ($book->shelf && $book->shelf->room && $book->shelf->room->library && $book->shelf->room->library->owner_id === $user->parent_owner_id)
                 || $book->owner === optional($user->parentOwner)->name;
         }
-        
+
         return false;
     }
 

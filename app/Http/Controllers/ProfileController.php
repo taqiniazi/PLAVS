@@ -18,10 +18,10 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'phone' => 'nullable|string|max:20',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -31,7 +31,7 @@ class ProfileController extends Controller
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
             }
-            
+
             // Store new avatar
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $validated['avatar'] = $avatarPath;
@@ -54,7 +54,7 @@ class ProfileController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
+        if (! Hash::check($request->current_password, Auth::user()->password)) {
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
 

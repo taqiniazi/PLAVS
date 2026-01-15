@@ -56,9 +56,13 @@ class User extends Authenticatable
      * Role constants
      */
     public const ROLE_SUPER_ADMIN = 'super_admin';
+
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_LIBRARIAN = 'librarian';
+
     public const ROLE_OWNER = 'owner';
+
     public const ROLE_PUBLIC = 'public';
 
     /**
@@ -151,15 +155,15 @@ class User extends Authenticatable
         if ($this->isAdmin()) {
             return Library::query();
         }
-        
+
         // Librarians see libraries of their parent owner
         if ($this->isLibrarian()) {
-             return Library::where('owner_id', $this->parent_owner_id);
+            return Library::where('owner_id', $this->parent_owner_id);
         }
 
         // Public users see joined libraries + owned libraries (if any)
         if ($this->isStudent()) {
-             return $this->joinedLibraries();
+            return $this->joinedLibraries();
         }
 
         return $this->ownedLibraries();
@@ -177,6 +181,7 @@ class User extends Authenticatable
             'student' => 'public',
             'candidate' => 'public',
         ];
+
         return $aliases[$norm] ?? $norm;
     }
 
@@ -262,6 +267,7 @@ class User extends Authenticatable
     public function hasRole($role)
     {
         $key = $this->normalizeRoleValue(is_string($role) ? $role : (string) $role);
+
         return $this->roleKey() === $key;
     }
 
@@ -272,9 +278,11 @@ class User extends Authenticatable
             $normalized = array_map(function ($r) {
                 return $this->normalizeRoleValue((string) $r);
             }, $roles);
+
             return in_array($this->roleKey(), $normalized, true);
         }
         $key = $this->normalizeRoleValue((string) $roles);
+
         return $this->roleKey() === $key;
     }
 
@@ -284,7 +292,8 @@ class User extends Authenticatable
     public function getRoleDisplayName(): string
     {
         $key = $this->roleKey();
-        return match($key) {
+
+        return match ($key) {
             self::ROLE_SUPER_ADMIN => 'Super Admin',
             self::ROLE_ADMIN => 'Admin',
             self::ROLE_LIBRARIAN => 'Librarian',

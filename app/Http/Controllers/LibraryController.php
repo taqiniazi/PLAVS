@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Library;
-use App\Models\Room;
-use App\Models\Shelf;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -32,14 +30,27 @@ class LibraryController extends Controller
             $libraries = $query->where('owner_id', $user->parent_owner_id)->get();
         } elseif ($user->isOwner()) {
             // Show owned libraries AND joined libraries
-            $libraries = $query->where(function($q) use ($user) {
+            $libraries = $query->where(function ($q) use ($user) {
                 $q->where('owner_id', $user->id)
-                  ->orWhereHas('members', function($subQ) use ($user) {
-                      $subQ->where('user_id', $user->id);
-                  });
+                    ->orWhereHas('members', function ($subQ) use ($user) {
+                        $subQ->where('user_id', $user->id);
+                    });
             })->get();
         } else {
-            $libraries = $query->where('type', 'public')->get();
+            $query->where('type', 'public');
+
+            $country = request('country');
+            $city = request('city');
+
+            if ($country) {
+                $query->where('location', 'like', '%'.$country.'%');
+            }
+
+            if ($city) {
+                $query->where('location', 'like', '%'.$city.'%');
+            }
+
+            $libraries = $query->get();
         }
 
         // Provide owner-linked librarians list for management UI
@@ -59,6 +70,7 @@ class LibraryController extends Controller
     public function create()
     {
         $this->authorize('create', Library::class);
+
         return view('libraries.create');
     }
 
@@ -126,7 +138,7 @@ class LibraryController extends Controller
         $ownerEmailNormalized = Str::lower(trim($request->owner_email));
         $existingOwner = User::where(function ($q) use ($ownerEmailNormalized) {
             $q->where('email', $ownerEmailNormalized)
-              ->orWhere('username', $ownerEmailNormalized);
+                ->orWhere('username', $ownerEmailNormalized);
         })->first();
 
         if ($existingOwner) {
@@ -186,7 +198,7 @@ class LibraryController extends Controller
     public function show(Library $library)
     {
         $this->authorize('view', $library);
-        
+
         $library->load(['rooms.shelves.books', 'books']);
 
         return view('libraries.show', compact('library'));
@@ -198,7 +210,7 @@ class LibraryController extends Controller
     public function edit(Library $library)
     {
         $this->authorize('update', $library);
-        
+
         return view('libraries.edit', compact('library'));
     }
 
@@ -261,7 +273,7 @@ class LibraryController extends Controller
         return redirect()->back()
             ->with('success', 'Invite token generated.')
             ->with('invite_url', route('libraries.join', $library->invite_token));
-        }
+    }
 
     public function apiIndex(): JsonResponse
     {
@@ -328,7 +340,7 @@ class LibraryController extends Controller
     {
         $library = Library::where('invite_token', $token)->firstOrFail();
 
-        if (!$library->isPrivate()) {
+        if (! $library->isPrivate()) {
             return redirect()->route('dashboard')
                 ->with('error', 'This invite link is invalid.');
         }
@@ -344,7 +356,7 @@ class LibraryController extends Controller
     public function otherLibraries()
     {
         $user = Auth::user();
-        if (!$user || !($user->isOwner() || $user->isLibrarian())) {
+        if (! $user || ! ($user->isOwner() || $user->isLibrarian())) {
             abort(403);
         }
 
@@ -367,17 +379,17 @@ class LibraryController extends Controller
     public function otherLibraryBooks(Library $library)
     {
         $user = Auth::user();
-        if (!$user || !($user->isOwner() || $user->isLibrarian())) {
+        if (! $user || ! ($user->isOwner() || $user->isLibrarian())) {
             abort(403);
         }
-        
+
         // Ensure we are not viewing our own library via this route
         $ownerId = $user->isOwner() ? $user->id : $user->parent_owner_id;
         if ($library->owner_id == $ownerId) {
-             return redirect()->route('libraries.show', $library);
+            return redirect()->route('libraries.show', $library);
         }
 
-        $books = \App\Models\Book::whereHas('shelf.room', function($q) use ($library) {
+        $books = \App\Models\Book::whereHas('shelf.room', function ($q) use ($library) {
             $q->where('library_id', $library->id);
         })->get();
 
@@ -398,6 +410,7 @@ class LibraryController extends Controller
 
         if ($libraryId === null || $libraryId === '') {
             session()->forget('active_library_id');
+
             return redirect()->back()->with('success', 'Showing all libraries.');
         }
 
@@ -413,6 +426,6 @@ class LibraryController extends Controller
 
         session(['active_library_id' => $library->id]);
 
-        return redirect()->back()->with('success', 'Switched to library: ' . $library->name);
+        return redirect()->back()->with('success', 'Switched to library: '.$library->name);
     }
 }

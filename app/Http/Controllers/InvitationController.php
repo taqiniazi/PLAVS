@@ -19,14 +19,14 @@ class InvitationController extends Controller
     public function create()
     {
         $user = Auth::user();
-        
+
         // Get libraries where user can invite
         if ($user->isAdmin() || $user->isSuperAdmin()) {
             $libraries = Library::all();
         } elseif ($user->isOwner()) {
             $libraries = $user->ownedLibraries;
         } elseif ($user->isLibrarian()) {
-             $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
+            $libraries = Library::where('owner_id', $user->parent_owner_id)->get();
         } else {
             // Other roles (Student/Teacher) cannot invite
             abort(403, 'You do not have permission to invite members.');
@@ -50,15 +50,15 @@ class InvitationController extends Controller
 
         // Authorization: Check if user is Owner or Librarian of this library
         $user = Auth::user();
-        if (!$user->can('update', $library)) {
-             // Fallback if policy check fails, though 'update' should cover it.
-             // Double check manual logic if policy is strict
-             $isOwner = $user->id === $library->owner_id;
-             $isLibrarian = $user->isLibrarian() && $user->parent_owner_id === $library->owner_id;
-             
-             if (!$isOwner && !$isLibrarian) {
-                 abort(403, 'Unauthorized action.');
-             }
+        if (! $user->can('update', $library)) {
+            // Fallback if policy check fails, though 'update' should cover it.
+            // Double check manual logic if policy is strict
+            $isOwner = $user->id === $library->owner_id;
+            $isLibrarian = $user->isLibrarian() && $user->parent_owner_id === $library->owner_id;
+
+            if (! $isOwner && ! $isLibrarian) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         // Check if invitation already exists and is pending
@@ -76,7 +76,7 @@ class InvitationController extends Controller
         if ($existingUser) {
             $isMember = $library->members()->where('user_id', $existingUser->id)->exists();
             if ($isMember) {
-                 return back()->with('error', 'User is already a member of this library.');
+                return back()->with('error', 'User is already a member of this library.');
             }
         }
 
@@ -107,8 +107,9 @@ class InvitationController extends Controller
         }
 
         // If user is not logged in, store token in session and redirect to login/register
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             session(['invitation_token' => $token]);
+
             return redirect()->route('login')->with('info', 'Please login or register to accept the invitation.');
         }
 
@@ -117,7 +118,7 @@ class InvitationController extends Controller
         // Check if the email matches (optional, but good for security if we want to enforce it)
         // For now, we allow accepting with any account as long as they have the token.
         // But maybe we should warn if email is different.
-        
+
         // Process the invitation
         $this->processInvitation($user, $invitation);
 
@@ -133,19 +134,19 @@ class InvitationController extends Controller
         $library = $invitation->library;
 
         // Add user to library members if not already
-        if (!$library->members()->where('user_id', $user->id)->exists()) {
+        if (! $library->members()->where('user_id', $user->id)->exists()) {
             $library->members()->attach($user->id);
         }
-        
-        // Update user role if necessary/allowed? 
+
+        // Update user role if necessary/allowed?
         // The prompt says "join his library or collaborate".
-        // If role is 'librarian', we might want to update the user's role in users table 
+        // If role is 'librarian', we might want to update the user's role in users table
         // OR just treat them as a collaborator in this library context.
         // For simplicity, let's assume 'role' in invitation implies the role they will play.
         // If the system supports multiple roles per library, we would store it in pivot.
         // But current system seems to have single role on User model.
         // Let's just attach them for now. If role needs to change, it might be complex if they are already 'student'.
-        
+
         // If the invited role is higher (e.g. Librarian) and user is Candidate/Student, maybe we update?
         // But the User model has a single 'role' field.
         // Let's keep it simple: Just add to library_user pivot.
@@ -153,7 +154,7 @@ class InvitationController extends Controller
         // For now, let's assume 'collaborate' means adding them to the library.
 
         $invitation->update(['status' => 'accepted']);
-        
+
         // Clear session
         session()->forget('invitation_token');
     }

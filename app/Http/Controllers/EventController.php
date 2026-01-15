@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Event;
 use App\Models\ActivityLog;
+use App\Models\Event;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
@@ -53,7 +53,7 @@ class EventController extends Controller
         ActivityLog::create([
             'user_id' => Auth::id(),
             'type' => 'event_created',
-            'description' => 'New event created: ' . $event->title,
+            'description' => 'New event created: '.$event->title,
             'subject_type' => Event::class,
             'subject_id' => $event->id,
         ]);
@@ -68,7 +68,7 @@ class EventController extends Controller
         ActivityLog::create([
             'user_id' => Auth::id(),
             'type' => 'event_deleted',
-            'description' => 'Event deleted: ' . $event->title,
+            'description' => 'Event deleted: '.$event->title,
         ]);
 
         return response()->json(['success' => true]);

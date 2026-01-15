@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Room;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class RoomPolicy
@@ -23,7 +23,7 @@ class RoomPolicy
      */
     public function view(User $user, Room $room): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }
@@ -41,7 +41,7 @@ class RoomPolicy
      */
     public function update(User $user, Room $room): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }
@@ -51,7 +51,7 @@ class RoomPolicy
      */
     public function delete(User $user, Room $room): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $room->library->owner_id === $user->parent_owner_id);
     }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Book;
 
 class PublicController extends Controller
 {
@@ -14,26 +14,26 @@ class PublicController extends Controller
     public function assignedBooks()
     {
         $user = Auth::user();
-        
+
         $directBooks = $user->assignedBooks()
             ->with('category')
             ->get()
             ->each(function ($book) {
                 $book->assigned_date = $book->updated_at;
             });
-        
+
         $pivotBooks = $user->activeAssignedBooks()
             ->with('category')
             ->get()
             ->each(function ($book) {
                 $book->assigned_date = optional($book->pivot)->assigned_at ?? $book->updated_at;
             });
-        
+
         $assignedBooks = $directBooks
             ->merge($pivotBooks)
             ->sortByDesc('assigned_date')
             ->unique('id');
-        
+
         return view('public.assigned-books', compact('assignedBooks'));
     }
 
@@ -43,18 +43,18 @@ class PublicController extends Controller
     public function returnBook(Request $request, Book $book)
     {
         $user = Auth::user();
-        
+
         $assignedAtSnapshot = $book->updated_at;
-        
+
         $pivotRecord = $user->booksThroughAssignment()->where('book_id', $book->id)->first();
-        
-        if ($pivotRecord && !$pivotRecord->pivot->is_returned) {
+
+        if ($pivotRecord && ! $pivotRecord->pivot->is_returned) {
             $user->booksThroughAssignment()->updateExistingPivot($book->id, [
                 'is_returned' => true,
                 'return_date' => now(),
-                'return_notes' => $request->input('return_notes', '')
+                'return_notes' => $request->input('return_notes', ''),
             ]);
-        } elseif (!$pivotRecord && $book->assigned_user_id === $user->id) {
+        } elseif (! $pivotRecord && $book->assigned_user_id === $user->id) {
             $user->booksThroughAssignment()->attach($book->id, [
                 'assignment_type' => 'admin_assign',
                 'notes' => $request->input('return_notes', '') ?: null,
@@ -67,11 +67,11 @@ class PublicController extends Controller
             return redirect()->route('public.assigned-books')
                 ->with('error', 'Book not found in your assigned books or already returned.');
         }
-        
+
         $book->status = 'Available';
         $book->assigned_user_id = null;
         $book->save();
-        
+
         return redirect()->route('public.assigned-books')
             ->with('success', 'Book returned successfully!');
     }

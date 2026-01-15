@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Shelf;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ShelfPolicy
@@ -23,7 +23,7 @@ class ShelfPolicy
      */
     public function view(User $user, Shelf $shelf): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $shelf->room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $shelf->room->library->owner_id === $user->parent_owner_id);
     }
@@ -41,7 +41,7 @@ class ShelfPolicy
      */
     public function update(User $user, Shelf $shelf): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $shelf->room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $shelf->room->library->owner_id === $user->parent_owner_id);
     }
@@ -51,7 +51,7 @@ class ShelfPolicy
      */
     public function delete(User $user, Shelf $shelf): bool
     {
-        return $user->hasAdminRole() || 
+        return $user->hasAdminRole() ||
                ($user->isOwner() && $shelf->room->library->owner_id === $user->id) ||
                ($user->isLibrarian() && $shelf->room->library->owner_id === $user->parent_owner_id);
     }

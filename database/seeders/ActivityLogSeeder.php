@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ActivityLogSeeder extends Seeder
@@ -20,7 +19,7 @@ class ActivityLogSeeder extends Seeder
             \App\Models\ActivityLog::create([
                 'user_id' => $user->id,
                 'type' => 'user_registered',
-                'description' => $user->name . ' joined the library',
+                'description' => $user->name.' joined the library',
                 'created_at' => now()->subDays(rand(1, 30)),
             ]);
         }
@@ -29,7 +28,7 @@ class ActivityLogSeeder extends Seeder
             \App\Models\ActivityLog::create([
                 'user_id' => $users->random()->id,
                 'type' => 'book_added',
-                'description' => 'New book added: ' . $book->title,
+                'description' => 'New book added: '.$book->title,
                 'subject_type' => 'App\Models\Book',
                 'subject_id' => $book->id,
                 'created_at' => now()->subDays(rand(1, 15)),
@@ -41,7 +40,7 @@ class ActivityLogSeeder extends Seeder
             \App\Models\ActivityLog::create([
                 'user_id' => $users->random()->id,
                 'type' => 'event_created',
-                'description' => 'New event created: Library Meeting #' . ($i + 1),
+                'description' => 'New event created: Library Meeting #'.($i + 1),
                 'created_at' => now()->subDays(rand(1, 10)),
             ]);
         }

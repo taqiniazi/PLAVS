@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Book;
-use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\Book;
 use App\Models\Library;
 use App\Models\Shelf;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -16,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $stats = [];
-        
+
         if ($user->hasAdminRole()) {
             if ($user->isAdmin()) {
                 // Admin sees all
@@ -26,66 +25,66 @@ class DashboardController extends Controller
                 $stats['book_shelves'] = number_format(Shelf::count());
                 $stats['total_libraries'] = number_format(Library::count());
                 $stats['total_rooms'] = \App\Models\Room::count();
-                
+
                 $libraries = Library::withCount(['rooms', 'shelves', 'books'])->get();
             } elseif ($user->isOwner()) {
                 // Owner sees only their own data
                 $ownerId = $user->id;
-                
-                $stats['total_books'] = number_format(Book::where(function($q) use ($ownerId, $user) {
-                     $q->whereHas('shelf.room.library', function($sq) use ($ownerId) {
-                         $sq->where('owner_id', $ownerId);
-                     })->orWhere('owner', $user->name);
+
+                $stats['total_books'] = number_format(Book::where(function ($q) use ($ownerId, $user) {
+                    $q->whereHas('shelf.room.library', function ($sq) use ($ownerId) {
+                        $sq->where('owner_id', $ownerId);
+                    })->orWhere('owner', $user->name);
                 })->count());
-                
+
                 $stats['total_librarians'] = number_format(
                     User::where('role', User::ROLE_LIBRARIAN)
                         ->where('parent_owner_id', $user->id)
                         ->count()
                 );
-                
-                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function($q) use ($ownerId) {
+
+                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function ($q) use ($ownerId) {
                     $q->where('owner_id', $ownerId);
                 })->count());
-                
+
                 $stats['total_libraries'] = number_format(Library::where('owner_id', $ownerId)->count());
-                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function($q) use ($ownerId) {
+                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function ($q) use ($ownerId) {
                     $q->where('owner_id', $ownerId);
                 })->count());
-                
+
                 $libraries = Library::where('owner_id', $ownerId)->withCount(['rooms', 'shelves', 'books'])->get();
             } elseif ($user->isLibrarian()) {
                 // Librarian sees parent owner's data
                 $ownerId = $user->parent_owner_id;
-                
-                $stats['total_books'] = number_format(Book::where(function($q) use ($ownerId, $user) {
-                     $q->whereHas('shelf.room.library', function($sq) use ($ownerId) {
-                         $sq->where('owner_id', $ownerId);
-                     })->orWhere('owner', optional($user->parentOwner)->name);
+
+                $stats['total_books'] = number_format(Book::where(function ($q) use ($ownerId, $user) {
+                    $q->whereHas('shelf.room.library', function ($sq) use ($ownerId) {
+                        $sq->where('owner_id', $ownerId);
+                    })->orWhere('owner', optional($user->parentOwner)->name);
                 })->count());
-                
-                $stats['active_members'] = number_format(User::whereHas('joinedLibraries', function($q) use ($ownerId) {
+
+                $stats['active_members'] = number_format(User::whereHas('joinedLibraries', function ($q) use ($ownerId) {
                     $q->where('owner_id', $ownerId);
                 })->count());
-                
-                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function($q) use ($ownerId) {
+
+                $stats['book_shelves'] = number_format(Shelf::whereHas('room.library', function ($q) use ($ownerId) {
                     $q->where('owner_id', $ownerId);
                 })->count());
-                
+
                 $stats['total_libraries'] = number_format(Library::where('owner_id', $ownerId)->count());
-                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function($q) use ($ownerId) {
+                $stats['total_rooms'] = number_format(\App\Models\Room::whereHas('library', function ($q) use ($ownerId) {
                     $q->where('owner_id', $ownerId);
                 })->count());
-                
+
                 $libraries = Library::where('owner_id', $ownerId)->withCount(['rooms', 'shelves', 'books'])->get();
             }
         } else {
             $libraries = collect();
         }
-        
+
         $my_students = collect();
         $recently_assigned = collect();
-        
+
         // Public specific stats
         if ($user->isPublic()) {
             // Use ONLY active assignments for accurate count
@@ -122,12 +121,12 @@ class DashboardController extends Controller
         } else {
             $my_assigned_books = collect();
         }
-        
+
         $recent_books = Book::latest()->take(4)->get()->map(function ($book) {
             return [
-                'title' => strlen($book->title) > 18 ? substr($book->title, 0, 15) . '...' : $book->title,
+                'title' => strlen($book->title) > 18 ? substr($book->title, 0, 15).'...' : $book->title,
                 'author' => $book->author,
-                'image' => $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/' . ($book->image ?? 'book1.png'))
+                'image' => $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/'.($book->image ?? 'book1.png')),
             ];
         });
 
@@ -140,13 +139,13 @@ class DashboardController extends Controller
                     'type' => ucfirst(str_replace('_', ' ', $activity->type)),
                     'description' => $activity->description,
                     'time' => $activity->created_at->diffForHumans(),
-                    'user' => $activity->user->name ?? 'System'
+                    'user' => $activity->user->name ?? 'System',
                 ];
             });
 
         return view('dashboard.index', compact(
-            'stats', 
-            'recent_books', 
+            'stats',
+            'recent_books',
             'recent_activities',
             'libraries',
             'my_students',

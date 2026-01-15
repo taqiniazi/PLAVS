@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Library;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class LibraryPolicy
@@ -32,7 +32,7 @@ class LibraryPolicy
         if ($user->isOwner() && $library->owner_id === $user->id) {
             return true;
         }
-        
+
         // Librarians of the owner can view
         if ($user->isLibrarian() && $user->parent_owner_id === $library->owner_id) {
             return true;
@@ -84,8 +84,8 @@ class LibraryPolicy
      */
     public function manageContent(User $user, Library $library): bool
     {
-        return $user->isSuperAdmin() || 
-               $user->isAdmin() || 
+        return $user->isSuperAdmin() ||
+               $user->isAdmin() ||
                ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) ||
                ($user->isOwner() && $library->owner_id === $user->id);
     }

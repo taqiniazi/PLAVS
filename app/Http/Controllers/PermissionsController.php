@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class PermissionsController extends Controller
 {
@@ -14,7 +14,7 @@ class PermissionsController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isAdmin()) {
+        if (! $user->isSuperAdmin() && ! $user->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -24,8 +24,8 @@ class PermissionsController extends Controller
             ->get();
 
         $candidates = User::whereDoesntHave('ownerRequests', function ($q) {
-                $q->where('status', 'pending');
-            })
+            $q->where('status', 'pending');
+        })
             ->select('id', 'name', 'email', 'role')
             ->orderBy('name')
             ->get();
@@ -39,7 +39,7 @@ class PermissionsController extends Controller
     public function requestOwner(Request $request)
     {
         $user = Auth::user();
-        if (!$user->isPublic()) {
+        if (! $user->isPublic()) {
             return redirect()->back()->with('error', 'Only public users can request owner role.');
         }
 
@@ -78,13 +78,13 @@ class PermissionsController extends Controller
     public function assignRole(Request $request)
     {
         $admin = Auth::user();
-        if (!$admin->isSuperAdmin() && !$admin->isAdmin()) {
+        if (! $admin->isSuperAdmin() && ! $admin->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'role' => 'required|in:' . implode(',', [
+            'role' => 'required|in:'.implode(',', [
                 User::ROLE_OWNER,
                 User::ROLE_LIBRARIAN,
                 User::ROLE_PUBLIC,
@@ -98,7 +98,7 @@ class PermissionsController extends Controller
         $user->role = $validated['role'];
         $user->save();
 
-        return redirect()->route('permissions.index')->with('success', 'Role updated for user: ' . $user->name);
+        return redirect()->route('permissions.index')->with('success', 'Role updated for user: '.$user->name);
     }
 
     /**
@@ -107,7 +107,7 @@ class PermissionsController extends Controller
     public function approveOwnerRequest(Request $request, \App\Models\OwnerRequest $ownerRequest)
     {
         $admin = Auth::user();
-        if (!$admin->isSuperAdmin() && !$admin->isAdmin()) {
+        if (! $admin->isSuperAdmin() && ! $admin->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -124,7 +124,7 @@ class PermissionsController extends Controller
         $ownerRequest->approved_at = now();
         $ownerRequest->save();
 
-        return redirect()->route('permissions.index')->with('success', 'Owner request approved for user: ' . $user->name);
+        return redirect()->route('permissions.index')->with('success', 'Owner request approved for user: '.$user->name);
     }
 
     /**
@@ -133,7 +133,7 @@ class PermissionsController extends Controller
     public function rejectOwnerRequest(Request $request, \App\Models\OwnerRequest $ownerRequest)
     {
         $admin = Auth::user();
-        if (!$admin->isSuperAdmin() && !$admin->isAdmin()) {
+        if (! $admin->isSuperAdmin() && ! $admin->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -147,6 +147,6 @@ class PermissionsController extends Controller
         $ownerRequest->notes = $request->input('notes');
         $ownerRequest->save();
 
-        return redirect()->route('permissions.index')->with('success', 'Owner request rejected for user: ' . $ownerRequest->user->name);
+        return redirect()->route('permissions.index')->with('success', 'Owner request rejected for user: '.$ownerRequest->user->name);
     }
 }

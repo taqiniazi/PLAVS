@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Room;
 use App\Models\Library;
+use App\Models\Room;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
@@ -25,7 +25,7 @@ class RoomController extends Controller
             $rooms = $roomsQuery->paginate(10);
         } elseif ($user->isOwner()) {
             $roomsQuery = Room::with('library')
-                ->whereHas('library', function($q) use ($user) {
+                ->whereHas('library', function ($q) use ($user) {
                     $q->where('owner_id', $user->id);
                 });
 
@@ -36,7 +36,7 @@ class RoomController extends Controller
             $rooms = $roomsQuery->paginate(10);
         } elseif ($user->isLibrarian()) {
             $roomsQuery = Room::with('library')
-                ->whereHas('library', function($q) use ($user) {
+                ->whereHas('library', function ($q) use ($user) {
                     $q->where('owner_id', $user->parent_owner_id);
                 });
 
@@ -70,6 +70,7 @@ class RoomController extends Controller
         } else {
             $libraries = collect();
         }
+
         return view('rooms.create', compact('library', 'libraries'));
     }
 
@@ -97,6 +98,7 @@ class RoomController extends Controller
     {
         $this->authorize('view', $room);
         $room->load('shelves');
+
         return view('rooms.show', compact('room', 'library'));
     }
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shelf;
-use App\Models\Room;
 use App\Models\Library;
+use App\Models\Room;
+use App\Models\Shelf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,7 +17,7 @@ class ShelfController extends Controller
     {
         $user = Auth::user();
         $activeLibraryId = session('active_library_id');
-        
+
         if ($user->isAdmin()) {
             $shelvesQuery = Shelf::with(['room.library', 'books']);
             if ($activeLibraryId) {
@@ -74,7 +74,7 @@ class ShelfController extends Controller
         }
 
         // Group shelves by library and room for better display
-        $shelvesByLibrary = $shelves->groupBy(fn($shelf) => $shelf->room->library->name);
+        $shelvesByLibrary = $shelves->groupBy(fn ($shelf) => $shelf->room->library->name);
 
         return view('shelves.index', compact('shelves', 'shelvesByLibrary', 'libraries'));
     }
@@ -86,7 +86,7 @@ class ShelfController extends Controller
     {
         $this->authorize('create', Shelf::class);
         $user = Auth::user();
-        
+
         if ($user->isAdmin()) {
             $rooms = Room::with('library')->get();
             $libraries = \App\Models\Library::all();
@@ -124,7 +124,7 @@ class ShelfController extends Controller
         $user = Auth::user();
         if ($request->filled('room_id')) {
             $room = Room::with('library')->findOrFail($request->room_id);
-            if (!($user->isAdmin() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id) || ($user->isLibrarian() && $room->library && $room->library->owner_id === $user->parent_owner_id))) {
+            if (! ($user->isAdmin() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id) || ($user->isLibrarian() && $room->library && $room->library->owner_id === $user->parent_owner_id))) {
                 abort(403, 'You are not authorized to create a shelf in this room.');
             }
         }
@@ -135,10 +135,10 @@ class ShelfController extends Controller
             if ($request->filled('room_id')) {
                 $room = isset($room) ? $room : Room::find($request->room_id);
                 $shelfCount = Shelf::where('room_id', $request->room_id)->count() + 1;
-                $code = ($room && $room->library && isset($room->library->name[0]) ? $room->library->name[0] : 'S') . '-' . ($room ? $room->id : '0') . '-' . $shelfCount;
+                $code = ($room && $room->library && isset($room->library->name[0]) ? $room->library->name[0] : 'S').'-'.($room ? $room->id : '0').'-'.$shelfCount;
             } else {
                 // Fallback generic code when no room is selected
-                $code = 'S-' . time();
+                $code = 'S-'.time();
             }
         }
 
@@ -160,7 +160,7 @@ class ShelfController extends Controller
     public function show(Shelf $shelf)
     {
         $this->authorize('view', $shelf);
-        
+
         $shelf->load(['room.library', 'books']);
 
         return view('shelves.show', compact('shelf'));
@@ -190,7 +190,7 @@ class ShelfController extends Controller
             'room_id' => 'nullable|exists:rooms,id',
             'library_id' => 'nullable|exists:libraries,id',
         ]);
-        
+
         $libraryId = $shelf->library_id;
         if ($request->filled('library_id')) {
             $libraryId = $request->library_id;

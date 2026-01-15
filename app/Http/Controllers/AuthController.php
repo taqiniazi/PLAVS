@@ -15,6 +15,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -23,6 +24,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.register');
     }
 
@@ -47,8 +49,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         if (session()->has('invitation_token')) {
-             $token = session('invitation_token');
-             return app(InvitationController::class)->accept($token);
+            $token = session('invitation_token');
+
+            return app(InvitationController::class)->accept($token);
         }
 
         return redirect()->intended(route('dashboard'));
@@ -63,7 +66,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
+
             // Update last login timestamp
             $user = Auth::user();
             $user->last_login_at = now();
@@ -72,6 +75,7 @@ class AuthController extends Controller
             // Check for pending invitation
             if (session()->has('invitation_token')) {
                 $token = session('invitation_token');
+
                 return app(InvitationController::class)->accept($token);
             }
 
@@ -88,6 +92,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

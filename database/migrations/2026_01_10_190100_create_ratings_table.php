@@ -18,10 +18,10 @@ return new class extends Migration
             $table->integer('rating')->unsigned()->comment('Rating from 1 to 5');
             $table->text('review')->nullable();
             $table->timestamps();
-            
+
             // Composite unique key to allow only one rating per user per book
             $table->unique(['user_id', 'book_id']);
-            
+
             // Note: Rating validation (1-5) is handled in the RatingController
             // Database check constraints are not supported in all database drivers
         });

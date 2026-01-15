@@ -12,6 +12,13 @@
     $isAdmin = $user->hasAdminRole();
     $isSuperAdmin = $user->isSuperAdmin();
     $isLibrarian = $user->isLibrarian();
+    $isPublic = $user->isPublic();
+    $selectedCountry = request('country');
+    $selectedCity = request('city');
+    $countryCityMapping = config('countries');
+    $availableCities = $selectedCountry && isset($countryCityMapping[$selectedCountry])
+        ? $countryCityMapping[$selectedCountry]
+        : [];
 @endphp
 
 @if(session('success'))
@@ -31,7 +38,7 @@
 <div class="row mt-3">
     <div class="col-lg-12">
         <div class="page-header mb-4">
-            <h4 class="page-title">My Libraries</h4>
+            <h4 class="page-title">{{ $isPublic ? 'All Libraries.' : 'My Libraries' }}</h4>
             @can('create', App\Models\Library::class)
             <div class="float-end">
                 <a href="{{ route('libraries.create') }}" class="btn btn-primary">
@@ -45,6 +52,43 @@
             </div>
             @endcan
         </div>
+
+        @if($isPublic)
+        <form method="GET" action="{{ route('libraries.index') }}" class="row mb-3 g-2 align-items-end">
+            <div class="col-md-4">
+                <label for="filter_country" class="form-label">Country</label>
+                <select id="filter_country" name="country" class="form-select">
+                    <option value="">All countries</option>
+                    @foreach(array_keys($countryCityMapping ?? []) as $country)
+                        <option value="{{ $country }}" {{ $selectedCountry === $country ? 'selected' : '' }}>
+                            {{ $country }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filter_city" class="form-label">City</label>
+                <select id="filter_city" name="city" class="form-select" data-selected-city="{{ $selectedCity }}">
+                    <option value="">All cities</option>
+                    @foreach($availableCities as $city)
+                        <option value="{{ $city }}" {{ $selectedCity === $city ? 'selected' : '' }}>
+                            {{ $city }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                @if($selectedCountry || $selectedCity)
+                    <a href="{{ route('libraries.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-1"></i> Clear
+                    </a>
+                @endif
+            </div>
+        </form>
+        @endif
   <div class="table-card">
             <div class="table-responsive">
                 <table id="librariesTable" class="table table-hover align-middle" style="width:100%">
@@ -176,6 +220,8 @@
 
 <script>
 $(document).ready(function () {
+    var mapping = @json(config('countries'));
+
     // Initialize DataTables
     var table = $('#librariesTable').DataTable({
         "language": {
@@ -193,6 +239,41 @@ $(document).ready(function () {
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    var countrySelect = document.getElementById('filter_country');
+    var citySelect = document.getElementById('filter_city');
+
+    if (countrySelect && citySelect && mapping) {
+        function populateCities() {
+            var selectedCountry = countrySelect.value;
+            var cities = mapping[selectedCountry] || [];
+            var previous = citySelect.getAttribute('data-selected-city') || '';
+
+            citySelect.innerHTML = '';
+
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'All cities';
+            citySelect.appendChild(emptyOption);
+
+            cities.forEach(function (city) {
+                var opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                if (city === previous) {
+                    opt.selected = true;
+                }
+                citySelect.appendChild(opt);
+            });
+        }
+
+        countrySelect.addEventListener('change', function () {
+            citySelect.setAttribute('data-selected-city', '');
+            populateCities();
+        });
+
+        populateCities();
+    }
 });
 </script>
 @endpush

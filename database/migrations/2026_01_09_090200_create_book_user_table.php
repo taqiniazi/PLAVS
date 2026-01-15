@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
-            
+
             // Prevent duplicate assignments
             $table->unique(['book_id', 'user_id']);
         });

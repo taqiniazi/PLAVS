@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BookController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\OwnerController;
-use App\Http\Controllers\LibraryController;
-use App\Http\Controllers\ShelfController;
-use App\Http\Controllers\PublicController;
 use App\Http\Controllers\LibrarianController;
+use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\PermissionsController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\ShelfController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ Route::middleware('auth')->group(function () {
     // Rating Routes
     Route::post('/books/{book}/rating', [App\Http\Controllers\RatingController::class, 'store'])->name('books.rating.store');
     Route::get('/api/books/{book}/user-rating', [App\Http\Controllers\RatingController::class, 'getUserRating'])->name('api.books.user-rating');
-    
+
     // Wishlist API Routes
     Route::get('/api/wishlist/check/{book}', [App\Http\Controllers\WishlistController::class, 'check'])->name('api.wishlist.check');
 
@@ -103,7 +103,7 @@ Route::middleware('auth')->group(function () {
 
     // Event Routes
     Route::resource('events', EventController::class)->only(['index', 'store', 'destroy']);
-    
+
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
 
@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
     // Notifications Routes
     Route::post('/notifications/clear', function () {
         session(['notifications_cleared_at' => now()]);
+
         return back();
     })->name('notifications.clear');
 
@@ -128,10 +129,11 @@ Route::middleware('auth')->group(function () {
 // API Routes
 Route::middleware('auth')->group(function () {
     Route::get('/api/events', [EventController::class, 'api'])->name('api.events');
-    
+
     // API for fetching rooms by library (for dynamic shelf creation)
     Route::get('/api/libraries/{library}/rooms', function (\App\Models\Library $library) {
         $rooms = $library->rooms()->get(['id', 'name']);
+
         return response()->json(['rooms' => $rooms]);
     })->name('api.libraries.rooms');
 });

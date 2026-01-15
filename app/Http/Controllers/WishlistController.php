@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Wishlist;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
@@ -28,7 +27,7 @@ class WishlistController extends Controller
     public function toggle(Book $book)
     {
         $user = Auth::user();
-        
+
         // Check if book is already in wishlist
         $wishlistItem = Wishlist::where('user_id', $user->id)
             ->where('book_id', $book->id)
@@ -55,7 +54,7 @@ class WishlistController extends Controller
             'message' => $message,
             'button_text' => $isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist',
             'button_class' => $isInWishlist ? 'btn-danger' : 'btn-primary',
-            'icon_class' => $isInWishlist ? 'fa-heart' : 'fa-heart-o'
+            'icon_class' => $isInWishlist ? 'fa-heart' : 'fa-heart-o',
         ]);
     }
 
@@ -65,7 +64,7 @@ class WishlistController extends Controller
     public function check(Book $book)
     {
         $user = Auth::user();
-        
+
         $isInWishlist = Wishlist::where('user_id', $user->id)
             ->where('book_id', $book->id)
             ->exists();

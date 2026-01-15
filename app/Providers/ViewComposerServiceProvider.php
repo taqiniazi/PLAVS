@@ -2,17 +2,14 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class ViewComposerServiceProvider extends ServiceProvider
 {
-
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     public function boot(): void
     {
@@ -21,18 +18,18 @@ class ViewComposerServiceProvider extends ServiceProvider
                 try {
                     $user = Auth::user();
                     $clearedAt = session('notifications_cleared_at');
-                    
-                    $notifications = collect(); 
+
+                    $notifications = collect();
                     $unreadNotifications = 0;
-                    
+
                     if (class_exists('App\\Models\\ActivityLog')) {
                         $query = ActivityLog::with('user')
-                            ->where('user_id', '!=', $user->id); 
-                        
+                            ->where('user_id', '!=', $user->id);
+
                         if ($clearedAt) {
                             $query = $query->where('created_at', '>', $clearedAt);
                         }
-                        
+
                         $notifications = $query
                             ->latest()
                             ->take(5)
@@ -53,13 +50,13 @@ class ViewComposerServiceProvider extends ServiceProvider
                 } catch (\Exception $e) {
                     $view->with([
                         'notifications' => collect(),
-                        'unreadNotifications' => 0
+                        'unreadNotifications' => 0,
                     ]);
                 }
             } else {
                 $view->with([
                     'notifications' => collect(),
-                    'unreadNotifications' => 0
+                    'unreadNotifications' => 0,
                 ]);
             }
         });
@@ -67,7 +64,7 @@ class ViewComposerServiceProvider extends ServiceProvider
 
     private function getIconForActivityType($type)
     {
-        return match($type) {
+        return match ($type) {
             'book_added' => 'book',
             'event_created' => 'calendar',
             'event_deleted' => 'calendar-times',

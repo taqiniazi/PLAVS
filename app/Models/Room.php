@@ -13,7 +13,7 @@ class Room extends Model
         'name',
         'description',
         'floor',
-        'library_id'
+        'library_id',
     ];
 
     /**

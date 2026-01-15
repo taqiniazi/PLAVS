@@ -2,50 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Models\Book;
-use App\Models\User;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use App\Models\Shelf;
+use App\Models\Book;
 use App\Models\Library;
+use App\Models\Shelf;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         // Determine base query based on role
         if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
             // Admins, Owners, Librarians start with all books (then filtered)
             $query = Book::query();
         } else {
             $query = $user ? $user->booksThroughAssignment() : Book::query();
-            
+
             if ($user && $user->isPublic()) {
-                 $query->wherePivot('is_returned', false);
+                $query->wherePivot('is_returned', false);
             }
         }
 
         // Owner Scope: Show only books in their libraries or owned by them
         if ($user && $user->isOwner()) {
-            $query->where(function($q) use ($user) {
+            $query->where(function ($q) use ($user) {
                 // Books in shelves belonging to libraries owned by this user
-                $q->whereHas('shelf.room.library', function($subQ) use ($user) {
+                $q->whereHas('shelf.room.library', function ($subQ) use ($user) {
                     $subQ->where('owner_id', $user->id);
                 })
                 // OR books explicitly owned by this user (e.g. unshelved)
-                ->orWhere('owner', $user->name);
+                    ->orWhere('owner', $user->name);
             });
 
             // Active library filter (if selected in session)
             $activeLibraryId = session('active_library_id');
             if ($activeLibraryId) {
-                $query->whereHas('shelf.room.library', function($q) use ($activeLibraryId) {
+                $query->whereHas('shelf.room.library', function ($q) use ($activeLibraryId) {
                     $q->where('id', $activeLibraryId);
                 });
             }
@@ -53,25 +52,25 @@ class BookController extends Controller
 
         // Librarian Scope: Show only books in parent owner's libraries or owned by parent
         if ($user && $user->isLibrarian()) {
-            $query->where(function($q) use ($user) {
-                $q->whereHas('shelf.room.library', function($libQ) use ($user) {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('shelf.room.library', function ($libQ) use ($user) {
                     $libQ->where('owner_id', $user->parent_owner_id);
                 })
-                ->orWhere('owner', optional($user->parentOwner)->name);
+                    ->orWhere('owner', optional($user->parentOwner)->name);
             });
         }
-        
+
         // Check if search parameter exists
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('author', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('isbn', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('publisher', 'LIKE', '%' . $searchTerm . '%');
+                $q->where('title', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('author', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('isbn', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('publisher', 'LIKE', '%'.$searchTerm.'%');
             });
         }
-        
+
         // Pagination
         if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
             $books = $query->paginate(15)->appends($request->query());
@@ -79,7 +78,7 @@ class BookController extends Controller
             // For assigned books (students/teachers), usually get all or paginate
             $books = $query->orderByPivot('assigned_at', 'desc')->paginate(15)->appends($request->query());
         }
-        
+
         return view('books.index', compact('books'));
     }
 
@@ -126,7 +125,7 @@ class BookController extends Controller
             'library_id' => 'nullable|integer|exists:libraries,id',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'scanned_image_url' => 'nullable|string'
+            'scanned_image_url' => 'nullable|string',
         ]);
 
         // Ensure either a file upload or a scanned URL is present
@@ -168,7 +167,7 @@ class BookController extends Controller
             'owner' => Auth::user()->name,
             'description' => $validated['description'] ?? null,
             'visibility' => true,
-            'status' => 'Available'
+            'status' => 'Available',
         ];
 
         $bookData['shelf_id'] = $shelfModel->id;
@@ -176,12 +175,12 @@ class BookController extends Controller
         // Scenario A: user uploaded a file
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $file = $request->file('cover_image');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('uploads/books', $filename, 'public');
             $bookData['cover_image'] = $path;
 
-        // Scenario B: downloaded from scanned_image_url
-        } elseif (!empty($scannedUrl)) {
+            // Scenario B: downloaded from scanned_image_url
+        } elseif (! empty($scannedUrl)) {
             // Validate URL
             if (filter_var($scannedUrl, FILTER_VALIDATE_URL)) {
                 try {
@@ -191,33 +190,38 @@ class BookController extends Controller
                         if (strpos($contentType, 'image/') === 0) {
                             $mime = substr($contentType, 6);
                             // normalize common types
-                            if ($mime === 'jpeg' || $mime === 'pjpeg') $ext = 'jpg';
-                            elseif ($mime === 'png') $ext = 'png';
-                            elseif ($mime === 'gif') $ext = 'gif';
-                            else $ext = 'jpg';
+                            if ($mime === 'jpeg' || $mime === 'pjpeg') {
+                                $ext = 'jpg';
+                            } elseif ($mime === 'png') {
+                                $ext = 'png';
+                            } elseif ($mime === 'gif') {
+                                $ext = 'gif';
+                            } else {
+                                $ext = 'jpg';
+                            }
 
-                            $filename = 'google_book_' . time() . '_' . uniqid() . '.' . $ext;
-                            $path = 'uploads/books/' . $filename;
+                            $filename = 'google_book_'.time().'_'.uniqid().'.'.$ext;
+                            $path = 'uploads/books/'.$filename;
                             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
                             $bookData['cover_image'] = $path;
                         } else {
-                            Log::warning('Scanned image URL returned non-image content type: ' . $contentType);
+                            Log::warning('Scanned image URL returned non-image content type: '.$contentType);
                         }
                     } else {
-                        Log::warning('Failed to download scanned image URL, status: ' . $response->status());
+                        Log::warning('Failed to download scanned image URL, status: '.$response->status());
                     }
                 } catch (\Exception $e) {
-                    Log::warning('Exception while downloading scanned image URL: ' . $e->getMessage());
+                    Log::warning('Exception while downloading scanned image URL: '.$e->getMessage());
                 }
             } else {
-                Log::warning('Invalid scanned_image_url provided: ' . $scannedUrl);
+                Log::warning('Invalid scanned_image_url provided: '.$scannedUrl);
             }
         }
 
         $book = Book::create($bookData);
 
         // Log activity
-        $this->logActivity('book_added', 'New book added: ' . $book->title, $book);
+        $this->logActivity('book_added', 'New book added: '.$book->title, $book);
 
         return redirect()->route('books.index')->with('success', 'Book added successfully!');
     }
@@ -226,6 +230,7 @@ class BookController extends Controller
     {
         $ratings = $book->ratings()->with('user')->orderByDesc('created_at')->get();
         $userRating = auth()->check() ? $book->ratings()->where('user_id', auth()->id())->first() : null;
+
         return view('books.show', compact('book', 'ratings', 'userRating'));
     }
 
@@ -237,7 +242,7 @@ class BookController extends Controller
             'Robert C. Martin',
             'Martin Fowler',
             'Kent Beck',
-            'Uncle Bob'
+            'Uncle Bob',
         ];
 
         $user = Auth::user();
@@ -256,7 +261,7 @@ class BookController extends Controller
             'Taqi Raza Khan',
             'Library Admin',
             'Sarah Ahmed',
-            'Ali Khan'
+            'Ali Khan',
         ];
 
         return view('books.edit', compact('book', 'authors', 'shelves', 'owners'));
@@ -277,7 +282,7 @@ class BookController extends Controller
             'visibility' => 'nullable|boolean',
             'status' => 'required|string|max:100',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'scanned_image_url' => 'nullable|string'
+            'scanned_image_url' => 'nullable|string',
         ]);
 
         $shelfModel = Shelf::findOrFail($validated['shelf']);
@@ -299,7 +304,7 @@ class BookController extends Controller
         // Handle new cover upload or scanned image URL
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $file = $request->file('cover_image');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('uploads/books', $filename, 'public');
             $book->cover_image = $path;
             $book->save();
@@ -312,27 +317,31 @@ class BookController extends Controller
                         $contentType = $response->header('Content-Type', 'image/jpeg');
                         if (strpos($contentType, 'image/') === 0) {
                             $mime = substr($contentType, 6);
-                            if ($mime === 'jpeg' || $mime === 'pjpeg') $ext = 'jpg';
-                            elseif ($mime === 'png') $ext = 'png';
-                            elseif ($mime === 'gif') $ext = 'gif';
-                            else $ext = 'jpg';
+                            if ($mime === 'jpeg' || $mime === 'pjpeg') {
+                                $ext = 'jpg';
+                            } elseif ($mime === 'png') {
+                                $ext = 'png';
+                            } elseif ($mime === 'gif') {
+                                $ext = 'gif';
+                            } else {
+                                $ext = 'jpg';
+                            }
 
-                            $filename = 'google_book_' . time() . '_' . uniqid() . '.' . $ext;
-                            $path = 'uploads/books/' . $filename;
+                            $filename = 'google_book_'.time().'_'.uniqid().'.'.$ext;
+                            $path = 'uploads/books/'.$filename;
                             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
                             $book->cover_image = $path;
                             $book->save();
                         }
                     }
                 } catch (\Exception $e) {
-                    Log::warning('Exception while downloading scanned image URL on update: ' . $e->getMessage());
+                    Log::warning('Exception while downloading scanned image URL on update: '.$e->getMessage());
                 }
             }
         }
 
         return redirect()->route('books.manage')->with('success', 'Book updated successfully!');
     }
-
 
     public function changeShelf(Request $request)
     {
@@ -344,10 +353,10 @@ class BookController extends Controller
 
         $book = Book::findOrFail($validated['book_id']);
         $old = $book->shelf_location;
-        
+
         // Find the shelf by name and update shelf_id
         $shelf = \App\Models\Shelf::where('name', $validated['shelf_location'])->first();
-        
+
         if ($shelf) {
             $book->shelf_id = $shelf->id;
             $book->shelf_location = $validated['shelf_location'];
@@ -355,17 +364,17 @@ class BookController extends Controller
             // If shelf not found, just update the shelf_location field
             $book->shelf_location = $validated['shelf_location'];
         }
-        
+
         $book->save();
 
-        $this->logActivity('book_shelf_changed', "Book '{$book->title}' moved from {$old} to {$book->shelf_location}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+        $this->logActivity('book_shelf_changed', "Book '{$book->title}' moved from {$old} to {$book->shelf_location}. Reason: ".($validated['reason'] ?? 'N/A'), $book);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Book shelf changed successfully!',
                 'new_shelf_name' => $book->shelf_location,
-                'book_id' => $book->id
+                'book_id' => $book->id,
             ]);
         }
 
@@ -385,7 +394,7 @@ class BookController extends Controller
         $book->status = 'Assigned';
         $book->save();
 
-        $this->logActivity('book_assigned', "Book '{$book->title}' assigned to user ID {$validated['assigned_user_id']}. Reason: " . ($validated['reason'] ?? 'N/A'), $book);
+        $this->logActivity('book_assigned', "Book '{$book->title}' assigned to user ID {$validated['assigned_user_id']}. Reason: ".($validated['reason'] ?? 'N/A'), $book);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -408,7 +417,7 @@ class BookController extends Controller
             'condition' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
-    
+
         $book = Book::findOrFail($validated['book_id']);
         $confirmer = Auth::user();
 
@@ -422,7 +431,7 @@ class BookController extends Controller
 
         // Snapshot the last known assignment/update time before we modify the book
         $assignedAtSnapshot = $book->updated_at;
-        
+
         // Update previous holder pivot record to reflect return
         $previousHolder = User::find($validated['user_id']);
         if ($previousHolder) {
@@ -447,7 +456,7 @@ class BookController extends Controller
                 ]);
             }
         }
-        
+
         // Role-based status after return: Owner/Admin -> In Stock (Available)
         if ($confirmer->isOwner() || $confirmer->hasAdminRole()) {
             $book->status = 'Available';
@@ -461,7 +470,7 @@ class BookController extends Controller
 
         $this->logActivity(
             'book_return_confirmed',
-            "Book '{$book->title}' return confirmed by user ID " . $confirmer->id . ". Previous holder user ID {$validated['user_id']}. Condition: " . ($validated['condition'] ?? 'N/A') . ". Notes: " . ($validated['notes'] ?? 'N/A'),
+            "Book '{$book->title}' return confirmed by user ID ".$confirmer->id.". Previous holder user ID {$validated['user_id']}. Condition: ".($validated['condition'] ?? 'N/A').'. Notes: '.($validated['notes'] ?? 'N/A'),
             $book
         );
 
@@ -498,50 +507,50 @@ class BookController extends Controller
         $query = Book::query();
 
         // Owner scope restriction: Owners can only see books from their own libraries
-        if ($user->isOwner()) { 
-            $query->where(function($q) use ($user) {
+        if ($user->isOwner()) {
+            $query->where(function ($q) use ($user) {
                 // Books shelved under libraries owned by this user
-                $q->whereHas('shelf.room.library', function($q2) use ($user) {
+                $q->whereHas('shelf.room.library', function ($q2) use ($user) {
                     $q2->where('owner_id', $user->id);
                 })
                 // Include unshelved books explicitly owned by this user
-                ->orWhere(function($q2) use ($user) {
-                    $q2->whereNull('shelf_id')
-                       ->where('owner', $user->name);
-                });
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->whereNull('shelf_id')
+                            ->where('owner', $user->name);
+                    });
             });
         }
 
         // Librarian scope restriction: Only parent owner's libraries
         if ($user->isLibrarian()) {
-            $query->where(function($q) use ($user) {
-                $q->whereHas('shelf.room.library', function($q2) use ($user) {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('shelf.room.library', function ($q2) use ($user) {
                     $q2->where('owner_id', $user->parent_owner_id);
                 })
-                ->orWhere(function($q2) use ($user) {
-                    $q2->whereNull('shelf_id')
-                       ->where('owner', optional($user->parentOwner)->name);
-                });
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->whereNull('shelf_id')
+                            ->where('owner', optional($user->parentOwner)->name);
+                    });
             });
         }
 
         $activeLibraryId = session('active_library_id');
         if ($activeLibraryId) {
-            $query->whereHas('shelf.room.library', function($q) use ($activeLibraryId) {
+            $query->whereHas('shelf.room.library', function ($q) use ($activeLibraryId) {
                 $q->where('id', $activeLibraryId);
             });
         }
 
         // Check if search parameter exists
-        if ($request->has('search') && !empty($request->search)) {
-        
+        if ($request->has('search') && ! empty($request->search)) {
+
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('author', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('isbn', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('publisher', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('owner', 'LIKE', '%' . $searchTerm . '%');
+                $q->where('title', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('author', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('isbn', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('publisher', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('owner', 'LIKE', '%'.$searchTerm.'%');
             });
         }
 
@@ -555,6 +564,7 @@ class BookController extends Controller
 
         $users = User::select('id', 'name', 'email', 'role')->orderBy('name')->get();
         $shelves = \App\Models\Shelf::select('id', 'name')->orderBy('name')->get();
+
         return view('books.manage', compact('books', 'users', 'shelves', 'stockCounts'));
     }
 
@@ -564,34 +574,34 @@ class BookController extends Controller
     public function transferredBooks(Request $request)
     {
         $user = Auth::user();
-        
+
         // Only owners can view transferred books
-        if (!$user->isOwner()) {
+        if (! $user->isOwner()) {
             abort(403, 'Unauthorized access');
         }
 
-        $query = Book::whereHas('shelf.room.library', function($q) use ($user) {
+        $query = Book::whereHas('shelf.room.library', function ($q) use ($user) {
             $q->where('owner_id', $user->id);
-        })->where(function($q) {
+        })->where(function ($q) {
             $q->where('status', 'transferred')
-              ->orWhere('status', 'assigned')
-              ->orWhereNotNull('assigned_user_id');
+                ->orWhere('status', 'assigned')
+                ->orWhereNotNull('assigned_user_id');
         });
 
         // Search functionality
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('author', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhereHas('assignedUser', function($q) use ($searchTerm) {
-                      $q->where('name', 'LIKE', '%' . $searchTerm . '%');
-                  });
+                $q->where('title', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('author', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhereHas('assignedUser', function ($q) use ($searchTerm) {
+                        $q->where('name', 'LIKE', '%'.$searchTerm.'%');
+                    });
             });
         }
 
         $transferredBooks = $query->with(['assignedUser', 'shelf.room.library'])->get();
-        
+
         return view('books.transferred', compact('transferredBooks'));
     }
 
@@ -625,13 +635,13 @@ class BookController extends Controller
                 // 'current_library_id' => $validated['target_id']
                 // Add specific logic here based on your Schema
             ]);
-            $msg = "Book transferred to Library successfully.";
+            $msg = 'Book transferred to Library successfully.';
 
         } else {
             // Transfer/Assign to a User (Teacher/Student)
             // Check if user exists
             $user = \App\Models\User::findOrFail($validated['target_id']);
-            
+
             // Attach to pivot table
             $user->assignedBooks()->attach($book->id, [
                 'assigned_at' => now(),
@@ -640,7 +650,7 @@ class BookController extends Controller
             ]);
 
             $book->update(['status' => 'borrowed']); // or 'assigned'
-            $msg = "Book assigned to User successfully.";
+            $msg = 'Book assigned to User successfully.';
         }
 
         if ($request->expectsJson()) {
@@ -665,13 +675,13 @@ class BookController extends Controller
         $book->visibility = $validated['visibility'];
         $book->save();
 
-        $this->logActivity('book_visibility_changed', "Book '{$book->title}' visibility changed to " . ($book->visibility ? 'Public' : 'Private'), $book);
+        $this->logActivity('book_visibility_changed', "Book '{$book->title}' visibility changed to ".($book->visibility ? 'Public' : 'Private'), $book);
 
         return response()->json([
             'success' => true,
             'message' => 'Book visibility updated successfully!',
             'book_id' => $book->id,
-            'new_visibility' => $book->visibility
+            'new_visibility' => $book->visibility,
         ]);
     }
 

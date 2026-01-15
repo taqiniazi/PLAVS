@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Library;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use App\Models\Library;
 
 class LibrarianController extends Controller
 {
@@ -17,11 +17,12 @@ class LibrarianController extends Controller
     public function create()
     {
         $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
+        if (! $user || ! $user->isOwner()) {
             abort(403);
         }
         // Fetch owner's libraries to optionally show selection when more than one
         $libraries = Library::where('owner_id', $user->id)->get();
+
         return view('librarians.create', compact('libraries'));
     }
 
@@ -31,7 +32,7 @@ class LibrarianController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
+        if (! $user || ! $user->isOwner()) {
             abort(403);
         }
 
@@ -68,12 +69,12 @@ class LibrarianController extends Controller
     public function destroy(User $librarian)
     {
         $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
+        if (! $user || ! $user->isOwner()) {
             abort(403);
         }
 
         // Ensure target is a librarian linked to this owner
-        if (!$librarian->isLibrarian() || $librarian->parent_owner_id !== $user->id) {
+        if (! $librarian->isLibrarian() || $librarian->parent_owner_id !== $user->id) {
             abort(403);
         }
 
