@@ -14,10 +14,7 @@
 @endphp
 
 <div class="container-fluid">
-    <!-- Library Header Section -->
-    <div class="card">
-        <div class="card-header">
-            <div class="row align-items-center">
+    <div class="row align-items-center">
                 <div class="col-md-8">
                     <h2 class="mb-2">{{ $library->name }}</h2>
                     <div class="d-flex align-items-center gap-3 mb-3">
@@ -25,7 +22,7 @@
                             <i class="fas fa-globe me-1"></i>
                             {{ ucfirst($library->type) }}
                         </span>
-                        <span class="text-light">
+                        <span class="badge bg-primary text-light">
                             <i class="fas fa-book me-1"></i>
                             {{ $library->books_count }} Books
                         </span>
@@ -36,7 +33,7 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     @can('update', $library)
-                    <a href="{{ route('libraries.edit', $library) }}" class="btn btn-outline-info me-2">
+                    <a href="{{ route('libraries.edit', $library) }}" class="btn btn-info me-2">
                         <i class="fas fa-edit me-2"></i>Edit Library
                     </a>
                     @endcan
@@ -47,7 +44,9 @@
                     @endcan
                 </div>
             </div>
-        </div>
+    <!-- Library Header Section -->
+    <div class="card">
+       
         <div class="card-body">
             <!-- Library Details Section -->
             <div class="row">
@@ -128,13 +127,15 @@
 
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted">Total Shelves</span>
-                            <span class="badge bg-success">{{ $library->rooms->sum('shelves_count') }}</span>
+                            <span class="badge bg-success">{{ $library->total_shelves }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Rooms Section -->
-            @if(!$isPublic)
+            
+        </div>
+    </div>
+    @if(!$isPublic)
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -146,54 +147,53 @@
                     </div>
 
                     @if($library->rooms->count() > 0)
-                    <div class="row">
-                        @foreach($library->rooms as $room)
-                        <div class="col-md-6 col-lg-4">
-                            
-                            <div class="card">
-                                <div class="card-header">
-                                    <div>
-                                        <h5 class="mb-1">{{ $room->name }}</h5>
-                                        <p class="mb-0 text-muted small">{{ $room->description ?? 'No description' }}</p>
-                                    </div>
-                                    <div class="room-actions">
-                                        <a href="{{ route('libraries.rooms.show', [$library, $room]) }}"
-                                            class="btn btn-outline-primary btn-sm" title="View Room">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @can('update', $room)
-                                        <a href="{{ route('rooms.edit', $room) }}"
-                                            class="btn btn-outline-warning btn-sm" title="Edit Room">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        @endcan
-                                        @can('delete', $room)
-                                        <form method="POST" action="{{ route('rooms.destroy', $room) }}"
-                                            style="display: inline;"
-                                            onsubmit="return confirm('Are you sure you want to delete this room?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Room">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                        @endcan
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <!-- <span class="text-muted small">
-                                        <i class="fas fa-bookshelf me-1"></i>
-                                        {{ $room->shelves_count }} Shelves
-                                    </span> -->
-                                    <span class="text-muted small">
-                                        <i class="fas fa-book me-1"></i>
-                                        {{ $room->shelves->sum('books_count') }} Books
-                                    </span>
-                                </div>
-                            </div>
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table id="roomsTable" class="table table-hover align-middle" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Total Books</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($library->rooms as $room)
+                                    <tr>
+                                        <td>{{ $room->name }}</td>
+                                        <td>{{ $room->description ?? 'No description' }}</td>
+                                        <td>{{ $room->total_books }}</td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('libraries.rooms.show', [$library, $room]) }}"
+                                                    class="btn btn-outline-primary btn-sm" title="View Room">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @can('update', $room)
+                                                <a href="{{ route('rooms.edit', $room) }}"
+                                                    class="btn btn-outline-warning btn-sm" title="Edit Room">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                @endcan
+                                                @can('delete', $room)
+                                                <form method="POST" action="{{ route('rooms.destroy', $room) }}"
+                                                    style="display: inline;"
+                                                    onsubmit="return confirm('Are you sure you want to delete this room?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Room">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                                @endcan
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        @endforeach
                     </div>
                     @else
                     <div class="empty-state">
@@ -210,7 +210,7 @@
                 </div>
             </div>
             @endif
-        </div></div>
+    <!-- .row.mt-4>.card>.card-body -->
             <!-- Books Section -->
             <div class="row mt-4">
                 <div class="col-12">
@@ -320,6 +320,11 @@
         $('#booksTable').DataTable({
             "language": {
                 "search": "Search books:"
+            }
+        });
+        $('#roomsTable').DataTable({
+            "language": {
+                "search": "Search rooms:"
             }
         });
     });

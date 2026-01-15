@@ -600,7 +600,7 @@ div.dataTables_wrapper div.dataTables_filter input {
     border-top-right-radius: 15px !important;
     color: white;
 }
-.btn-primary, .btn-success, .btn-warning, .btn-danger,.btn-outline-secondary{
+.btn-primary, .btn-success, .btn-warning, .btn-danger,.btn-outline-secondary, .btn-info{
     background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
     border: none;
     padding: 10px 30px;
@@ -624,6 +624,28 @@ div.dataTables_wrapper div.dataTables_filter input {
 }
 .btn-danger {
     background: linear-gradient(135deg, #7a1202 0%, #b73e3e 100%);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #007bff 0%, #00aaff 100%);
+    color: #fff;
+}
+.bg-success{
+    background: linear-gradient(135deg, #01790a 0%, #01a00d 100%);
+}
+.bg-primary{
+    background: linear-gradient(135deg, #2f3c74 0%, #3e44b7 100%);
+}
+.bg-warning{
+    background: linear-gradient(135deg, #868200 0%, #c6cd01 100%);
+}
+.bg-danger{
+    background: linear-gradient(135deg, #7a1202 0%, #b73e3e 100%);
+}
+.btn-info:hover {
+    transform: translateY(-2px);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
 }
 .card {
     border: 0px;
