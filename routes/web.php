@@ -111,9 +111,9 @@ Route::middleware('auth')->group(function () {
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
 
-    // Public Routes
-    Route::get('/public/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');
-    Route::post('/public/return-book/{book}', [PublicController::class, 'returnBook'])->name('public.return-book');
+    // Public user routes (assigned books)
+    Route::get('/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');
+    Route::post('/return-book/{book}', [PublicController::class, 'returnBook'])->name('public.return-book');
 
     // Notifications Routes
     Route::post('/notifications/clear', function () {
