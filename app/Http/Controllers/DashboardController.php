@@ -93,7 +93,7 @@ class DashboardController extends Controller
                 + $user->booksThroughAssignment()->where('status', 'Returned')->count();
             $stats['currently_reading'] = $user->assignedBooks()->where('status', 'Borrowed')->count()
                 + $user->booksThroughAssignment()->where('status', 'Borrowed')->count();
-            $stats['my_teachers'] = 0;
+            $stats['wishlist_count'] = $user->wishlist()->count();
 
             // Get both direct assigned books and ACTIVE pivot assigned books
             $directBooks = $user->assignedBooks()
@@ -122,16 +122,29 @@ class DashboardController extends Controller
             $my_assigned_books = collect();
         }
 
-        $recent_books = Book::latest()->take(4)->get();
+        $recent_books = Book::query()
+            ->whereIn('id', function($q) {
+                $q->selectRaw('MAX(id)')
+                  ->from('books')
+                  ->groupBy('title', 'author', 'shelf_id');
+            })
+            ->latest()
+            ->take(4)
+            ->get();
 
         $recent_activities = ActivityLog::with('user')
             ->latest()
             ->take(4)
             ->get()
             ->map(function ($activity) {
+                $desc = $activity->description;
+                $desc = preg_replace_callback('/user ID (\d+)/i', function ($m) {
+                    $u = \App\Models\User::find($m[1]);
+                    return $u ? 'user '.$u->name : $m[0];
+                }, $desc);
                 return [
                     'type' => ucfirst(str_replace('_', ' ', $activity->type)),
-                    'description' => $activity->description,
+                    'description' => $desc,
                     'time' => $activity->created_at->diffForHumans(),
                     'user' => $activity->user->name ?? 'System',
                 ];

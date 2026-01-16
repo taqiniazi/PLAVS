@@ -110,6 +110,11 @@
                                 <span class="badge {{ $book->status === 'Available' ? 'bg-success' : 'bg-warning' }}">
                                     {{ $book->status }}
                                 </span>
+                                @if(isset($stockAvailable) && $stockAvailable !== null)
+                                    <span class="text-muted small ms-2">
+                                        In stock: {{ $stockAvailable }}@if(isset($stockTotal) && $stockTotal !== null) / {{ $stockTotal }}@endif
+                                    </span>
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -191,6 +196,41 @@
                     @endif
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Assign Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="assignForm" action="{{ route('books.assign') }}" method="POST">
+                @csrf
+                <input type="hidden" name="book_id" value="{{ $book->id }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select User</label>
+                        <select name="assigned_user_id" class="form-select" required>
+                            <option value="">Select a user</option>
+                            @foreach($assignableUsers ?? [] as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea name="reason" class="form-control" rows="3" placeholder="Add any notes about this assignment..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Book</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

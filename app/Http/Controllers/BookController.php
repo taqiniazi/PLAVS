@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Library;
 use App\Models\Shelf;
 use App\Models\User;
@@ -22,6 +23,14 @@ class BookController extends Controller
         if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
             // Admins, Owners, Librarians start with all books (then filtered)
             $query = Book::query();
+
+            // Group by title, author, and shelf_id to show unique entries (handling multiple copies)
+            // We use a subquery to select the latest ID of each group to avoid duplicates in the list
+            $query->whereIn('id', function($q) {
+                $q->selectRaw('MAX(id)')
+                  ->from('books')
+                  ->groupBy('title', 'author', 'shelf_id');
+            });
         } else {
             $query = $user ? $user->booksThroughAssignment() : Book::query();
 
@@ -97,6 +106,7 @@ class BookController extends Controller
         })->with('room.library')->orderBy('name')->get();
 
         $libraries = collect();
+        $categories = Category::orderBy('name')->get();
 
         if (! $activeLibraryId && $user) {
             if ($user->isAdmin()) {
@@ -108,7 +118,7 @@ class BookController extends Controller
             }
         }
 
-        return view('books.create', compact('shelves', 'libraries'));
+        return view('books.create', compact('shelves', 'libraries', 'categories'));
     }
 
     public function store(Request $request)
@@ -123,9 +133,11 @@ class BookController extends Controller
             'publish_date' => 'nullable|date',
             'shelf' => 'required|integer|exists:shelves,id',
             'library_id' => 'nullable|integer|exists:libraries,id',
+            'category_id' => 'nullable|integer|exists:categories,id',
             'description' => 'nullable|string|max:1000',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'scanned_image_url' => 'nullable|string',
+            'copies' => 'required|integer|min:1',
         ]);
 
         // Ensure either a file upload or a scanned URL is present
@@ -171,6 +183,7 @@ class BookController extends Controller
         ];
 
         $bookData['shelf_id'] = $shelfModel->id;
+        $bookData['category_id'] = $validated['category_id'] ?? null;
 
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $file = $request->file('cover_image');
@@ -216,12 +229,16 @@ class BookController extends Controller
             }
         }
 
-        $book = Book::create($bookData);
+        $copies = (int) $request->input('copies', 1);
+        $count = 0;
+        for ($i = 0; $i < $copies; $i++) {
+            $book = Book::create($bookData);
+            // Log activity for each copy
+            $this->logActivity('book_added', 'New book added: '.$book->title . ($copies > 1 ? " (Copy ".($i+1)." of $copies)" : ""), $book);
+            $count++;
+        }
 
-        // Log activity
-        $this->logActivity('book_added', 'New book added: '.$book->title, $book);
-
-        return redirect()->route('books.index')->with('success', 'Book added successfully!');
+        return redirect()->route('books.index')->with('success', $count . ' book(s) added successfully!');
     }
 
     public function show(Book $book)
@@ -236,15 +253,41 @@ class BookController extends Controller
                 $canRate = true;
             } else {
                 $isDirectHolder = $book->assigned_user_id === $user->id;
-                $hasActivePivot = $user->booksThroughAssignment()
+                $hasAnyPivot = $user->booksThroughAssignment()
                     ->where('book_id', $book->id)
-                    ->wherePivot('is_returned', false)
                     ->exists();
-                $canRate = $isDirectHolder || $hasActivePivot;
+                $hasRelation = $isDirectHolder || $hasAnyPivot;
+                $canRate = $hasRelation && ! $userRating;
             }
         }
 
-        return view('books.show', compact('book', 'ratings', 'userRating', 'canRate'));
+        $libraryId = optional(optional(optional($book->shelf)->room)->library)->id;
+        $stockTotal = null;
+        $stockAvailable = null;
+
+        if ($book->isbn && $libraryId) {
+            $baseQuery = Book::where('isbn', $book->isbn)
+                ->whereHas('shelf.room.library', function ($q) use ($libraryId) {
+                    $q->where('id', $libraryId);
+                });
+
+            $stockTotal = (clone $baseQuery)->count();
+
+            $stockAvailable = (clone $baseQuery)
+                ->whereNull('assigned_user_id')
+                ->whereRaw('LOWER(status) != ?', ['transferred'])
+                ->count();
+        }
+
+        $assignableUsers = collect();
+        if ($user && ($user->can('assign', $book) || $user->isAdmin() || $user->isOwner() || $user->isLibrarian())) {
+            $assignableUsers = User::whereIn('role', ['public', 'student', 'candidate'])
+                ->orderBy('name')
+                ->select('id', 'name', 'email')
+                ->get();
+        }
+
+        return view('books.show', compact('book', 'ratings', 'userRating', 'canRate', 'stockTotal', 'stockAvailable', 'assignableUsers'));
     }
 
     public function edit(Book $book)
@@ -421,11 +464,36 @@ class BookController extends Controller
         ]);
 
         $book = Book::findOrFail($validated['book_id']);
+        
+        // Check if book is already assigned
+        if ($book->assigned_user_id) {
+             if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Book is already assigned.',
+                ], 400);
+            }
+            return redirect()->back()->withErrors(['book_id' => 'Book is already assigned.']);
+        }
+
         $book->assigned_user_id = $validated['assigned_user_id'];
-        $book->status = 'Assigned';
+        $book->status = 'Borrowed';
         $book->save();
 
-        $this->logActivity('book_assigned', "Book '{$book->title}' assigned to user ID {$validated['assigned_user_id']}. Reason: ".($validated['reason'] ?? 'N/A'), $book);
+        $assignedUser = User::find($validated['assigned_user_id']);
+        
+        // Attach to pivot table for history and permission tracking
+        if ($assignedUser) {
+            $assignedUser->booksThroughAssignment()->attach($book->id, [
+                'assignment_type' => 'manual',
+                'notes' => $validated['reason'] ?? null,
+                'assigned_at' => now(),
+                'is_returned' => false,
+            ]);
+        }
+
+        $assignedName = $assignedUser ? $assignedUser->name : 'User #'.$validated['assigned_user_id'];
+        $this->logActivity('book_assigned', "Book '{$book->title}' assigned to ".$assignedName.'. Reason: '.($validated['reason'] ?? 'N/A'), $book);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -437,7 +505,7 @@ class BookController extends Controller
             ]);
         }
 
-        return redirect()->route('books.manage')->with('success', 'Book assigned successfully!');
+        return redirect()->back()->with('success', 'Book assigned successfully!');
     }
 
     public function returnBook(Request $request)
@@ -499,11 +567,8 @@ class BookController extends Controller
         }
         $book->save();
 
-        $this->logActivity(
-            'book_return_confirmed',
-            "Book '{$book->title}' return confirmed by user ID ".$confirmer->id.". Previous holder user ID {$validated['user_id']}. Condition: ".($validated['condition'] ?? 'N/A').'. Notes: '.($validated['notes'] ?? 'N/A'),
-            $book
-        );
+        $previousName = $previousHolder ? $previousHolder->name : 'User #'.$validated['user_id'];
+        $this->logActivity('book_return_confirmed', "Book '{$book->title}' return confirmed by ".$confirmer->name.'. Previous holder '.$previousName.'. Condition: '.($validated['condition'] ?? 'N/A').'. Notes: '.($validated['notes'] ?? 'N/A'), $book);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -587,11 +652,34 @@ class BookController extends Controller
 
         $books = $query->with(['shelf.room.library'])->get();
 
-        $stockCounts = (clone $query)
-            ->whereNotNull('isbn')
-            ->selectRaw('isbn, COUNT(*) as total_copies')
-            ->groupBy('isbn')
-            ->pluck('total_copies', 'isbn');
+        // Per-library ISBN copy counts
+        $stockCountsByLibrary = [];
+        $stockAvailableCountsByLibrary = [];
+        foreach ($books as $b) {
+            $isbn = $b->isbn;
+            $libId = optional(optional(optional($b->shelf)->room)->library)->id;
+            if (! $isbn || ! $libId) {
+                continue;
+            }
+            $key = $isbn.'|'.$libId;
+            $stockCountsByLibrary[$key] = ($stockCountsByLibrary[$key] ?? 0) + 1;
+            if (empty($b->assigned_user_id) && strtolower((string) $b->status) !== 'transferred') {
+                $stockAvailableCountsByLibrary[$key] = ($stockAvailableCountsByLibrary[$key] ?? 0) + 1;
+            }
+        }
+
+        // Sort books to prefer 'Available' status, then filter to get unique books per library
+        $uniqueBooks = $books->sortBy(function ($book) {
+            return $book->status === 'Available' ? 0 : 1;
+        })->unique(function ($item) {
+            $isbn = $item->isbn;
+            $libId = optional(optional(optional($item->shelf)->room)->library)->id;
+            if ($isbn && $libId) {
+                return $isbn.'|'.$libId;
+            }
+
+            return 'id-'.$item->id;
+        });
 
         $users = User::select('id', 'name', 'email', 'role')
             ->whereNotIn('role', User::ADMIN_ROLES)
@@ -599,7 +687,13 @@ class BookController extends Controller
             ->get();
         $shelves = \App\Models\Shelf::select('id', 'name')->orderBy('name')->get();
 
-        return view('books.manage', compact('books', 'users', 'shelves', 'stockCounts'));
+        return view('books.manage', [
+            'books' => $uniqueBooks,
+            'users' => $users,
+            'shelves' => $shelves,
+            'stockCountsByLibrary' => $stockCountsByLibrary,
+            'stockAvailableCountsByLibrary' => $stockAvailableCountsByLibrary,
+        ]);
     }
 
     /**
@@ -730,7 +824,7 @@ class BookController extends Controller
 
     public function details(Book $book)
     {
-        return response()->json($book);
+        return $this->show($book);
     }
 
     private function logActivity($type, $description, $subject = null)
@@ -742,5 +836,16 @@ class BookController extends Controller
             'subject_type' => $subject ? get_class($subject) : null,
             'subject_id' => $subject ? $subject->id : null,
         ]);
+    }
+
+    public function assignedUsers(Book $book)
+    {
+        $user = Auth::user();
+        if (! ($user->hasAdminRole() || $user->isOwner())) {
+            abort(403);
+        }
+        $assignedUsers = $book->assignedUsers()->get();
+        $currentHolder = $book->assignedUser;
+        return view('books.assigned_users', compact('book', 'assignedUsers', 'currentHolder'));
     }
 }

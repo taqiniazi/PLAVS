@@ -93,6 +93,9 @@
                 <a href="{{ route('public.assigned-books') }}" class="nav-link {{ request()->routeIs('public.assigned-books') ? 'active' : '' }}">
                     <i class="fas fa-book-reader"></i> Assigned Books
                 </a>
+                <a href="{{ route('wishlist.index') }}" class="nav-link {{ request()->routeIs('wishlist.index') ? 'active' : '' }}">
+                    <i class="fas fa-heart"></i> Wishlist
+                </a>
             @endif
         @endif
 

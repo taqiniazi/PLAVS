@@ -107,6 +107,16 @@
                 </div>
 
                 <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select id="category_id" name="category_id" class="form-select">
+                            <option value="">Select category</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+              
                     <div class="col-md-4 mb-3 mb-md-0">
                         <label class="form-label">Shelf Location</label>
                         <select id="shelf" name="shelf" class="form-select" required>
@@ -125,6 +135,11 @@
                                 <option value="" disabled>No shelves found. Please create a shelf first.</option>
                             @endforelse
                         </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Number of Copies</label>
+                        <input type="number" name="copies" class="form-control" value="1" min="1" required>
+                        <small class="text-muted">Enter number of copies to add</small>
                     </div>
                 </div>
 

@@ -199,9 +199,34 @@ class LibraryController extends Controller
     {
         $this->authorize('view', $library);
 
-        $library->load(['rooms.shelves.books', 'books']);
+        $library->load(['rooms.shelves.books', 'books.shelf.room']);
 
-        return view('libraries.show', compact('library'));
+        $books = $library->books;
+
+        $groupedBooks = [];
+        foreach ($books as $book) {
+            $libId = $library->id;
+            $isbn = $book->isbn;
+            $key = $isbn ? ($isbn.'|'.$libId) : ($book->title.'|'.$book->author.'|'.$book->shelf_id);
+
+            if (! isset($groupedBooks[$key])) {
+                $groupedBooks[$key] = [
+                    'book' => $book,
+                    'total' => 0,
+                    'available' => 0,
+                ];
+            }
+
+            $groupedBooks[$key]['total']++;
+
+            if (empty($book->assigned_user_id) && strtolower((string) $book->status) !== 'transferred') {
+                $groupedBooks[$key]['available']++;
+            }
+        }
+
+        $groupedBooks = collect($groupedBooks)->values();
+
+        return view('libraries.show', compact('library', 'groupedBooks'));
     }
 
     /**

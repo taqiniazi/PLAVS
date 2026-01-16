@@ -21,32 +21,48 @@ class RatingController extends Controller
 
         $user = Auth::user();
 
+        $existingRating = Rating::where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->first();
+
         if ($user && $user->isPublic()) {
             $isDirectHolder = $book->assigned_user_id === $user->id;
-            $hasActivePivot = $user->booksThroughAssignment()
+            $hasAnyPivot = $user->booksThroughAssignment()
                 ->where('book_id', $book->id)
-                ->wherePivot('is_returned', false)
                 ->exists();
 
-            if (! $isDirectHolder && ! $hasActivePivot) {
+            if (! $isDirectHolder && ! $hasAnyPivot) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You can only rate books that are assigned to you.',
                 ], 403);
             }
-        }
 
-        // Check if user already has a rating for this book
-        $rating = Rating::updateOrCreate(
-            [
+            if ($existingRating) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have already rated this book.',
+                ], 403);
+            }
+
+            $rating = Rating::create([
                 'user_id' => $user->id,
                 'book_id' => $book->id,
-            ],
-            [
                 'rating' => $request->rating,
                 'review' => $request->review,
-            ]
-        );
+            ]);
+        } else {
+            $rating = Rating::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'book_id' => $book->id,
+                ],
+                [
+                    'rating' => $request->rating,
+                    'review' => $request->review,
+                ]
+            );
+        }
 
         // Calculate new average rating
         $averageRating = $book->ratings()->avg('rating');

@@ -329,7 +329,7 @@ body {
     margin-bottom: 8px;
     font-size: 0.95rem;
 }
-.form-control, .form-select {
+.form-control, .form-select , .select2-container--default .select2-selection--single  {
     padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
@@ -338,16 +338,13 @@ body {
     background-color: #fff;
 }
 .select2-container--default .select2-selection--single {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 5px 15px !important;
-    height: auto;
-    min-width: auto;
-    line-height: 3;
+    min-height: 47px;
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 39px;
+    height: 47px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 1.5;
 }
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-dark);
@@ -396,6 +393,14 @@ table.dataTable thead>tr>th,
 table thead>tr>th{
     background-color: #006b61 !important;
     color: var(--bg-light) !important;
+}
+.fc .fc-col-header-cell-cushion {
+    color: #fff;
+    padding: 8px 5px;
+}
+.fc .fc-daygrid-day-number {
+    color: #000;
+    font-size: 20px;
 }
 .form-check-input {
     border-color: #807c7c;

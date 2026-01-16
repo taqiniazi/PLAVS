@@ -64,7 +64,7 @@
                             <th width="350px">Book Details</th>
                             <!-- <th>Shelf Location</th> -->
                             <th>Visibility</th>
-                            <th>Current Holder</th>
+                            <th>Stock</th>
                             <th>Status</th>
                             @if($isAdmin || $isPublic  || $isOwner)
                             <th>QR Code</th>
@@ -86,9 +86,9 @@
                                         <span class="book-title">{{ $book->title }}</span>
                                         <span class="book-author">ISBN: {{ $book->isbn ?? 'N/A' }}</span>
                                         @php
-                                            $copiesCount = ($book->isbn && isset($stockCounts[$book->isbn]))
-                                                ? $stockCounts[$book->isbn]
-                                                : 1;
+                                            $libId = optional(optional(optional($book->shelf)->room)->library)->id;
+                                            $key = $book->isbn && $libId ? ($book->isbn.'|'.$libId) : null;
+                                            $copiesCount = $key && isset($stockCountsByLibrary[$key]) ? $stockCountsByLibrary[$key] : 1;
                                         @endphp
                                         <span class="text-muted small d-block">Copies in this library: {{ $copiesCount }}</span>
                                         @if($book->shelf)
@@ -118,30 +118,27 @@
                                     </span>
                                 @endif
                             </td>
-                            <td>
-                                @if($book->assigned_user_id)
-                                    <span class="badge bg-primary">
-                                        <i class="fas fa-user me-1"></i>
-                                        {{ $book->assignedUser->name }}
-                                    </span>
-                                    <small class="text-muted d-block">{{ $book->assignedUser->role }}</small>
-                                @elseif($book->status === 'transferred')
-                                    <span class="badge bg-warning">
-                                        <i class="fas fa-building me-1"></i>
-                                        {{ $book->shelf->room->library->name }}
-                                    </span>
-                                    <small class="text-muted d-block">Transferred</small>
-                                @else
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-home me-1"></i>
-                                        In Stock
-                                    </span>
-                                @endif
+                            <td class="text-center">
+                                @php
+                                    $libId = optional(optional(optional($book->shelf)->room)->library)->id;
+                                    $key = $book->isbn && $libId ? ($book->isbn.'|'.$libId) : null;
+                                    $availableCount = $key && isset($stockAvailableCountsByLibrary[$key]) ? $stockAvailableCountsByLibrary[$key] : 0;
+                                @endphp
+                                <small>In Stock</small> <br> <span class="badge bg-success">{{ $availableCount }}</span>
                             </td>
                             <td>
-                                <span class="badge {{ $book->status === 'Available' ? 'bg-success' : ($book->status === 'Assigned' ? 'bg-info' : 'bg-warning') }}">
-                                    {{ $book->status }}
-                                </span>
+                                @php
+                                    $statusClass = $book->status === 'Available' ? 'bg-success' : ($book->status === 'Assigned' ? 'bg-info' : 'bg-warning');
+                                @endphp
+                                @if($isAdmin || $isOwner)
+                                    <a href="{{ route('books.assigned-users', $book) }}" class="badge {{ $statusClass }}">
+                                        {{ $book->status }}
+                                    </a>
+                                @else
+                                    <span class="badge {{ $statusClass }}">
+                                        {{ $book->status }}
+                                    </span>
+                                @endif
                             </td>
                             @if($isAdmin || $isPublic  || $isOwner)
                             <td class="text-center">
@@ -654,22 +651,7 @@ $(document).ready(function () {
                             }
                         }
 
-                        // Update Current Holder cell - it's the 5th data column (index 4)
-                        var holderCell = row.find('td:eq(4)');
-                        if (isOwner) {
-                            holderCell.html(
-                                '<span class="badge bg-success">' +
-                                    '<i class="fas fa-home me-1"></i> In Stock' +
-                                '</span>'
-                            );
-                        } else {
-                            holderCell.html(
-                                '<span class="badge bg-primary">' +
-                                    '<i class="fas fa-user me-1"></i>' + currentUserName +
-                                '</span>' +
-                                '<small class="text-muted d-block">' + currentUserRole + '</small>'
-                            );
-                        }
+                        
 
                         // Remove the return button and its form
                         returnBtn.closest('form').remove();

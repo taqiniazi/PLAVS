@@ -1,12 +1,94 @@
 @extends('layouts.dashboard')
 
-@section('title', 'MyBookShelf - Events Calendar')
+@section('title', 'MyBookShelf - Events')
 
 @push('styles')
-<link href="{{ asset('css/fullcalendar.global.min.css') }}" rel='stylesheet' />
+@php
+    $user = auth()->user();
+    $isPublic = $user && $user->isPublic();
+@endphp
+@if($isPublic)
+    <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">
+@else
+    <link href="{{ asset('css/fullcalendar.global.min.css') }}" rel='stylesheet' />
+@endif
 @endpush
 
 @section('content')
+@php
+    $user = auth()->user();
+    $isPublic = $user && $user->isPublic();
+@endphp
+
+@if($isPublic)
+<div class="row mt-3">
+    <div class="col-lg-12">
+        <div class="page-header mb-4">
+            <h4 class="page-title">Events</h4>
+        </div>
+
+        <div class="table-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Upcoming Events</h5>
+            </div>
+            <div class="table-responsive">
+                <table id="upcomingEventsTable" class="table table-hover align-middle" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Description</th>
+                            <th>Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(($upcomingEvents ?? collect()) as $event)
+                            <tr>
+                                <td>{{ $event->title }}</td>
+                                <td>{{ $event->start_date->format('d M Y, h:i A') }}</td>
+                                <td>{{ $event->end_date->format('d M Y, h:i A') }}</td>
+                                <td>{{ Str::limit($event->description, 80) }}</td>
+                                <td>{{ optional($event->creator)->name ?? 'System' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Previous Events</h5>
+            </div>
+            <div class="table-responsive">
+                <table id="pastEventsTable" class="table table-hover align-middle" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Description</th>
+                            <th>Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(($pastEvents ?? collect()) as $event)
+                            <tr>
+                                <td>{{ $event->title }}</td>
+                                <td>{{ $event->start_date->format('d M Y, h:i A') }}</td>
+                                <td>{{ $event->end_date->format('d M Y, h:i A') }}</td>
+                                <td>{{ Str::limit($event->description, 80) }}</td>
+                                <td>{{ optional($event->creator)->name ?? 'System' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@else
 <div class="row mt-3">
     <div class="col-lg-12">
         <div class="page-header mb-4">
@@ -66,9 +148,44 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
 @push('scripts')
+@php
+    $user = auth()->user();
+    $isPublic = $user && $user->isPublic();
+@endphp
+
+@if($isPublic)
+<script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('js/dataTables.bootstrap.min.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var upcomingTable = document.getElementById('upcomingEventsTable');
+    if (upcomingTable) {
+        $('#upcomingEventsTable').DataTable({
+            language: {
+                search: 'Search upcoming events:',
+                lengthMenu: 'Display _MENU_ events per page',
+                info: 'Showing _START_ to _END_ of _TOTAL_ events'
+            }
+        });
+    }
+
+    var pastTable = document.getElementById('pastEventsTable');
+    if (pastTable) {
+        $('#pastEventsTable').DataTable({
+            language: {
+                search: 'Search previous events:',
+                lengthMenu: 'Display _MENU_ events per page',
+                info: 'Showing _START_ to _END_ of _TOTAL_ events'
+            }
+        });
+    }
+});
+</script>
+@else
 <script src="{{ asset('js/index.global.min.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -107,12 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     calendar.render();
 
-    // Handle form submission
     document.getElementById('eventForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const formData = new FormData(this);
-        
+
+        var formData = new FormData(this);
+
         fetch('/events', {
             method: 'POST',
             headers: {
@@ -120,23 +236,25 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
             if (data.success) {
                 calendar.refetchEvents();
                 bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-                this.reset();
+                document.getElementById('eventForm').reset();
             }
         })
-        .catch(error => {
+        .catch(function(error) {
             console.error('Error:', error);
         });
     });
 
-    // Color picker sync
     document.querySelector('input[type="color"]').addEventListener('change', function() {
         document.querySelector('input[type="text"]').value = this.value;
     });
 });
 </script>
+@endif
 @endpush

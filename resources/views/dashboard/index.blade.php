@@ -140,11 +140,11 @@ $hasAdminRole = $user->hasAdminRole();
     <div class="col-lg-3 col-md-6">
         <div class="stat-card">
             <div>
-                <small class="text-muted d-block mb-1">Teachers</small>
-                <h4 class="fw-bold mb-0">{{ $stats['my_teachers'] ?? 0 }}</h4>
+                <small class="text-muted d-block mb-1">Wishlist</small>
+                <h4 class="fw-bold mb-0">{{ $stats['wishlist_count'] ?? 0 }}</h4>
             </div>
             <div class="stat-icon">
-                <img src="{{ asset('images/users_icon.svg') }}" alt="" class="img-fluid">
+                <i class="fas fa-heart fa-2x text-danger"></i>
             </div>
         </div>
     </div>
