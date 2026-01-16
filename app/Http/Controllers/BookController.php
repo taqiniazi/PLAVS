@@ -227,9 +227,24 @@ class BookController extends Controller
     public function show(Book $book)
     {
         $ratings = $book->ratings()->with('user')->orderByDesc('created_at')->get();
-        $userRating = auth()->check() ? $book->ratings()->where('user_id', auth()->id())->first() : null;
+        $user = auth()->user();
+        $userRating = $user ? $book->ratings()->where('user_id', $user->id)->first() : null;
 
-        return view('books.show', compact('book', 'ratings', 'userRating'));
+        $canRate = false;
+        if ($user) {
+            if (! $user->isPublic()) {
+                $canRate = true;
+            } else {
+                $isDirectHolder = $book->assigned_user_id === $user->id;
+                $hasActivePivot = $user->booksThroughAssignment()
+                    ->where('book_id', $book->id)
+                    ->wherePivot('is_returned', false)
+                    ->exists();
+                $canRate = $isDirectHolder || $hasActivePivot;
+            }
+        }
+
+        return view('books.show', compact('book', 'ratings', 'userRating', 'canRate'));
     }
 
     public function edit(Book $book)
@@ -578,7 +593,10 @@ class BookController extends Controller
             ->groupBy('isbn')
             ->pluck('total_copies', 'isbn');
 
-        $users = User::select('id', 'name', 'email', 'role')->orderBy('name')->get();
+        $users = User::select('id', 'name', 'email', 'role')
+            ->whereNotIn('role', User::ADMIN_ROLES)
+            ->orderBy('name')
+            ->get();
         $shelves = \App\Models\Shelf::select('id', 'name')->orderBy('name')->get();
 
         return view('books.manage', compact('books', 'users', 'shelves', 'stockCounts'));

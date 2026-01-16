@@ -7,12 +7,55 @@
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
 <body>
     @yield('content')
 
+    <script src="{{ asset('js/jquery-3.7.0.min.js') }}"></script>
+    <script src="{{ asset('js/select2.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+$(function () {
+    if (!$.fn.select2) {
+        return;
+    }
+
+    $('select.form-select').each(function () {
+        var $select = $(this);
+        if ($select.data('select2')) {
+            return;
+        }
+
+        var $modalParent = $select.closest('.modal');
+        if ($modalParent.length) {
+            $select.select2({
+                width: '100%',
+                dropdownParent: $modalParent
+            });
+        } else {
+            $select.select2({
+                width: '100%'
+            });
+        }
+    });
+
+    $(document).on('shown.bs.modal', '.modal', function () {
+        var $modal = $(this);
+        $modal.find('select.form-select').each(function () {
+            var $select = $(this);
+            if ($select.data('select2')) {
+                return;
+            }
+            $select.select2({
+                width: '100%',
+                dropdownParent: $modal
+            });
+        });
+    });
+});
+    </script>
     @stack('scripts')
 </body>
 </html>

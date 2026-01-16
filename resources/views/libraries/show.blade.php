@@ -230,6 +230,7 @@
                                         <th>ISBN</th>
                                         <th>Room</th>
                                         <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -237,11 +238,7 @@
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                @if($book->image)
-                                                <img src="{{ asset('storage/uploads/' . $book->image) }}" alt="{{ $book->title }}" class="rounded me-2" style="width: 40px; height: 60px; object-fit: cover;">
-                                                @else
-                                                <img src="{{ asset('images/book1.png') }}" alt="Default Cover" class="rounded me-2" style="width: 40px; height: 60px; object-fit: cover;">
-                                                @endif
+                                                <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="rounded me-2" style="width: 40px; height: 60px; object-fit: cover;">
                                                 <span class="fw-bold">{{ $book->title }}</span>
                                             </div>
                                         </td>
@@ -252,6 +249,13 @@
                                             <span class="badge bg-{{ strtolower($book->status) === 'available' ? 'success' : 'secondary' }}">
                                                 {{ ucfirst($book->status) }}
                                             </span>
+                                        </td>
+                                        <td>
+                                            @can('view', $book)
+                                            <a href="{{ route('books.show', $book) }}" class="btn btn-sm btn-outline-primary" title="View Book">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @endcan
                                         </td>
                                     </tr>
                                     @endforeach

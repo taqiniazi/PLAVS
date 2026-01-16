@@ -133,8 +133,8 @@
                 {{-- Removed duplicate Shelf select block. Single shelf selector is provided above in the row. --}}
 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" placeholder="Brief description of the book"></textarea>
+                    <label class="form-label">Summary</label>
+                    <textarea name="description" class="form-control" placeholder="Brief Summary of the book"></textarea>
                 </div>
 
                 <div class="mt-4 ms-auto">

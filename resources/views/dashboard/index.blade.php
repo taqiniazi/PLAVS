@@ -257,11 +257,11 @@ $hasAdminRole = $user->hasAdminRole();
         <div class="row">
             @foreach($recent_books as $book)
             <div class="col-md-3 col-6 mb-3">
-                <div class="book-card">
-                    <img src="{{ $book['image'] }}" alt="{{ $book['title'] }}" class="img-fluid">
-                    <p class="book-title">{{ $book['title'] }}</p>
-                    <span class="book-author">Author : {{ $book['author'] }}</span>
-                </div>
+                <a href="{{ route('books.show', $book) }}" class="book-card text-decoration-none">
+                    <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="img-fluid">
+                    <p class="book-title">{{ strlen($book->title) > 18 ? substr($book->title, 0, 15) . '...' : $book->title }}</p>
+                    <span class="book-author">Author : {{ $book->author }}</span>
+                </a>
             </div>
             @endforeach
         </div>
@@ -305,11 +305,11 @@ $hasAdminRole = $user->hasAdminRole();
             <div class="row">
                 @foreach($recent_books as $book)
                 <div class="col-md-3 col-6 mb-3">
-                    <div class="book-card">
-                        <img src="{{ $book['image'] }}" alt="{{ $book['title'] }}" class="img-fluid">
-                        <p class="book-title">{{ $book['title'] }}</p>
-                        <span class="book-author">Author : {{ $book['author'] }}</span>
-                    </div>
+                    <a href="{{ route('books.show', $book) }}" class="book-card text-decoration-none">
+                        <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="img-fluid">
+                        <p class="book-title">{{ strlen($book->title) > 18 ? substr($book->title, 0, 15) . '...' : $book->title }}</p>
+                        <span class="book-author">Author : {{ $book->author }}</span>
+                    </a>
                 </div>
                 @endforeach
             </div>

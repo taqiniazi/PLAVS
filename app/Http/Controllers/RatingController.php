@@ -21,6 +21,21 @@ class RatingController extends Controller
 
         $user = Auth::user();
 
+        if ($user && $user->isPublic()) {
+            $isDirectHolder = $book->assigned_user_id === $user->id;
+            $hasActivePivot = $user->booksThroughAssignment()
+                ->where('book_id', $book->id)
+                ->wherePivot('is_returned', false)
+                ->exists();
+
+            if (! $isDirectHolder && ! $hasActivePivot) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only rate books that are assigned to you.',
+                ], 403);
+            }
+        }
+
         // Check if user already has a rating for this book
         $rating = Rating::updateOrCreate(
             [

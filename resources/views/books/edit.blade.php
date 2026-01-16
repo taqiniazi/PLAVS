@@ -140,7 +140,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
+                    <label class="form-label">Summary</label>
                     <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
                               placeholder="Brief description of the book">{{ old('description', $book->description) }}</textarea>
                     @error('description')

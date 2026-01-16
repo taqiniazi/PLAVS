@@ -122,13 +122,7 @@ class DashboardController extends Controller
             $my_assigned_books = collect();
         }
 
-        $recent_books = Book::latest()->take(4)->get()->map(function ($book) {
-            return [
-                'title' => strlen($book->title) > 18 ? substr($book->title, 0, 15).'...' : $book->title,
-                'author' => $book->author,
-                'image' => $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/'.($book->image ?? 'book1.png')),
-            ];
-        });
+        $recent_books = Book::latest()->take(4)->get();
 
         $recent_activities = ActivityLog::with('user')
             ->latest()

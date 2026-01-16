@@ -23,31 +23,37 @@
                     
                     {{-- Rating Section --}}
                     <div class="rating-section mt-3">
-                        <label class="text-muted small d-block mb-2">Rate this book</label>
-                        <form id="ratingForm">
-                            <input type="hidden" name="rating" id="ratingValue" value="0">
-                            <div class="rating-stars mb-2" id="ratingStars">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="far fa-star fa-lg me-1 rate-star" data-value="{{ $i }}"></i>
-                                @endfor
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-primary" id="averageRating">
-                                     {{ round($book->average_rating, 1) }}/5
-                                 </span>
-                                 @php $reviewCount = isset($ratings) ? $ratings->count() : ($book->rating_count ?? 0); @endphp
-                                 <small class="text-muted ms-2" id="ratingCount">
-                                     ({{ $reviewCount }} {{ Str::plural('review', $reviewCount) }})
-                                 </small>
-                            </div>
-                            <div class="mt-2">
-                                <textarea class="form-control" id="reviewText" name="review" rows="3"
-                                          placeholder="Share your thoughts about this book...">{{ $userRating->review ?? '' }}</textarea>
-                            </div>
-                            <button type="button" class="btn btn-primary btn-sm mt-2" id="saveRatingBtn" style="display: none;">
-                                <i class="fas fa-save me-1"></i> Save Rating
-                            </button>
-                        </form>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary" id="averageRating">
+                                 {{ round($book->average_rating, 1) }}/5
+                             </span>
+                             @php $reviewCount = isset($ratings) ? $ratings->count() : ($book->rating_count ?? 0); @endphp
+                             <small class="text-muted ms-2" id="ratingCount">
+                                 ({{ $reviewCount }} {{ Str::plural('review', $reviewCount) }})
+                             </small>
+                        </div>
+                        @if($canRate ?? false)
+                            <label class="text-muted small d-block mb-2">Rate this book</label>
+                            <form id="ratingForm">
+                                <input type="hidden" name="rating" id="ratingValue" value="0">
+                                <div class="rating-stars mb-2" id="ratingStars">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="far fa-star fa-lg me-1 rate-star" data-value="{{ $i }}"></i>
+                                    @endfor
+                                </div>
+                                <div class="mt-2">
+                                    <textarea class="form-control" id="reviewText" name="review" rows="3"
+                                              placeholder="Share your thoughts about this book...">{{ $userRating->review ?? '' }}</textarea>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" id="saveRatingBtn" style="display: none;">
+                                    <i class="fas fa-save me-1"></i> Save Rating
+                                </button>
+                            </form>
+                        @else
+                            <!-- <small class="text-muted d-block">
+                                You can view ratings for this book. Ratings can only be given on books assigned to you.
+                            </small> -->
+                        @endif
                     </div>
                     
                     {{-- Wishlist Button --}}
@@ -124,8 +130,8 @@
                     
                     {{-- Description --}}
                     <div class="mb-3">
-                        <label class="text-muted small">Description</label>
-                        <p class="mb-0">{{ $book->description ?? 'No description available.' }}</p>
+                        <label class="text-muted small">Summary</label>
+                        <p class="mb-0">{{ $book->description ?? 'No Summary available.' }}</p>
                     </div>
                     {{-- Ratings Area --}}
                     <label class="text-muted small">Ratings</label>
@@ -193,7 +199,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const bookId = {{ $book->id }};
-    const userId = {{ auth()->id() }};
     
     // Check if user has already rated this book
     let userRating = null;
@@ -281,6 +286,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initRatingStars() {
+        @if(!($canRate ?? false))
+        return;
+        @endif
         const stars = document.querySelectorAll('#ratingStars i.rate-star');
         const reviewText = document.getElementById('reviewText');
         const saveRatingBtn = document.getElementById('saveRatingBtn');

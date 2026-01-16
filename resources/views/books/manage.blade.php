@@ -251,7 +251,7 @@
                         <label for="target_user_id" class="form-label">Target User</label>
                         <select class="form-select" name="target_id" id="target_user_id">
                             <option value="">Select a user...</option>
-                            @foreach($users->whereIn('role', ['teacher', 'student']) as $user)
+                            @foreach($users->whereIn('role', ['public', 'candidate', 'student', 'teacher']) as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
                             @endforeach
                         </select>
@@ -343,7 +343,7 @@
                         <select name="assigned_user_id" class="form-select" required>
                             <option selected disabled>Select User...</option>
                             @if($isOwner)
-                                @foreach($users->where('role', 'student') as $userOption)
+                                @foreach($users->whereIn('role', ['public', 'candidate', 'student', 'teacher']) as $userOption)
                                     <option value="{{ $userOption->id }}">{{ $userOption->name }}</option>
                                 @endforeach
                             @else
