@@ -59,8 +59,10 @@
                 <label for="filter_country" class="form-label">Country</label>
                 <select id="filter_country" name="country" class="form-select">
                     <option value="">All countries</option>
-                    @foreach(array_keys($countryCityMapping ?? []) as $country)
-                        <option value="{{ $country }}" {{ $selectedCountry === $country ? 'selected' : '' }}>
+                    @foreach(($countryCityMapping ?? []) as $country => $cities)
+                        <option value="{{ $country }}"
+                                data-cities='@json($cities)'
+                                {{ $selectedCountry === $country ? 'selected' : '' }}>
                             {{ $country }}
                         </option>
                     @endforeach
@@ -220,8 +222,6 @@
 
 <script>
 $(document).ready(function () {
-    var mapping = @json(config('countries'));
-
     // Initialize DataTables
     var table = $('#librariesTable').DataTable({
         "language": {
@@ -243,12 +243,31 @@ $(document).ready(function () {
     var countrySelect = document.getElementById('filter_country');
     var citySelect = document.getElementById('filter_city');
 
-    if (countrySelect && citySelect && mapping) {
+    function getCitiesForSelectedCountry() {
+        if (!countrySelect) {
+            return [];
+        }
+        var selectedOption = countrySelect.options[countrySelect.selectedIndex];
+        if (!selectedOption) {
+            return [];
+        }
+        var raw = selectedOption.getAttribute('data-cities');
+        if (!raw) {
+            return [];
+        }
+        try {
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    if (countrySelect && citySelect) {
         var $citySelect = $(citySelect);
 
         function populateCities() {
-            var selectedCountry = countrySelect.value;
-            var cities = mapping[selectedCountry] || [];
+            var cities = getCitiesForSelectedCountry();
             var previous = citySelect.getAttribute('data-selected-city') || '';
 
             if ($citySelect.data('select2')) {
