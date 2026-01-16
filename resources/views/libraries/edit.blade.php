@@ -82,6 +82,39 @@
                                 @enderror
                             </div>
                             
+                            <div class="col-12 mt-4">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-address-book me-2"></i>
+                                    Library Contact Information
+                                </h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Contact Email</label>
+                                <input type="email"
+                                       class="form-control @error('contact_email') is-invalid @enderror"
+                                       id="contact_email"
+                                       name="contact_email"
+                                       value="{{ old('contact_email', $library->contact_email) }}"
+                                       placeholder="library@example.com">
+                                @error('contact_email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone</label>
+                                <input type="tel"
+                                       class="form-control @error('contact_phone') is-invalid @enderror"
+                                       id="contact_phone"
+                                       name="contact_phone"
+                                       value="{{ old('contact_phone', $library->contact_phone) }}"
+                                       placeholder="+1234567890">
+                                @error('contact_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="image" class="form-label">Library Logo</label>
                                 @if($library->image)
@@ -122,7 +155,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-text text-muted">Owner information is managed through user profiles</div>
+                                <!-- <div class="form-text text-muted">Owner information is managed through user profiles</div> -->
                             </div>
                         </div>
                         

@@ -294,11 +294,11 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Location (optional)</label>
+                            <label class="form-label fw-medium">Location <small class="text-muted" style="font-size:10px">(optional)</small></label>
                             <input type="text" name="location" class="form-control" placeholder="Event location">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Speakers (optional)</label>
+                            <label class="form-label fw-medium">Speakers <small class="text-muted" style="font-size:10px">(optional)</small></label>
                             <input type="text" name="speakers" class="form-control" placeholder="Main speakers">
                         </div>
                     </div>
@@ -322,24 +322,23 @@
                     <div class="mb-3">
                         <label class="form-label fw-medium">Event Fee</label>
                         <div class="row g-2">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <input type="number" step="0.01" min="0" name="fee_amount" class="form-control" placeholder="Amount">
+                                <small class="text-muted" style="font-size:10px">Leave amount empty for free events.</small>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <input type="text" name="fee_currency" class="form-control" value="PKR" placeholder="Currency">
                             </div>
-                            <div class="col-md-5 text-muted small d-flex align-items-center">
-                                Leave amount empty for free events.
-                            </div>
+                           
                         </div>
                     </div>
                     <div class="row mb-1">
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Bank Name (required if fee set)</label>
+                            <label class="form-label fw-medium">Bank Name <br><small class="text-muted" style="font-size:10px">Required if fee is set.</small></label>
                             <input type="text" name="bank_name" class="form-control" placeholder="Bank name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">IBAN / Account No (required if fee set)</label>
+                            <label class="form-label fw-medium">IBAN / Account No <br><small class="text-muted" style="font-size:10px">Required if fee is set.</small></label>
                             <input type="text" name="bank_account" class="form-control" placeholder="IBAN or account number">
                         </div>
                     </div>

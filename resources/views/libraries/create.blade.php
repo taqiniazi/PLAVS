@@ -142,7 +142,7 @@
                                        value="{{ old('owner_email') }}"
                                        placeholder="owner@example.com"
                                        required>
-                                <div class="form-text">If this email already exists, the new library will be attached to that owner. Otherwise, fill in name, phone, and password to create a new owner.</div>
+                                <!-- <div class="form-text">If this email already exists, the new library will be attached to that owner. Otherwise, fill in name, phone, and password to create a new owner.</div> -->
                                 @error('owner_email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -159,7 +159,7 @@
                                        value="{{ $isOwner ? Auth::user()->phone : old('owner_phone') }}"
                                        placeholder="+1234567890"
                                        {{ $isOwner ? 'readonly' : '' }}>
-                                <div class="form-text">Please include country code (e.g., +1234567890)</div>
+                                <!-- <div class="form-text">Please include country code (e.g., +1234567890)</div> -->
                                 @error('owner_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -174,7 +174,7 @@
                                        id="owner_password"
                                        name="owner_password"
                                        placeholder="Create a secure password">
-                                <div class="form-text">Password must be at least 8 characters. Required only if you're creating a new owner.</div>
+                                <!-- <div class="form-text">Password must be at least 8 characters. Required only if you're creating a new owner.</div> -->
                                 @error('owner_password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -200,9 +200,9 @@
                                     <i class="fas fa-address-book me-2"></i>
                                     Library Contact Information
                                 </h6>
-                                <p class="text-muted small mb-4">
+                                <!-- <p class="text-muted small mb-4">
                                     Public contact information for the library (different from owner's personal details)
-                                </p>
+                                </p> -->
                             </div>
                             
                             <!-- Contact Email -->
@@ -214,7 +214,7 @@
                                        name="contact_email"
                                        value="{{ old('contact_email') }}"
                                        placeholder="library@example.com">
-                                <div class="form-text">Public email for library inquiries</div>
+                                <!-- <div class="form-text">Public email for library inquiries</div> -->
                                 @error('contact_email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -229,7 +229,7 @@
                                        name="contact_phone"
                                        value="{{ old('contact_phone') }}"
                                        placeholder="+1234567890">
-                                <div class="form-text">Public phone number for library</div>
+                                <!-- <div class="form-text">Public phone number for library</div> -->
                                 @error('contact_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

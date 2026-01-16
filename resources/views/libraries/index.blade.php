@@ -317,9 +317,7 @@
                                       class="form-control"
                                       rows="3"
                                       placeholder="Describe this room (optional)"></textarea>
-                            <div class="form-text">
-                                Optional: Add details about the room's purpose or features.
-                            </div>
+                            
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -390,7 +388,8 @@
                                 Please select a library.
                             </div>
                         </div>
-                        <div class="mb-3">
+                        <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="modal_shelf_room_id" class="form-label required-field">Room</label>
                             <select id="modal_shelf_room_id" name="room_id" class="form-select" required>
                                 <option value="">Select room</option>
@@ -399,16 +398,15 @@
                                 Please select a room.
                             </div>
                         </div>
-                        <div class="mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="modal_shelf_code" class="form-label">Shelf Code</label>
                             <input type="text"
                                    id="modal_shelf_code"
                                    name="code"
                                    class="form-control"
                                    placeholder="e.g., A-01, B-02">
-                            <div class="form-text">
-                                Optional: Add a unique code for easy identification. Leave blank to auto-generate.
-                            </div>
+                            
+                        </div>
                         </div>
                         <div class="mb-3">
                             <label for="modal_shelf_description" class="form-label">Description</label>
@@ -417,9 +415,7 @@
                                       class="form-control"
                                       rows="3"
                                       placeholder="Describe what this shelf is for (optional)"></textarea>
-                            <div class="form-text">
-                                Optional: Add details about the shelf's purpose or contents.
-                            </div>
+                            
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -696,13 +692,10 @@ $(document).ready(function () {
             });
         }
     }
-    // 1. Select the modal element
 var modalElement = document.getElementsByClassName('.modal');
 
-// 2. Move it to the very end of the <body> tag
 document.body.appendChild(modalElement);
 
-// 3. Initialize and show the modal
 var myModal = new bootstrap.Modal(modalElement);
 }); 
 </script>

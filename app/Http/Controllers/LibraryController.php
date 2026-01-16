@@ -252,6 +252,8 @@ class LibraryController extends Controller
             'location' => 'nullable|string',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:20',
         ]);
 
         // Update library information
@@ -260,6 +262,8 @@ class LibraryController extends Controller
             'type' => $request->type,
             'location' => $request->location,
             'description' => $request->description,
+            'contact_email' => $request->contact_email,
+            'contact_phone' => $request->contact_phone,
         ]);
 
         if ($request->hasFile('image')) {
