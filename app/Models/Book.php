@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Book extends Model
 {
@@ -159,17 +160,21 @@ class Book extends Model
      */
     public function getCoverUrlAttribute()
     {
-        // If it's already a full URL (Google Books API), return as-is
-        if (filter_var($this->cover_image, FILTER_VALIDATE_URL)) {
+        if ($this->cover_image && filter_var($this->cover_image, FILTER_VALIDATE_URL)) {
             return $this->cover_image;
         }
 
-        // If it's a local file in storage, return the asset URL
         if ($this->cover_image) {
-            return asset('storage/'.$this->cover_image);
+            if (Storage::disk('public')->exists($this->cover_image)) {
+                return asset('storage/'.$this->cover_image);
+            }
+
+            $publicPath = 'storage/'.$this->cover_image;
+            if (file_exists(public_path($publicPath))) {
+                return asset($publicPath);
+            }
         }
 
-        // Fallback to default book cover
         return asset('images/book1.png');
     }
 }

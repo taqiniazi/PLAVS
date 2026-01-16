@@ -172,16 +172,13 @@ class BookController extends Controller
 
         $bookData['shelf_id'] = $shelfModel->id;
 
-        // Scenario A: user uploaded a file
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $file = $request->file('cover_image');
             $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('uploads/books', $filename, 'public');
+            $this->mirrorCoverToPublicStorage($path);
             $bookData['cover_image'] = $path;
-
-            // Scenario B: downloaded from scanned_image_url
         } elseif (! empty($scannedUrl)) {
-            // Validate URL
             if (filter_var($scannedUrl, FILTER_VALIDATE_URL)) {
                 try {
                     $response = \Illuminate\Support\Facades\Http::get($scannedUrl);
@@ -203,6 +200,7 @@ class BookController extends Controller
                             $filename = 'google_book_'.time().'_'.uniqid().'.'.$ext;
                             $path = 'uploads/books/'.$filename;
                             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
+                            $this->mirrorCoverToPublicStorage($path);
                             $bookData['cover_image'] = $path;
                         } else {
                             Log::warning('Scanned image URL returned non-image content type: '.$contentType);
@@ -301,11 +299,11 @@ class BookController extends Controller
         $book->shelf_location = $shelfModel->name;
         $book->save();
 
-        // Handle new cover upload or scanned image URL
         if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $file = $request->file('cover_image');
             $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('uploads/books', $filename, 'public');
+            $this->mirrorCoverToPublicStorage($path);
             $book->cover_image = $path;
             $book->save();
         } elseif ($request->filled('scanned_image_url')) {
@@ -330,6 +328,7 @@ class BookController extends Controller
                             $filename = 'google_book_'.time().'_'.uniqid().'.'.$ext;
                             $path = 'uploads/books/'.$filename;
                             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
+                            $this->mirrorCoverToPublicStorage($path);
                             $book->cover_image = $path;
                             $book->save();
                         }
@@ -379,6 +378,23 @@ class BookController extends Controller
         }
 
         return redirect()->route('books.manage')->with('success', 'Book shelf changed successfully!');
+    }
+
+    protected function mirrorCoverToPublicStorage(string $relativePath): void
+    {
+        $source = storage_path('app/public/'.$relativePath);
+        $destination = public_path('storage/'.$relativePath);
+
+        if (! is_file($source)) {
+            return;
+        }
+
+        $directory = dirname($destination);
+        if (! is_dir($directory)) {
+            @mkdir($directory, 0755, true);
+        }
+
+        @copy($source, $destination);
     }
 
     public function assign(Request $request)
