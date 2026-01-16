@@ -61,7 +61,7 @@
                     <option value="">All countries</option>
                     @foreach(($countryCityMapping ?? []) as $country => $cities)
                         <option value="{{ $country }}"
-                                data-cities='@json($cities)'
+                                data-cities="{{ implode('|', $cities) }}"
                                 {{ $selectedCountry === $country ? 'selected' : '' }}>
                             {{ $country }}
                         </option>
@@ -251,16 +251,13 @@ $(document).ready(function () {
         if (!selectedOption) {
             return [];
         }
-        var raw = selectedOption.getAttribute('data-cities');
+        var raw = selectedOption.getAttribute('data-cities') || '';
         if (!raw) {
             return [];
         }
-        try {
-            var parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-            return [];
-        }
+        return raw.split('|').filter(function (city) {
+            return city && city.trim().length > 0;
+        });
     }
 
     if (countrySelect && citySelect) {

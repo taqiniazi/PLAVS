@@ -478,8 +478,10 @@ class BookController extends Controller
 
         // Attach to pivot table for history and permission tracking
         if ($assignedUser) {
+            $assignmentType = 'admin_assign';
+
             $assignedUser->booksThroughAssignment()->attach($book->id, [
-                'assignment_type' => 'manual',
+                'assignment_type' => $assignmentType,
                 'notes' => $validated['reason'] ?? null,
                 'assigned_at' => now(),
                 'is_returned' => false,
