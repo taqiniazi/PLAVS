@@ -53,7 +53,7 @@
             @endcan
         </div>
 
-        @if($isPublic)
+        <!-- @if($isPublic)
         <form method="GET" action="{{ route('libraries.index') }}" class="row mb-3 g-2 align-items-end">
             <div class="col-md-4">
                 <label for="filter_country" class="form-label">Country</label>
@@ -90,7 +90,7 @@
                 @endif
             </div>
         </form>
-        @endif
+        @endif -->
   <div class="table-card">
             <div class="table-responsive">
                 <table id="librariesTable" class="table table-hover align-middle" style="width:100%">
@@ -122,7 +122,48 @@
                                 </div>
                             </td>
                             <td>
-                                {{ $library->location ?? 'Not specified' }}
+                                @php
+                                    $rawLocation = $library->location;
+                                    $address = null;
+                                    $city = null;
+                                    $country = null;
+
+                                    if ($rawLocation) {
+                                        $parts = array_map('trim', explode(',', $rawLocation));
+
+                                        if (count($parts) === 1) {
+                                            $address = $parts[0];
+                                        } elseif (count($parts) === 2) {
+                                            $address = $parts[0];
+                                            $city = $parts[1];
+                                        } elseif (count($parts) >= 3) {
+                                            $address = implode(', ', array_slice($parts, 0, -2));
+                                            $city = $parts[count($parts) - 2] ?? null;
+                                            $country = $parts[count($parts) - 1] ?? null;
+                                        }
+                                    }
+                                @endphp
+
+                                @if(!$rawLocation)
+                                    Not specified
+                                @else
+                                    @if($address)
+                                        <div>{{ $address }}</div>
+                                    @endif
+                                    @if($city || $country)
+                                        <div class="text-muted small">
+                                            @if($city)
+                                                {{ $city }}
+                                            @endif
+                                            @if($city && $country)
+                                                ,
+                                            @endif
+                                            @if($country)
+                                                {{ $country }}
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endif
                             </td>
                             <td>
                                 @if($library->location)
