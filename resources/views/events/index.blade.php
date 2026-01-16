@@ -10,7 +10,8 @@
 @if($isPublic)
     <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">
 @else
-    <link href="{{ asset('css/fullcalendar.global.min.css') }}" rel='stylesheet' />
+    <!-- <link href="{{ asset('css/fullcalendar.global.min.css') }}" rel='stylesheet' /> -->
+     
 @endif
 @endpush
 
