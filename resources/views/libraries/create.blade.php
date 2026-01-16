@@ -79,7 +79,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="library_country" class="form-label">Country</label>
                                 <select id="library_country" name="library_country" class="form-select">
                                     <option value="">Select country</option>
@@ -89,7 +89,7 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="library_city" class="form-label">City</label>
                                 <select id="library_city" name="library_city" class="form-select">
                                     <option value="">Select city</option>
@@ -97,7 +97,7 @@
                             </div>
                             
                             <!-- Map Link -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="map_link" class="form-label">Map Link</label>
                                 <input type="url" 
                                        class="form-control @error('map_link') is-invalid @enderror" 
