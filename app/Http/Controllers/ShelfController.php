@@ -124,7 +124,27 @@ class ShelfController extends Controller
         $user = Auth::user();
         if ($request->filled('room_id')) {
             $room = Room::with('library')->findOrFail($request->room_id);
-            if (! ($user->isAdmin() || ($user->isOwner() && $room->library && $room->library->owner_id === $user->id) || ($user->isLibrarian() && $room->library && $room->library->owner_id === $user->parent_owner_id))) {
+            $library = $room->library;
+
+            $allowed = false;
+
+            if ($user->hasAdminRole()) {
+                $allowed = true;
+            } elseif ($library) {
+                if ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) {
+                    $allowed = true;
+                }
+
+                if (! $allowed && $user->isOwner()) {
+                    if ($library->owner_id === $user->id) {
+                        $allowed = true;
+                    } elseif ($library->members()->where('user_id', $user->id)->exists()) {
+                        $allowed = true;
+                    }
+                }
+            }
+
+            if (! $allowed) {
                 abort(403, 'You are not authorized to create a shelf in this room.');
             }
         }
@@ -163,7 +183,23 @@ class ShelfController extends Controller
 
         $shelf->load(['room.library', 'books']);
 
-        return view('shelves.show', compact('shelf'));
+        $books = $shelf->books;
+
+        $groupedBooks = $books->groupBy(function ($book) {
+            return $book->isbn ?: ($book->title.'|'.$book->author);
+        })->map(function ($items) {
+            $book = $items->first();
+            $inStock = $items->filter(function ($b) {
+                return empty($b->assigned_user_id) && strtolower((string) $b->status) !== 'transferred';
+            })->count();
+
+            return [
+                'book' => $book,
+                'in_stock' => $inStock,
+            ];
+        })->values();
+
+        return view('shelves.show', compact('shelf', 'groupedBooks'));
     }
 
     /**

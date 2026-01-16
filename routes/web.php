@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     // Book Routes - Custom routes MUST come before resource routes
     Route::get('/books/manage', [BookController::class, 'manage'])->name('books.manage');
     Route::get('/books/{book}/details', [BookController::class, 'details'])->name('books.details');
+    Route::get('/books/{book}/assigned-users', [BookController::class, 'assignedUsers'])->name('books.assigned-users');
 
     // Book action routes
     Route::post('/books/transfer', [BookController::class, 'transfer'])->name('books.transfer');
@@ -103,13 +104,16 @@ Route::middleware('auth')->group(function () {
 
     // Event Routes
     Route::resource('events', EventController::class)->only(['index', 'store', 'destroy']);
+    Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
+    Route::get('/events/{event}/attendees', [EventController::class, 'attendees'])->name('events.attendees');
+    Route::put('/events/{event}/registrations/{registration}', [EventController::class, 'updateRegistration'])->name('events.registrations.update');
 
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
 
-    // Public Routes
-    Route::get('/public/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');
-    Route::post('/public/return-book/{book}', [PublicController::class, 'returnBook'])->name('public.return-book');
+    // Public user routes (assigned books)
+    Route::get('/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');
+    Route::post('/return-book/{book}', [PublicController::class, 'returnBook'])->name('public.return-book');
 
     // Notifications Routes
     Route::post('/notifications/clear', function () {

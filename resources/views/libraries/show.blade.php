@@ -119,6 +119,10 @@
                             <span class="text-muted">Total Books</span>
                             <span class="badge bg-primary">{{ $library->books->count() }}</span>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Available Copies</span>
+                            <span class="badge bg-success">{{ $library->books->where('status', 'Available')->count() }}</span>
+                        </div>
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted">Total Rooms</span>
@@ -229,33 +233,36 @@
                                         <th>Author</th>
                                         <th>ISBN</th>
                                         <th>Room</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th>In Stock</th>
+                                        <th>Show</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($library->books as $book)
+                                    @foreach($groupedBooks as $group)
+                                    @php $book = $group['book']; @endphp
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="rounded me-2" style="width: 40px; height: 60px; object-fit: cover;">
-                                                <span class="fw-bold">{{ $book->title }}</span>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold">{{ $book->title }}</span>
+                                                    <span class="text-muted small">Copies in this library: {{ $group['total'] }}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>{{ $book->author }}</td>
                                         <td>{{ $book->isbn }}</td>
                                         <td>{{ $book->shelf?->room?->name ?? 'N/A' }}</td>
                                         <td>
-                                            <span class="badge bg-{{ strtolower($book->status) === 'available' ? 'success' : 'secondary' }}">
-                                                {{ ucfirst($book->status) }}
+                                            @php $available = $group['available']; @endphp
+                                            <span class="badge bg-{{ $available > 0 ? 'success' : 'secondary' }}">
+                                                {{ $available }}
                                             </span>
                                         </td>
                                         <td>
-                                            @can('view', $book)
                                             <a href="{{ route('books.show', $book) }}" class="btn btn-sm btn-outline-primary" title="View Book">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            @endcan
                                         </td>
                                     </tr>
                                     @endforeach
