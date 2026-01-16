@@ -611,7 +611,7 @@ div.dataTables_wrapper div.dataTables_filter input {
 .book-card:hover img {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-.modal-backdrop.show {
+.modal-backdrop.show , .modal-backdrop{
     display: none !important;
 }
 .text-white{
