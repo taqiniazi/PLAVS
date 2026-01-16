@@ -75,10 +75,11 @@
                             
                             <!-- Room -->
                             <div class="col-md-6 mb-3">
-                                <label for="room_id" class="form-label">Room</label>
+                                <label for="room_id" class="form-label required-field">Room</label>
                                 <select class="form-select @error('room_id') is-invalid @enderror" 
                                         id="room_id" 
-                                        name="room_id">
+                                        name="room_id"
+                                        required>
                                     <option value="">Select room</option>
                                 </select>
                                 @error('room_id')

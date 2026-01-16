@@ -118,55 +118,48 @@ class ShelfController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'room_id' => 'nullable|exists:rooms,id',
+            'room_id' => 'required|exists:rooms,id',
         ]);
 
         $user = Auth::user();
-        if ($request->filled('room_id')) {
-            $room = Room::with('library')->findOrFail($request->room_id);
-            $library = $room->library;
+        $room = Room::with('library')->findOrFail($request->room_id);
+        $library = $room->library;
 
-            $allowed = false;
+        $allowed = false;
 
-            if ($user->hasAdminRole()) {
+        if ($user->hasAdminRole()) {
+            $allowed = true;
+        } elseif ($library) {
+            if ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) {
                 $allowed = true;
-            } elseif ($library) {
-                if ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) {
+            }
+
+            if (! $allowed && $user->isOwner()) {
+                if ($library->owner_id === $user->id) {
+                    $allowed = true;
+                } elseif ($library->members()->where('user_id', $user->id)->exists()) {
                     $allowed = true;
                 }
-
-                if (! $allowed && $user->isOwner()) {
-                    if ($library->owner_id === $user->id) {
-                        $allowed = true;
-                    } elseif ($library->members()->where('user_id', $user->id)->exists()) {
-                        $allowed = true;
-                    }
-                }
             }
+        }
 
-            if (! $allowed) {
-                abort(403, 'You are not authorized to create a shelf in this room.');
-            }
+        if (! $allowed) {
+            abort(403, 'You are not authorized to create a shelf in this room.');
         }
 
         // Generate shelf code if not provided
         $code = $request->code;
         if (empty($code)) {
-            if ($request->filled('room_id')) {
-                $room = isset($room) ? $room : Room::find($request->room_id);
-                $shelfCount = Shelf::where('room_id', $request->room_id)->count() + 1;
-                $code = ($room && $room->library && isset($room->library->name[0]) ? $room->library->name[0] : 'S').'-'.($room ? $room->id : '0').'-'.$shelfCount;
-            } else {
-                // Fallback generic code when no room is selected
-                $code = 'S-'.time();
-            }
+            $room = isset($room) ? $room : Room::find($request->room_id);
+            $shelfCount = Shelf::where('room_id', $request->room_id)->count() + 1;
+            $code = ($room && $room->library && isset($room->library->name[0]) ? $room->library->name[0] : 'S').'-'.($room ? $room->id : '0').'-'.$shelfCount;
         }
 
         Shelf::create([
             'name' => $request->name,
             'code' => $code,
             'description' => $request->description,
-            'room_id' => $request->room_id, // can be null
+            'room_id' => $request->room_id,
             'library_id' => isset($room) && $room->library ? $room->library->id : null,
         ]);
 
