@@ -718,6 +718,9 @@ div.dataTables_wrapper div.dataTables_filter input {
         min-width: 280px !important;
         width: 100% !important;
     }
+    .rating-stars {
+        font-size: 10px;
+    }
 }
 .change-avatar {
     width: 35px;
