@@ -595,6 +595,7 @@ $(document).ready(function () {
         var shelfLibrarySelect = document.getElementById('modal_shelf_library_id');
         var shelfRoomSelect = document.getElementById('modal_shelf_room_id');
         var submitAddShelfBtn = document.getElementById('submitAddShelf');
+        var roomsApiBaseUrl = '{{ url('/api/libraries') }}';
 
         function renderShelfRoomOptions(rooms) {
             if (!shelfRoomSelect) {
@@ -620,7 +621,7 @@ $(document).ready(function () {
                 return;
             }
 
-            fetch('/api/libraries/' + libraryId + '/rooms')
+            fetch(roomsApiBaseUrl + '/' + libraryId + '/rooms')
                 .then(function (response) {
                     return response.json();
                 })
