@@ -104,6 +104,9 @@ Route::middleware('auth')->group(function () {
 
     // Event Routes
     Route::resource('events', EventController::class)->only(['index', 'store', 'destroy']);
+    Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
+    Route::get('/events/{event}/attendees', [EventController::class, 'attendees'])->name('events.attendees');
+    Route::put('/events/{event}/registrations/{registration}', [EventController::class, 'updateRegistration'])->name('events.registrations.update');
 
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
