@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Library;
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,32 @@ class LibraryController extends Controller
                 ->get();
         }
 
-        return view('libraries.index', compact('libraries', 'librarians'));
+        $rooms = collect();
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
+            $rooms = Room::with('library')->get();
+        } elseif ($user->isOwner()) {
+            $rooms = Room::with('library')
+                ->whereHas('library', function ($q) use ($user) {
+                    $q->where('owner_id', $user->id);
+                })
+                ->get();
+        } elseif ($user->isLibrarian()) {
+            $rooms = Room::with('library')
+                ->whereHas('library', function ($q) use ($user) {
+                    $q->where('owner_id', $user->parent_owner_id);
+                })
+                ->get();
+        }
+
+        $roomsForJs = $rooms->map(function (Room $room) {
+            return [
+                'id' => $room->id,
+                'name' => $room->name,
+                'library_id' => $room->library_id,
+            ];
+        })->values();
+
+        return view('libraries.index', compact('libraries', 'librarians', 'rooms', 'roomsForJs'));
     }
 
     /**

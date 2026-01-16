@@ -391,7 +391,7 @@
                         <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="modal_shelf_room_id" class="form-label required-field">Room</label>
-                            <select id="modal_shelf_room_id" name="room_id" class="form-select" required>
+                            <select id="modal_shelf_room_id" name="room_id" class="form-control" required>
                                 <option value="">Select room</option>
                             </select>
                             <div class="invalid-feedback">
@@ -596,50 +596,101 @@ $(document).ready(function () {
         var shelfRoomSelect = document.getElementById('modal_shelf_room_id');
         var submitAddShelfBtn = document.getElementById('submitAddShelf');
         var roomsApiBaseUrl = '{{ url('/api/libraries') }}';
+        var allRooms = @json($roomsForJs ?? []);
+        
+        console.log('All rooms loaded:', allRooms);
+        console.log('Total rooms available:', allRooms.length);
+        
+        // Wait for modal to be shown, then attach events
+        $(addShelfModal).on('shown.bs.modal', function () {
+            console.log('Modal shown - setting up event handlers');
+            
+            // Use jQuery on() for Select2 compatibility
+            $('#modal_shelf_library_id').off('change').on('change', function () {
+                console.log('Library changed to:', this.value);
+                if (shelfLibrarySelect) {
+                    shelfLibrarySelect.classList.remove('is-invalid');
+                }
+                loadShelfRooms(this.value);
+            });
+            
+            // Check if library is already selected
+            var currentLibraryId = shelfLibrarySelect ? shelfLibrarySelect.value : '';
+            console.log('Current library ID on modal open:', currentLibraryId);
+            if (currentLibraryId) {
+                loadShelfRooms(currentLibraryId);
+            }
+        });
 
         function renderShelfRoomOptions(rooms) {
+            console.log('=== renderShelfRoomOptions called ===');
+            console.log('Rooms to render:', rooms);
+            console.log('Room select element:', shelfRoomSelect);
+            
             if (!shelfRoomSelect) {
+                console.error('ERROR: Room select element not found!');
                 return;
             }
+
+            // Clear existing options
             shelfRoomSelect.innerHTML = '';
+            
+            // Add default option
             var emptyOption = document.createElement('option');
             emptyOption.value = '';
             emptyOption.textContent = 'Select room';
+            emptyOption.selected = true;
             shelfRoomSelect.appendChild(emptyOption);
 
+            // Add room options
             rooms.forEach(function (room) {
+                console.log('Adding room option:', room.name, 'ID:', room.id);
                 var opt = document.createElement('option');
                 opt.value = room.id;
                 opt.textContent = room.name;
                 shelfRoomSelect.appendChild(opt);
             });
+            
+            console.log('Total options in select:', shelfRoomSelect.options.length);
+            console.log('=== renderShelfRoomOptions complete ===');
         }
 
         function loadShelfRooms(libraryId) {
+            console.log('Loading rooms for library:', libraryId);
             renderShelfRoomOptions([]);
             if (!libraryId) {
                 return;
             }
 
+            var localRooms = [];
+            if (Array.isArray(allRooms) && allRooms.length > 0) {
+                localRooms = allRooms.filter(function (room) {
+                    return String(room.library_id) === String(libraryId);
+                });
+                console.log('Local rooms found:', localRooms);
+            }
+
+            if (localRooms.length > 0) {
+                renderShelfRoomOptions(localRooms);
+                return;
+            }
+
+            console.log('Fetching rooms from API for library:', libraryId);
             fetch(roomsApiBaseUrl + '/' + libraryId + '/rooms')
                 .then(function (response) {
                     return response.json();
                 })
                 .then(function (data) {
+                    console.log('API response:', data);
                     var rooms = (data && data.rooms) ? data.rooms : [];
                     renderShelfRoomOptions(rooms);
                 })
-                .catch(function () {
+                .catch(function (error) {
+                    console.error('Error fetching rooms:', error);
                     renderShelfRoomOptions([]);
                 });
         }
 
-        if (shelfLibrarySelect) {
-            shelfLibrarySelect.addEventListener('change', function () {
-                shelfLibrarySelect.classList.remove('is-invalid');
-                loadShelfRooms(this.value);
-            });
-        }
 
         if (shelfRoomSelect) {
             shelfRoomSelect.addEventListener('change', function () {
@@ -693,11 +744,6 @@ $(document).ready(function () {
             });
         }
     }
-var modalElement = document.getElementsByClassName('.modal');
-
-document.body.appendChild(modalElement);
-
-var myModal = new bootstrap.Modal(modalElement);
 }); 
 </script>
 @endpush

@@ -136,7 +136,7 @@ Route::middleware('auth')->group(function () {
 
     // API for fetching rooms by library (for dynamic shelf creation)
     Route::get('/api/libraries/{library}/rooms', function (\App\Models\Library $library) {
-        $rooms = $library->rooms()->get(['id', 'name']);
+        $rooms = $library->rooms()->get(['id', 'name', 'library_id']);
 
         return response()->json(['rooms' => $rooms]);
     })->name('api.libraries.rooms');
