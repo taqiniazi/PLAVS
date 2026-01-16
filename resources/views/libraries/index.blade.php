@@ -244,27 +244,41 @@ $(document).ready(function () {
     var citySelect = document.getElementById('filter_city');
 
     if (countrySelect && citySelect && mapping) {
+        var $citySelect = $(citySelect);
+
         function populateCities() {
             var selectedCountry = countrySelect.value;
             var cities = mapping[selectedCountry] || [];
             var previous = citySelect.getAttribute('data-selected-city') || '';
 
-            citySelect.innerHTML = '';
+            if ($citySelect.data('select2')) {
+                $citySelect.empty();
+                $citySelect.append(new Option('All cities', '', previous === '', previous === ''));
 
-            var emptyOption = document.createElement('option');
-            emptyOption.value = '';
-            emptyOption.textContent = 'All cities';
-            citySelect.appendChild(emptyOption);
+                cities.forEach(function (city) {
+                    var isSelected = city === previous;
+                    $citySelect.append(new Option(city, city, isSelected, isSelected));
+                });
 
-            cities.forEach(function (city) {
-                var opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                if (city === previous) {
-                    opt.selected = true;
-                }
-                citySelect.appendChild(opt);
-            });
+                $citySelect.trigger('change.select2');
+            } else {
+                citySelect.innerHTML = '';
+
+                var emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'All cities';
+                citySelect.appendChild(emptyOption);
+
+                cities.forEach(function (city) {
+                    var opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    if (city === previous) {
+                        opt.selected = true;
+                    }
+                    citySelect.appendChild(opt);
+                });
+            }
         }
 
         countrySelect.addEventListener('change', function () {

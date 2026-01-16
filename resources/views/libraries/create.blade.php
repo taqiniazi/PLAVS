@@ -255,39 +255,50 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var mapping = @json(config('countries'));
-        var countrySelect = document.getElementById('library_country');
-        var citySelect = document.getElementById('library_city');
-        if (!countrySelect || !citySelect) {
-            return;
-        }
-        function populateCities() {
-            var selectedCountry = countrySelect.value;
-            var cities = mapping[selectedCountry] || [];
-            var previous = "{{ old('library_city') }}";
-            citySelect.innerHTML = '';
-            var emptyOption = document.createElement('option');
-            emptyOption.value = '';
-            emptyOption.textContent = 'Select city';
-            citySelect.appendChild(emptyOption);
+$(function () {
+    var mapping = @json(config('countries'));
+    var $countrySelect = $('#library_country');
+    var $citySelect = $('#library_city');
+
+    if (!$countrySelect.length || !$citySelect.length) {
+        return;
+    }
+
+    function populateCities(previousCity) {
+        var selectedCountry = $countrySelect.val() || '';
+        var cities = mapping[selectedCountry] || [];
+        var previous = typeof previousCity !== 'undefined' ? previousCity : "{{ old('library_city') }}";
+
+        if ($citySelect.data('select2')) {
+            $citySelect.empty();
+            $citySelect.append(new Option('Select city', '', previous === '', previous === ''));
+
             cities.forEach(function (city) {
-                var opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                if (city === previous) {
-                    opt.selected = true;
-                }
-                citySelect.appendChild(opt);
+                var isSelected = city === previous;
+                $citySelect.append(new Option(city, city, isSelected, isSelected));
+            });
+
+            $citySelect.trigger('change.select2');
+        } else {
+            $citySelect.empty();
+            $citySelect.append(new Option('Select city', '', previous === '', previous === ''));
+
+            cities.forEach(function (city) {
+                var isSelected = city === previous;
+                $citySelect.append(new Option(city, city, isSelected, isSelected));
             });
         }
-        countrySelect.addEventListener('change', function () {
-            citySelect.value = '';
-            populateCities();
-        });
-        populateCities();
-    });
-</script>
+    }
 
-@endsection
+    $countrySelect.on('change', function () {
+        populateCities('');
+    });
+
+    populateCities();
+});
+</script>
+@endpush
+
+293→ @endsection
