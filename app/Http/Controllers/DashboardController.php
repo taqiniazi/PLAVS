@@ -123,10 +123,10 @@ class DashboardController extends Controller
         }
 
         $recent_books = Book::query()
-            ->whereIn('id', function($q) {
+            ->whereIn('id', function ($q) {
                 $q->selectRaw('MAX(id)')
-                  ->from('books')
-                  ->groupBy('title', 'author', 'shelf_id');
+                    ->from('books')
+                    ->groupBy('title', 'author', 'shelf_id');
             })
             ->latest()
             ->take(4)
@@ -140,8 +140,10 @@ class DashboardController extends Controller
                 $desc = $activity->description;
                 $desc = preg_replace_callback('/user ID (\d+)/i', function ($m) {
                     $u = \App\Models\User::find($m[1]);
+
                     return $u ? 'user '.$u->name : $m[0];
                 }, $desc);
+
                 return [
                     'type' => ucfirst(str_replace('_', ' ', $activity->type)),
                     'description' => $desc,

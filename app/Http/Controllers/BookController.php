@@ -26,10 +26,10 @@ class BookController extends Controller
 
             // Group by title, author, and shelf_id to show unique entries (handling multiple copies)
             // We use a subquery to select the latest ID of each group to avoid duplicates in the list
-            $query->whereIn('id', function($q) {
+            $query->whereIn('id', function ($q) {
                 $q->selectRaw('MAX(id)')
-                  ->from('books')
-                  ->groupBy('title', 'author', 'shelf_id');
+                    ->from('books')
+                    ->groupBy('title', 'author', 'shelf_id');
             });
         } else {
             $query = $user ? $user->booksThroughAssignment() : Book::query();
@@ -234,11 +234,11 @@ class BookController extends Controller
         for ($i = 0; $i < $copies; $i++) {
             $book = Book::create($bookData);
             // Log activity for each copy
-            $this->logActivity('book_added', 'New book added: '.$book->title . ($copies > 1 ? " (Copy ".($i+1)." of $copies)" : ""), $book);
+            $this->logActivity('book_added', 'New book added: '.$book->title.($copies > 1 ? ' (Copy '.($i + 1)." of $copies)" : ''), $book);
             $count++;
         }
 
-        return redirect()->route('books.index')->with('success', $count . ' book(s) added successfully!');
+        return redirect()->route('books.index')->with('success', $count.' book(s) added successfully!');
     }
 
     public function show(Book $book)
@@ -464,15 +464,16 @@ class BookController extends Controller
         ]);
 
         $book = Book::findOrFail($validated['book_id']);
-        
+
         // Check if book is already assigned
         if ($book->assigned_user_id) {
-             if ($request->expectsJson()) {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Book is already assigned.',
                 ], 400);
             }
+
             return redirect()->back()->withErrors(['book_id' => 'Book is already assigned.']);
         }
 
@@ -481,7 +482,7 @@ class BookController extends Controller
         $book->save();
 
         $assignedUser = User::find($validated['assigned_user_id']);
-        
+
         // Attach to pivot table for history and permission tracking
         if ($assignedUser) {
             $assignedUser->booksThroughAssignment()->attach($book->id, [
@@ -846,6 +847,7 @@ class BookController extends Controller
         }
         $assignedUsers = $book->assignedUsers()->get();
         $currentHolder = $book->assignedUser;
+
         return view('books.assigned_users', compact('book', 'assignedUsers', 'currentHolder'));
     }
 }

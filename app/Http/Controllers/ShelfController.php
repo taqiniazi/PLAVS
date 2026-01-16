@@ -163,7 +163,23 @@ class ShelfController extends Controller
 
         $shelf->load(['room.library', 'books']);
 
-        return view('shelves.show', compact('shelf'));
+        $books = $shelf->books;
+
+        $groupedBooks = $books->groupBy(function ($book) {
+            return $book->isbn ?: ($book->title.'|'.$book->author);
+        })->map(function ($items) {
+            $book = $items->first();
+            $inStock = $items->filter(function ($b) {
+                return empty($b->assigned_user_id) && strtolower((string) $b->status) !== 'transferred';
+            })->count();
+
+            return [
+                'book' => $book,
+                'in_stock' => $inStock,
+            ];
+        })->values();
+
+        return view('shelves.show', compact('shelf', 'groupedBooks'));
     }
 
     /**

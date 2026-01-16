@@ -2,6 +2,10 @@
 
 @section('title', 'Shelf Details')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
+@endpush
+
 @section('content')
 @php
     $user = auth()->user();
@@ -64,22 +68,27 @@
                     </p>
                 @else
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle">
+                        <table id="shelfBooksTable" class="table table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Title</th>
                                     <th>Author</th>
-                                    <th>ISBN</th>
-                                    <th>Status</th>
+                                    <th>In Stock</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($shelf->books as $book)
+                                @foreach($groupedBooks as $entry)
+                                    @php $book = $entry['book']; @endphp
                                     <tr>
                                         <td>{{ $book->title }}</td>
                                         <td>{{ $book->author }}</td>
-                                        <td>{{ $book->isbn }}</td>
-                                        <td>{{ $book->status }}</td>
+                                        <td>
+                                            @if($entry['in_stock'] > 0)
+                                                <span class="badge bg-success">{{ $entry['in_stock'] }}</span>
+                                            @else
+                                                <span class="badge bg-secondary">0</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -93,3 +102,18 @@
 
 @endsection
 
+@push('scripts')
+<script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('js/dataTables.bootstrap5.min.js') }}"></script>
+<script>
+$(document).ready(function () {
+    $('#shelfBooksTable').DataTable({
+        "language": {
+            "search": "Search books:",
+            "lengthMenu": "Display _MENU_ books per page",
+            "info": "Showing _START_ to _END_ of _TOTAL_ books"
+        }
+    });
+});
+</script>
+@endpush
