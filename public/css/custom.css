@@ -517,6 +517,12 @@ div.dataTables_wrapper div.dataTables_filter input {
 }
 
 /* Modal Styles */
+.modal {
+    z-index: 1060;
+}
+.modal-backdrop {
+    z-index: 1050;
+}
 .modal-header {
     background-color:#009688;
     color: white;
@@ -611,9 +617,9 @@ div.dataTables_wrapper div.dataTables_filter input {
 .book-card:hover img {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-.modal-backdrop.show , .modal-backdrop{
+/* .modal-backdrop.show , .modal-backdrop{
     display: none !important;
-}
+} */
 .text-white{
     color: #fff !important;
 }

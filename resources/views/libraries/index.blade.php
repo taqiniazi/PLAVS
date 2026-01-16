@@ -347,6 +347,9 @@
 @endcan
 
 @can('create', App\Models\Shelf::class)
+@php
+    $canSelectLibraryForShelf = isset($libraries) && $libraries->count() > 0;
+@endphp
 <div class="modal fade" id="addShelfModal" tabindex="-1" aria-labelledby="addShelfModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -357,21 +360,87 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p class="mb-2">
-                    Shelves help you organize books inside rooms and libraries.
-                </p>
-                <p class="mb-0 text-muted">
-                    Continue to the shelf creation page, where you can choose the library and room, then enter shelf details.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{{ route('shelves.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>
-                    Go to Add Shelf
-                </a>
-            </div>
+            @if($canSelectLibraryForShelf)
+                <form id="addShelfForm" method="POST" action="{{ route('shelves.store') }}">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="modal_shelf_name" class="form-label required-field">Shelf Name</label>
+                            <input type="text"
+                                   id="modal_shelf_name"
+                                   name="name"
+                                   class="form-control"
+                                   placeholder="Enter shelf name"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please enter a shelf name.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_shelf_library_id" class="form-label required-field">Library</label>
+                            <select id="modal_shelf_library_id" name="library_id" class="form-select" required>
+                                <option value="">Select library</option>
+                                @foreach($libraries as $lib)
+                                    <option value="{{ $lib->id }}">
+                                        {{ $lib->name }}@if($lib->location) ({{ $lib->location }}) @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a library.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_shelf_room_id" class="form-label required-field">Room</label>
+                            <select id="modal_shelf_room_id" name="room_id" class="form-select" required>
+                                <option value="">Select room</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a room.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_shelf_code" class="form-label">Shelf Code</label>
+                            <input type="text"
+                                   id="modal_shelf_code"
+                                   name="code"
+                                   class="form-control"
+                                   placeholder="e.g., A-01, B-02">
+                            <div class="form-text">
+                                Optional: Add a unique code for easy identification. Leave blank to auto-generate.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_shelf_description" class="form-label">Description</label>
+                            <textarea id="modal_shelf_description"
+                                      name="description"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Describe what this shelf is for (optional)"></textarea>
+                            <div class="form-text">
+                                Optional: Add details about the shelf's purpose or contents.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitAddShelf">
+                            <i class="fas fa-plus me-2"></i>Create Shelf
+                        </button>
+                    </div>
+                </form>
+            @else
+                <div class="modal-body">
+                    <p class="mb-0 text-muted">
+                        There are no libraries available for you to create shelves in.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -518,6 +587,111 @@ $(document).ready(function () {
                 if (submitAddRoomBtn) {
                     submitAddRoomBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
                     submitAddRoomBtn.disabled = true;
+                }
+            });
+        }
+    }
+
+    var addShelfModal = document.getElementById('addShelfModal');
+    if (addShelfModal) {
+        var addShelfForm = document.getElementById('addShelfForm');
+        var shelfNameInput = document.getElementById('modal_shelf_name');
+        var shelfLibrarySelect = document.getElementById('modal_shelf_library_id');
+        var shelfRoomSelect = document.getElementById('modal_shelf_room_id');
+        var submitAddShelfBtn = document.getElementById('submitAddShelf');
+
+        function renderShelfRoomOptions(rooms) {
+            if (!shelfRoomSelect) {
+                return;
+            }
+            shelfRoomSelect.innerHTML = '';
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Select room';
+            shelfRoomSelect.appendChild(emptyOption);
+
+            rooms.forEach(function (room) {
+                var opt = document.createElement('option');
+                opt.value = room.id;
+                opt.textContent = room.name;
+                shelfRoomSelect.appendChild(opt);
+            });
+        }
+
+        function loadShelfRooms(libraryId) {
+            renderShelfRoomOptions([]);
+            if (!libraryId) {
+                return;
+            }
+
+            fetch('/api/libraries/' + libraryId + '/rooms')
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    var rooms = (data && data.rooms) ? data.rooms : [];
+                    renderShelfRoomOptions(rooms);
+                })
+                .catch(function () {
+                    renderShelfRoomOptions([]);
+                });
+        }
+
+        if (shelfLibrarySelect) {
+            shelfLibrarySelect.addEventListener('change', function () {
+                shelfLibrarySelect.classList.remove('is-invalid');
+                loadShelfRooms(this.value);
+            });
+        }
+
+        if (shelfRoomSelect) {
+            shelfRoomSelect.addEventListener('change', function () {
+                shelfRoomSelect.classList.remove('is-invalid');
+            });
+        }
+
+        if (shelfNameInput) {
+            shelfNameInput.addEventListener('input', function () {
+                shelfNameInput.classList.remove('is-invalid');
+            });
+        }
+
+        if (addShelfForm) {
+            addShelfForm.addEventListener('submit', function (e) {
+                var hasError = false;
+                var libraryId = shelfLibrarySelect ? shelfLibrarySelect.value : '';
+                var roomId = shelfRoomSelect ? shelfRoomSelect.value : '';
+                var shelfName = shelfNameInput ? shelfNameInput.value.trim() : '';
+
+                if (!shelfName) {
+                    if (shelfNameInput) {
+                        shelfNameInput.classList.add('is-invalid');
+                    }
+                    hasError = true;
+                }
+
+                if (!libraryId) {
+                    if (shelfLibrarySelect) {
+                        shelfLibrarySelect.classList.add('is-invalid');
+                    }
+                    hasError = true;
+                }
+
+                if (!roomId) {
+                    if (shelfRoomSelect) {
+                        shelfRoomSelect.classList.add('is-invalid');
+                    }
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return;
+                }
+
+                if (submitAddShelfBtn) {
+                    submitAddShelfBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+                    submitAddShelfBtn.disabled = true;
                 }
             });
         }

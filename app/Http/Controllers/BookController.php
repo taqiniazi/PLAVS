@@ -80,12 +80,12 @@ class BookController extends Controller
             });
         }
 
-        // Pagination
+        // Pagination (20 per page)
         if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
-            $books = $query->paginate(15)->appends($request->query());
+            $books = $query->paginate(20)->appends($request->query());
         } else {
-            // For assigned books (students/teachers), usually get all or paginate
-            $books = $query->orderByPivot('assigned_at', 'desc')->paginate(15)->appends($request->query());
+            // For assigned books (students/teachers)
+            $books = $query->orderByPivot('assigned_at', 'desc')->paginate(20)->appends($request->query());
         }
 
         return view('books.index', compact('books'));
