@@ -58,8 +58,7 @@ class RoomController extends Controller
      */
     public function create(Library $library)
     {
-        $this->authorize('manageContent', $library);
-        // Provide libraries list for owners/librarians with multiple libraries to allow switching
+        $this->authorize('create', Room::class);
         $user = Auth::user();
         if ($user->isAdmin()) {
             $libraries = Library::all();
@@ -71,6 +70,14 @@ class RoomController extends Controller
             $libraries = collect();
         }
 
+        if ($libraries->isEmpty()) {
+            abort(403);
+        }
+
+        if (! $libraries->contains('id', $library->id)) {
+            $library = $libraries->first();
+        }
+
         return view('rooms.create', compact('library', 'libraries'));
     }
 
@@ -79,13 +86,34 @@ class RoomController extends Controller
      */
     public function store(Request $request, Library $library)
     {
-        $this->authorize('manageContent', $library);
+        $this->authorize('create', Room::class);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'library_id' => 'required|exists:libraries,id',
         ]);
 
-        $library->rooms()->create($validated);
+        $user = Auth::user();
+        $library = Library::findOrFail($validated['library_id']);
+
+        $allowed = false;
+
+        if ($user->hasAdminRole()) {
+            $allowed = true;
+        } elseif ($user->isOwner() && $library->owner_id === $user->id) {
+            $allowed = true;
+        } elseif ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) {
+            $allowed = true;
+        }
+
+        if (! $allowed) {
+            abort(403, 'You are not authorized to create a room in this library.');
+        }
+
+        $library->rooms()->create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
 
         return redirect()->route('libraries.show', $library)
             ->with('success', 'Room created successfully.');
