@@ -122,20 +122,27 @@
                                                                             <span class="badge bg-primary">{{ $shelf->total_books }}</span>
                                                                         </div>
                                                                         
-                                                                        @if($shelf->books->count() > 0)
+                                                                        @php
+                                                                            $uniqueBooks = $shelf->books->groupBy(function ($book) {
+                                                                                return $book->isbn ?: ($book->title.'|'.$book->author);
+                                                                            })->map(function ($items) {
+                                                                                return $items->first();
+                                                                            })->values();
+                                                                        @endphp
+                                                                        @if($uniqueBooks->count() > 0)
                                                                             <div class="book-preview mt-2">
                                                                                 <p class="small text-muted mb-1">Recent Books:</p>
                                                                                 <ul class="list-unstyled small">
-                                                                                    @foreach($shelf->books->take(3) as $book)
+                                                                                    @foreach($uniqueBooks->take(3) as $book)
                                                                                         <li>
                                                                                             <i class="fas fa-book text-secondary me-1"></i>
                                                                                             {{ Str::limit($book->title, 30) }}
                                                                                         </li>
                                                                                     @endforeach
                                                                                 </ul>
-                                                                                @if($shelf->books->count() > 3)
+                                                                                @if($uniqueBooks->count() > 3)
                                                                                     <p class="small text-muted mb-0">
-                                                                                        +{{ $shelf->books->count() - 3 }} more books
+                                                                                        +{{ $uniqueBooks->count() - 3 }} more books
                                                                                     </p>
                                                                                 @endif
                                                                             </div>
