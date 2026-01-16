@@ -37,10 +37,20 @@
 
 <div class="row mt-3">
     <div class="col-lg-12">
-        <div class="page-header mb-4">
-            <h4 class="page-title">{{ $isPublic ? 'All Libraries.' : 'My Libraries' }}</h4>
-            @can('create', App\Models\Library::class)
-            <div class="float-end">
+        <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+            <h4 class="page-title mb-0">{{ $isPublic ? 'All Libraries.' : 'My Libraries' }}</h4>
+            <div class="d-flex gap-2">
+                @can('create', App\Models\Room::class)
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                    <i class="fas fa-door-open me-2"></i>Add Room
+                </button>
+                @endcan
+                @can('create', App\Models\Shelf::class)
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addShelfModal">
+                    <i class="fas fa-book me-2"></i>Add Shelf
+                </button>
+                @endcan
+                @can('create', App\Models\Library::class)
                 <a href="{{ route('libraries.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Add Library
                 </a>
@@ -49,8 +59,8 @@
                     <i class="fas fa-user-plus me-2"></i>Add Librarian
                 </a>
                 @endif
+                @endcan
             </div>
-            @endcan
         </div>
 
         <!-- @if($isPublic)
@@ -91,7 +101,7 @@
             </div>
         </form>
         @endif -->
-  <div class="table-card">
+  <div class="table-card mb-4">
             <div class="table-responsive">
                 <table id="librariesTable" class="table table-hover align-middle" style="width:100%">
                     <thead>
@@ -187,11 +197,13 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 @endcan
+
                                 @can('update', $library)
                                 <a href="{{ route('libraries.edit', $library) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 @endcan
+
                                 @can('delete', $library)
                                 <form method="POST" action="{{ route('libraries.destroy', $library) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this library? This action cannot be undone.')">
                                     @csrf
@@ -251,10 +263,120 @@
             </div>
         </div>
         @endif
-
-      
     </div>
 </div>
+
+@can('create', App\Models\Room::class)
+@php
+    $canSelectLibraryForRoom = isset($libraries) && $libraries->count() > 0;
+@endphp
+<div class="modal fade" id="addRoomModal" tabindex="-1" aria-labelledby="addRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoomModalLabel">
+                    <i class="fas fa-door-open me-2"></i>
+                    Add Room
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            @if($canSelectLibraryForRoom)
+                <form id="addRoomForm" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="modal_library_id" class="form-label required-field">Library</label>
+                            <select id="modal_library_id" name="library_id" class="form-select">
+                                <option value="">Select library</option>
+                                @foreach($libraries as $lib)
+                                    <option value="{{ $lib->id }}">
+                                        {{ $lib->name }}@if($lib->location) ({{ $lib->location }}) @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a library.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_room_name" class="form-label required-field">Room Name</label>
+                            <input type="text"
+                                   id="modal_room_name"
+                                   name="name"
+                                   class="form-control"
+                                   placeholder="Enter room name"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please enter a room name.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal_room_description" class="form-label">Description</label>
+                            <textarea id="modal_room_description"
+                                      name="description"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Describe this room (optional)"></textarea>
+                            <div class="form-text">
+                                Optional: Add details about the room's purpose or features.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitAddRoom">
+                            <i class="fas fa-plus me-2"></i>Create Room
+                        </button>
+                    </div>
+                </form>
+            @else
+                <div class="modal-body">
+                    <p class="mb-0 text-muted">
+                        There are no libraries available for you to create rooms in.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+@endcan
+
+@can('create', App\Models\Shelf::class)
+<div class="modal fade" id="addShelfModal" tabindex="-1" aria-labelledby="addShelfModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addShelfModalLabel">
+                    <i class="fas fa-book me-2"></i>
+                    Add Shelf
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">
+                    Shelves help you organize books inside rooms and libraries.
+                </p>
+                <p class="mb-0 text-muted">
+                    Continue to the shelf creation page, where you can choose the library and room, then enter shelf details.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{{ route('shelves.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Go to Add Shelf
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endcan
+
 @endsection
 
 @push('scripts')
@@ -345,6 +467,61 @@ $(document).ready(function () {
 
         populateCities();
     }
-});
+
+    var addRoomModal = document.getElementById('addRoomModal');
+    if (addRoomModal) {
+        var addRoomForm = document.getElementById('addRoomForm');
+        var modalLibrarySelect = document.getElementById('modal_library_id');
+        var roomNameInput = document.getElementById('modal_room_name');
+        var submitAddRoomBtn = document.getElementById('submitAddRoom');
+
+        if (modalLibrarySelect) {
+            modalLibrarySelect.addEventListener('change', function () {
+                modalLibrarySelect.classList.remove('is-invalid');
+            });
+        }
+
+        if (roomNameInput) {
+            roomNameInput.addEventListener('input', function () {
+                roomNameInput.classList.remove('is-invalid');
+            });
+        }
+
+        if (addRoomForm) {
+            addRoomForm.addEventListener('submit', function (e) {
+                var libraryId = modalLibrarySelect ? modalLibrarySelect.value : '';
+                var roomName = roomNameInput ? roomNameInput.value.trim() : '';
+                var hasError = false;
+
+                if (!libraryId) {
+                    if (modalLibrarySelect) {
+                        modalLibrarySelect.classList.add('is-invalid');
+                    }
+                    hasError = true;
+                }
+
+                if (!roomName) {
+                    if (roomNameInput) {
+                        roomNameInput.classList.add('is-invalid');
+                    }
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return;
+                }
+
+                var baseUrl = '{{ url('/libraries') }}';
+                addRoomForm.action = baseUrl + '/' + libraryId + '/rooms';
+
+                if (submitAddRoomBtn) {
+                    submitAddRoomBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+                    submitAddRoomBtn.disabled = true;
+                }
+            });
+        }
+    }
+}); 
 </script>
 @endpush
