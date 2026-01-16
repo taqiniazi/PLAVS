@@ -29,6 +29,10 @@ class InvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(
+                config('mail.from.address', 'noreply@library.com'),
+                config('mail.from.name', 'Library Management System')
+            ),
             subject: 'You have been invited to join a Library',
         );
     }
