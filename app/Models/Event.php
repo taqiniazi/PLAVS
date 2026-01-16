@@ -12,15 +12,9 @@ class Event extends Model
     protected $fillable = [
         'title',
         'description',
-        'location',
-        'speakers',
         'start_date',
         'end_date',
         'color',
-        'fee_amount',
-        'fee_currency',
-        'bank_name',
-        'bank_account',
         'created_by',
     ];
 
@@ -32,10 +26,5 @@ class Event extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function registrations()
-    {
-        return $this->hasMany(EventRegistration::class);
     }
 }

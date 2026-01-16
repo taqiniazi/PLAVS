@@ -84,22 +84,9 @@ class LibraryPolicy
      */
     public function manageContent(User $user, Library $library): bool
     {
-        if ($user->isSuperAdmin() || $user->isAdmin()) {
-            return true;
-        }
-
-        if ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) {
-            return true;
-        }
-
-        if ($user->isOwner() && $library->owner_id === $user->id) {
-            return true;
-        }
-
-        if ($user->isOwner() && $library->members()->where('user_id', $user->id)->exists()) {
-            return true;
-        }
-
-        return false;
+        return $user->isSuperAdmin() ||
+               $user->isAdmin() ||
+               ($user->isLibrarian() && $library->owner_id === $user->parent_owner_id) ||
+               ($user->isOwner() && $library->owner_id === $user->id);
     }
 }

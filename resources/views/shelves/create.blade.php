@@ -139,97 +139,53 @@
 
 @push('scripts')
 <script>
-$(function () {
-    var $nameInput = $('#name');
-    if ($nameInput.length) {
-        $nameInput.trigger('focus');
-    }
-
-    var $librarySelect = $('#library_id');
-    var $roomSelect = $('#room_id');
-
-    function renderRoomOptions(rooms, selectedRoomId) {
-        var oldRoomId = selectedRoomId || '{{ old('room_id') }}';
-        var hasSelect2 = !!$roomSelect.data('select2');
-
-        if (hasSelect2) {
-            $roomSelect.empty();
-            $roomSelect.append(new Option('Select room', '', !oldRoomId, !oldRoomId));
-
-            rooms.forEach(function (room) {
-                var isSelected = oldRoomId && String(room.id) === String(oldRoomId);
-                $roomSelect.append(new Option(room.name, room.id, isSelected, isSelected));
-            });
-
-            $roomSelect.trigger('change.select2');
-        } else {
-            var selectEl = $roomSelect.get(0);
-            if (!selectEl) {
-                return;
-            }
-
-            selectEl.innerHTML = '';
-            var emptyOption = document.createElement('option');
-            emptyOption.value = '';
-            emptyOption.textContent = 'Select room';
-            if (!oldRoomId) {
-                emptyOption.selected = true;
-            }
-            selectEl.appendChild(emptyOption);
-
-            rooms.forEach(function (room) {
-                var opt = document.createElement('option');
-                opt.value = room.id;
-                opt.textContent = room.name;
-                if (oldRoomId && String(room.id) === String(oldRoomId)) {
-                    opt.selected = true;
-                }
-                selectEl.appendChild(opt);
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus on the first input field
+    document.getElementById('name').focus();
+    
+    // Dynamic room loading based on selected library
+    const librarySelect = document.getElementById('library_id');
+    const roomSelect = document.getElementById('room_id');
+    
+    function loadRooms(libraryId) {
+        // Clear current options except the default
+        roomSelect.innerHTML = '<option value="">Select room</option>';
+        if (libraryId) {
+            fetch(`/api/libraries/${libraryId}/rooms`)
+                .then(response => response.json())
+                .then(data => {
+                    data.rooms.forEach(room => {
+                        const option = document.createElement('option');
+                        option.value = room.id;
+                        option.textContent = room.name;
+                        roomSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching rooms:', error);
+                    roomSelect.innerHTML = '<option value="">Error loading rooms</option>';
+                });
         }
     }
 
-    function loadRooms(libraryId, selectedRoomId) {
-        renderRoomOptions([], selectedRoomId);
-        if (!libraryId) {
-            return;
-        }
-
-        fetch('/api/libraries/' + libraryId + '/rooms')
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                var rooms = (data && data.rooms) ? data.rooms : [];
-                renderRoomOptions(rooms, selectedRoomId);
-            })
-            .catch(function () {
-                renderRoomOptions([], null);
-            });
-    }
-
-    if ($librarySelect.length && $roomSelect.length) {
-        $librarySelect.on('change', function () {
-            var libraryId = $(this).val();
-            loadRooms(libraryId, '');
+    if (librarySelect) {
+        librarySelect.addEventListener('change', function() {
+            loadRooms(this.value);
         });
-
-        var initialLibraryId = $librarySelect.val() || '{{ old('library_id') }}';
+        // Initial load: if single library (hidden input) or old selected value
+        const initialLibraryId = librarySelect.value || '{{ old('library_id') }}';
         if (initialLibraryId) {
-            loadRooms(initialLibraryId, '{{ old('room_id') }}');
-        } else {
-            renderRoomOptions([], '{{ old('room_id') }}');
+            loadRooms(initialLibraryId);
         }
     }
-
-    var $form = $('form').first();
-    var $submitBtn = $form.find('button[type="submit"]').first();
-
-    $form.on('submit', function () {
-        if ($submitBtn.length) {
-            $submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Creating...');
-            $submitBtn.prop('disabled', true);
-        }
+    
+    // Add some interactivity for better UX
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function() {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+        submitBtn.disabled = true;
     });
 });
 </script>

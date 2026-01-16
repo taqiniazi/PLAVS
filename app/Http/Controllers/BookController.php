@@ -93,7 +93,6 @@ class BookController extends Controller
 
     public function create()
     {
-        $this->authorize('create', Book::class);
         $user = Auth::user();
         $activeLibraryId = session('active_library_id');
         $ownerId = $user->isOwner() ? $user->id : ($user->isLibrarian() ? $user->parent_owner_id : null);
@@ -124,8 +123,6 @@ class BookController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorize('create', Book::class);
-
         // Basic validation first
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -151,8 +148,18 @@ class BookController extends Controller
 
         $shelfModel = Shelf::with('room.library')->findOrFail($validated['shelf']);
 
+        $user = Auth::user();
+
         if ($shelfModel->room && $shelfModel->room->library) {
             $library = $shelfModel->room->library;
+
+            if ($user->isOwner() && $library->owner_id !== $user->id) {
+                abort(403);
+            }
+
+            if ($user->isLibrarian() && $library->owner_id !== $user->parent_owner_id) {
+                abort(403);
+            }
 
             if ($request->filled('library_id') && (int) $request->input('library_id') !== (int) $library->id) {
                 return redirect()->back()
@@ -478,10 +485,8 @@ class BookController extends Controller
 
         // Attach to pivot table for history and permission tracking
         if ($assignedUser) {
-            $assignmentType = 'admin_assign';
-
             $assignedUser->booksThroughAssignment()->attach($book->id, [
-                'assignment_type' => $assignmentType,
+                'assignment_type' => 'manual',
                 'notes' => $validated['reason'] ?? null,
                 'assigned_at' => now(),
                 'is_returned' => false,

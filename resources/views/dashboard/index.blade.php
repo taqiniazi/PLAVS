@@ -390,7 +390,6 @@ $hasAdminRole = $user->hasAdminRole();
             var mapping = @json(config('countries'));
             var countrySelect = document.getElementById('owner_request_country');
             var citySelect = document.getElementById('owner_request_city');
-            var $citySelect = $(citySelect);
             if (!countrySelect || !citySelect) {
                 return;
             }
@@ -398,26 +397,17 @@ $hasAdminRole = $user->hasAdminRole();
             function populateOwnerRequestCities() {
                 var selectedCountry = countrySelect.value;
                 var cities = mapping[selectedCountry] || [];
-                if ($citySelect.data('select2')) {
-                    $citySelect.empty();
-                    $citySelect.append(new Option('Select city', '', true, true));
-                    cities.forEach(function(city) {
-                        $citySelect.append(new Option(city, city, false, false));
-                    });
-                    $citySelect.trigger('change.select2');
-                } else {
-                    citySelect.innerHTML = '';
-                    var emptyOption = document.createElement('option');
-                    emptyOption.value = '';
-                    emptyOption.textContent = 'Select city';
-                    citySelect.appendChild(emptyOption);
-                    cities.forEach(function(city) {
-                        var opt = document.createElement('option');
-                        opt.value = city;
-                        opt.textContent = city;
-                        citySelect.appendChild(opt);
-                    });
-                }
+                citySelect.innerHTML = '';
+                var emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'Select city';
+                citySelect.appendChild(emptyOption);
+                cities.forEach(function(city) {
+                    var opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
             }
             countrySelect.addEventListener('change', function() {
                 citySelect.value = '';

@@ -20,9 +20,7 @@
 
     <div class="main-content">
         @include('partials.topbar')
-        @if(request()->routeIs('dashboard'))
         @include('partials.welcome-banner')
-        @endif
         
         @yield('content')
     </div>

@@ -8,11 +8,11 @@
             <i class="fas fa-th-large"></i> Dashboard
         </a>
 
-        {{-- Administrative Links: Super Admin --}}
+        {{-- Administrative Links: Super Admin / Admin / Librarian / Owner --}}
         @if(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'superadmin', 'Super Admin']))
-            <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+            <!-- <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
                 <i class="fas fa-search"></i> View Books
-            </a>
+            </a> -->
             <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
                 <i class="fas fa-box-open"></i> Manage Books
             </a>
@@ -38,12 +38,10 @@
         @else
             @php $user = auth()->check() ? auth()->user() : null; @endphp
 
-            {{-- View Books: Admin / Owner / Librarian --}}
-            @if($user && ($user->isOwner() || $user->isLibrarian() || $user->isAdmin()))
-                <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
-                    <i class="fas fa-search"></i> View Books
-                </a>
-            @endif
+            {{-- All users can view books --}}
+            <a href="{{ route('books.index') }}" class="nav-link {{ request()->routeIs('books.index') ? 'active' : '' }}">
+                <i class="fas fa-search"></i> View Books
+            </a>
             @if($user && ($user->isOwner() || $user->isLibrarian() || $user->isAdmin()))
                 <a href="{{ route('books.manage') }}" class="nav-link {{ request()->routeIs('books.manage') ? 'active' : '' }}">
                     <i class="fas fa-box-open"></i> Manage Books
@@ -92,9 +90,6 @@
             @if($user && $user->isPublic())
                 <a href="{{ route('public.assigned-books') }}" class="nav-link {{ request()->routeIs('public.assigned-books') ? 'active' : '' }}">
                     <i class="fas fa-book-reader"></i> Assigned Books
-                </a>
-                <a href="{{ route('wishlist.index') }}" class="nav-link {{ request()->routeIs('wishlist.index') ? 'active' : '' }}">
-                    <i class="fas fa-heart"></i> Wishlist
                 </a>
             @endif
         @endif
