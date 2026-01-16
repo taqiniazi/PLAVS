@@ -19,7 +19,7 @@ class ShelfController extends Controller
         $activeLibraryId = session('active_library_id');
 
         if ($user->isAdmin()) {
-            $shelvesQuery = Shelf::with(['room.library', 'books']);
+            $shelvesQuery = Shelf::whereHas('room.library')->with(['room.library', 'books']);
             if ($activeLibraryId) {
                 $shelvesQuery->whereHas('room.library', function ($query) use ($activeLibraryId) {
                     $query->where('id', $activeLibraryId);
