@@ -3,7 +3,7 @@
 @section('title', 'Shelf Details')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">
 @endpush
 
 @section('content')
@@ -104,7 +104,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('js/dataTables.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('js/dataTables.bootstrap.min.js') }}"></script>
 <script>
 $(document).ready(function () {
     $('#shelfBooksTable').DataTable({
