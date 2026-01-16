@@ -518,7 +518,7 @@ div.dataTables_wrapper div.dataTables_filter input {
 
 /* Modal Styles */
 .modal {
-    z-index: 1060;
+    z-index: 9999;
 }
 .modal-backdrop {
     z-index: 1050;

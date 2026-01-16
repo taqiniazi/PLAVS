@@ -696,6 +696,14 @@ $(document).ready(function () {
             });
         }
     }
+    // 1. Select the modal element
+var modalElement = document.getElementsByClassName('.modal');
+
+// 2. Move it to the very end of the <body> tag
+document.body.appendChild(modalElement);
+
+// 3. Initialize and show the modal
+var myModal = new bootstrap.Modal(modalElement);
 }); 
 </script>
 @endpush

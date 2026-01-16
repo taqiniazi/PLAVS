@@ -17,6 +17,16 @@
     <script src="{{ asset('js/select2.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
+document.addEventListener("DOMContentLoaded", function() {
+    var allModals = document.querySelectorAll('.modal');
+
+    allModals.forEach(function(modal) {
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
+});
+
 $(function () {
     if (!$.fn.select2) {
         return;

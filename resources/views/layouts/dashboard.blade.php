@@ -30,6 +30,16 @@
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
+document.addEventListener("DOMContentLoaded", function() {
+    var allModals = document.querySelectorAll('.modal');
+
+    allModals.forEach(function(modal) {
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
+});
+
 $(function () {
     if ($.fn.DataTable) {
         $('.datatable').DataTable();
