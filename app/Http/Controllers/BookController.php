@@ -153,8 +153,13 @@ class BookController extends Controller
         if ($shelfModel->room && $shelfModel->room->library) {
             $library = $shelfModel->room->library;
 
-            if ($user->isOwner() && $library->owner_id !== $user->id) {
-                abort(403);
+            if ($user->isOwner()) {
+                $isOwnerOfLibrary = $library->owner_id === $user->id;
+                $isMemberOfLibrary = $library->members()->where('user_id', $user->id)->exists();
+
+                if (! $isOwnerOfLibrary && ! $isMemberOfLibrary) {
+                    abort(403);
+                }
             }
 
             if ($user->isLibrarian() && $library->owner_id !== $user->parent_owner_id) {
