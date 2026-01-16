@@ -78,6 +78,10 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    background: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #d1cdcd;
 }
 .search-box {
     background-color: #eefbf5;
@@ -709,6 +713,10 @@ div.dataTables_wrapper div.dataTables_filter input {
 @media screen and (max-width:480px) {
     .room-info-card .info-item{
         width: 100%;
+    }
+    ul.dropdown-menu.dropdown-menu-end.show {
+        min-width: 280px !important;
+        width: 100% !important;
     }
 }
 .change-avatar {
