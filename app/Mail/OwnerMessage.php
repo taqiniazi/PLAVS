@@ -25,6 +25,7 @@ class OwnerMessage extends Mailable
     {
         return $this->subject($this->subjectLine)
                     ->replyTo($this->sender->email, $this->sender->name)
-                    ->view('emails.owner_message');
+                    ->view('emails.owner_message')
+                    ->text('emails.owner_message_text');
     }
 }

@@ -9,6 +9,6 @@
     <hr>
     <p>{!! nl2br(e($messageContent)) !!}</p>
     <hr>
-    <p>This message was sent from MyBookShelf.</p>
+    <p>This message was sent from {{ config('app.name') }}.</p>
 </body>
 </html>
