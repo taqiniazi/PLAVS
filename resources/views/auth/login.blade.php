@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p class="text-muted mb-5">Welcome! Please enter your details</p>
             </div>
 
+            @if (session('status'))
+                <div class="alert alert-success mb-4" role="alert">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <form action="{{ route('login.post') }}" method="POST">
                 @csrf
                 <div class="mb-3">
@@ -77,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 <div class="text-center">
                     <p class="text-muted small">Don't have an account? <a href="{{ route('register') }}" class="text-dark fw-bold text-decoration-none">Sign up</a></p>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <a href="{{ route('password.request') }}" class="forgot-password">Forgot Password?</a>
                 </div>
             </form>
         </div>

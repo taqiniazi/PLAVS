@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -45,16 +50,15 @@ class AuthController extends Controller
             'requested_owner' => false,
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        event(new Registered($user));
 
-        if (session()->has('invitation_token')) {
-            $token = session('invitation_token');
+        // Log registration for superadmin
+        Log::build([
+          'driver' => 'single',
+          'path' => storage_path('logs/registrations.log'),
+        ])->info('New user registered: ' . $user->email . ' at ' . now());
 
-            return app(InvitationController::class)->accept($token);
-        }
-
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('login')->with('status', 'Registration successful! Please check your email for verification link before logging in.');
     }
 
     public function login(Request $request)
@@ -65,10 +69,18 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            $user = Auth::user();
+
+            if (!$user->hasVerifiedEmail()) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => ['You need to verify your email address before logging in.'],
+                ]);
+            }
+
             $request->session()->regenerate();
 
             // Update last login timestamp
-            $user = Auth::user();
             $user->last_login_at = now();
             $user->save();
 
@@ -94,6 +106,70 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    public function verify(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+            abort(403);
+        }
+
+        if (!$user->hasVerifiedEmail()) {
+            if ($user->markEmailAsVerified()) {
+                event(new Verified($user));
+            }
+        }
+
+        return redirect()->route('login')->with('status', 'Email verified successfully! You can now login.');
+    }
+
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+                    ? back()->with(['status' => __($status)])
+                    : back()->withErrors(['email' => __($status)]);
+    }
+
+    public function showResetPassword(Request $request)
+    {
+        return view('auth.reset-password', ['request' => $request]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+
+                event(new \Illuminate\Auth\Events\PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+                    ? redirect()->route('login')->with('status', __($status))
+                    : back()->withErrors(['email' => __($status)]);
     }
 
     public function apiRegister(Request $request)
