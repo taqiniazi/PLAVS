@@ -80,6 +80,21 @@ class BookController extends Controller
             });
         }
 
+        // Filter by specific owner (for Admins viewing owner's books)
+        if ($request->has('owner_id') && ! empty($request->owner_id)) {
+            $ownerId = $request->owner_id;
+            $ownerUser = User::find($ownerId);
+            
+            if ($ownerUser) {
+                $query->where(function ($q) use ($ownerId, $ownerUser) {
+                    $q->whereHas('shelf.room.library', function ($subQ) use ($ownerId) {
+                        $subQ->where('owner_id', $ownerId);
+                    })
+                    ->orWhere('owner', $ownerUser->name);
+                });
+            }
+        }
+
         // Pagination (20 per page)
         if ($user && ($user->canViewAllBooks() || $user->isLibrarian())) {
             $books = $query->paginate(20)->appends($request->query());

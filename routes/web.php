@@ -121,6 +121,8 @@ Route::middleware('auth')->group(function () {
 
     // Owner Routes
     Route::get('/owners', [OwnerController::class, 'index'])->name('owners.index');
+    Route::get('/owners/{user}', [OwnerController::class, 'show'])->name('owners.show');
+    Route::post('/owners/send-message', [OwnerController::class, 'sendMessage'])->name('owners.send_message');
 
     // Public user routes (assigned books)
     Route::get('/assigned-books', [PublicController::class, 'assignedBooks'])->name('public.assigned-books');

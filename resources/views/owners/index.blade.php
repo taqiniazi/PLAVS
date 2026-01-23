@@ -46,13 +46,18 @@
                             </td>
                             <td>{{ $owner['joined_date'] }}</td>
                             <td class="text-end">
-                                <button class="btn-action btn-assign" data-bs-toggle="tooltip" title="View Profile">
+                                <a href="{{ route('owners.show', $owner['id']) }}" class="btn-action btn-assign" data-bs-toggle="tooltip" title="View Profile">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn-action btn-transfer" data-bs-toggle="tooltip" title="View Books">
+                                </a>
+                                <a href="{{ route('books.index', ['owner_id' => $owner['id']]) }}" class="btn-action btn-transfer" data-bs-toggle="tooltip" title="View Books">
                                     <i class="fas fa-book"></i>
-                                </button>
-                                <button class="btn-action btn-shelves bg-success" data-bs-toggle="tooltip" title="Send Message">
+                                </a>
+                                <button type="button" class="btn-action btn-shelves bg-success border-0" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#sendMessageModal" 
+                                        data-recipient-id="{{ $owner['id'] }}" 
+                                        data-recipient-name="{{ $owner['name'] }}"
+                                        title="Send Message">
                                     <i class="fas fa-envelope"></i>
                                 </button>
                             </td>
@@ -64,6 +69,37 @@
         </div>
     </div>
 </div>
+
+<!-- Send Message Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('owners.send_message') }}" method="POST">
+            @csrf
+            <input type="hidden" name="recipient_id" id="recipient_id">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sendMessageModalLabel">Send Message to <span id="recipient_name"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -95,6 +131,20 @@ $(document).ready(function () {
         for(var i = 0; i < checkboxes.length; i++) {
             checkboxes[i].checked = this.checked;
         }
+    });
+
+    // Handle Send Message Modal
+    var sendMessageModal = document.getElementById('sendMessageModal');
+    sendMessageModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var recipientId = button.getAttribute('data-recipient-id');
+        var recipientName = button.getAttribute('data-recipient-name');
+        
+        var modalTitle = sendMessageModal.querySelector('.modal-title span');
+        var recipientIdInput = sendMessageModal.querySelector('#recipient_id');
+        
+        modalTitle.textContent = recipientName;
+        recipientIdInput.value = recipientId;
     });
 });
 </script>

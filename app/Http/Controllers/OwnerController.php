@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class OwnerController extends Controller
 {
@@ -21,5 +24,30 @@ class OwnerController extends Controller
         });
 
         return view('owners.index', compact('owners'));
+    }
+
+    public function show(User $user)
+    {
+        $user->loadCount('ownedBooks');
+        // Load libraries owned by this user
+        $libraries = \App\Models\Library::where('owner_id', $user->id)->withCount('books')->get();
+
+        return view('owners.show', compact('user', 'libraries'));
+    }
+
+    public function sendMessage(Request $request)
+    {
+        $request->validate([
+            'recipient_id' => 'required|exists:users,id',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        $recipient = User::findOrFail($request->recipient_id);
+        $sender = Auth::user();
+
+        Mail::to($recipient->email)->send(new \App\Mail\OwnerMessage($sender, $request->subject, $request->message));
+
+        return back()->with('success', 'Message sent successfully to ' . $recipient->name);
     }
 }
