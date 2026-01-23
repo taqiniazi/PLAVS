@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @section('content')
 <div class="container-fluid p-0">
-    <div class="row g-0 login-container">
+    <div class="row g-0 login-container" style="overflow-y:auto">
         <div class="col-lg-6 left-panel">
             <div class="text-center">
                 <div class="logo-text">
