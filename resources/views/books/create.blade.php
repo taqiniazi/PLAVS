@@ -415,6 +415,32 @@ $(function(){
                 .always(function(){ $('#smartSearchBtn').prop('disabled', false).text('Search'); });
         }
 
+        // Check if query looks like an ISBN (10 or 13 digits, allowing for hyphens)
+        var cleanIsbn = query.replace(/[-\s]/g, '');
+        var isIsbn = (cleanIsbn.length === 10 || cleanIsbn.length === 13) && /^[0-9X]+$/i.test(cleanIsbn);
+
+        if (isIsbn) {
+            $.getJSON('https://www.googleapis.com/books/v1/volumes?q=isbn:' + encodeURIComponent(cleanIsbn))
+                .done(function(data){
+                    if (data.totalItems && data.items && data.items.length) {
+                        if (data.items.length === 1) {
+                            fillFormFromVolume(data.items[0]);
+                        } else {
+                            renderResults(data.items);
+                            $('#smartSearchModal').modal('show');
+                        }
+                        $('#smartSearchBtn').prop('disabled', false).text('Search');
+                    } else {
+                        // If ISBN specific search fails, fallback to title search
+                        doTitleSearch(query);
+                    }
+                })
+                .fail(function(){
+                    doTitleSearch(query);
+                });
+            return;
+        }
+
         // Heuristic: if query contains whitespace or punctuation common in titles, treat as title search
         var looksLikeVolumeId = !/\s/.test(query) && !/[\"'\(\)\&\%]/.test(query) && query.length <= 80;
 
