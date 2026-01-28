@@ -33,7 +33,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    max-width: 300px;
+    max-width: 260px;
     width: 100%;
 }
 .logo-icon {
