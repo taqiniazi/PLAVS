@@ -65,7 +65,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-duration="1000">
                     <h1 class="hero-title">Transform Your Library Experience</h1>
-                    <p class="hero-subtitle">LibraFlow revolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
+                    <p class="hero-subtitle">MyBookShelfrevolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
                     <div class="hero-buttons">
                         <a href="#features" class="btn btn-primary me-3">Explore Features</a>
                         @auth
@@ -75,8 +75,8 @@
                         @endauth
                     </div>
                 </div>
-                <div class="col-lg-6 hero-image text-center" data-aos="fade-left" data-aos-duration="1000">
-                    <img src="{{ asset('images/login_bg.png') }}" alt="Library Management Dashboard" class="img-fluid rounded-4 shadow-lg">
+                <div class="col-lg-6 ms-auto hero-image text-center" data-aos="fade-left" data-aos-duration="1000">
+                    <img src="{{ asset('images/landing-image.jpeg') }}" alt="Library Management Dashboard" class="img-fluid rounded-4 shadow-lg">
                 </div>
             </div>
         </div>
@@ -153,7 +153,7 @@
             <div class="row mb-5">
                 <div class="col-12 text-center" data-aos="fade-up" data-aos-duration="1000">
                     <h2 class="section-title">How It Works</h2>
-                    <p class="section-subtitle">Get started with LibraFlow in three simple steps</p>
+                    <p class="section-subtitle">Get started with MyBookShelfin three simple steps</p>
                 </div>
             </div>
             

@@ -19,12 +19,12 @@ body {
     position: relative;
 }
 /* Overlay to match the blueish tint in your image */
-.right-panel::before {
+/* .right-panel::before {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(15, 61, 74, 0.3); 
-}
+} */
 .logo-text {
     font-weight: 700;
     color: #0f3d4a;
