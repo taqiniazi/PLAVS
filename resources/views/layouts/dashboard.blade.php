@@ -51,8 +51,8 @@
         
         @yield('content')
     </div>
-    <div class="footer-bottom text-center">
-        <p>&copy; 2026 PLAVS . All rights reserved. | Designed with <i class="fas fa-heart-fill text-danger"></i> for book lovers everywhere</p>
+    <div class="footer-bottom bg-white py-3 text-center">
+        <p class="mb-0">&copy; 2026 PLAVS . All rights reserved. | Designed with <i class="fas fa-heart text-danger"></i> for book lovers everywhere</p>
     </div>
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>

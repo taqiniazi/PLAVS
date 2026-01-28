@@ -35,6 +35,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    max-width: 140px;
+    width: 100%;
 }
 .nav-link {
     color: #888;
