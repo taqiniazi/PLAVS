@@ -4,10 +4,9 @@
     --secondary-color: #3a4bcc;
     --accent-color: #ff7e5f;
     --light-color: #f8faff;
-    --dark-color: #1a1f3c;
-    --gradient-1: linear-gradient(135deg, #5d6afb 0%, #3a4bcc 100%);
-    --gradient-2: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
-    --gradient-3: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --dark-color: #0b3b45;
+    --gradient-1: linear-gradient(135deg, #0b3b45 0%, #2192aa 100%);
+    --gradient-3: linear-gradient(135deg, #00047c 0%, #0040af 100%);
 }
 
 * {
@@ -123,7 +122,7 @@ body {
 }
 
 .btn-primary {
-    background: var(--gradient-2);
+    background: var(--gradient-1);
     border: none;
 }
 
@@ -134,7 +133,7 @@ body {
 
 .btn-outline-light:hover {
     background: white;
-    color: var(--primary-color) !important;
+    color: var(--dark-color) !important;
     transform: translateY(-3px);
 }
 
@@ -246,7 +245,7 @@ body {
 }
 
 .feature-list i {
-    color: var(--accent-color);
+    color: var(--dark-color);
     margin-right: 10px;
     font-size: 1.2rem;
 }
@@ -362,7 +361,16 @@ body {
     font-size: 1.2rem;
     color: #ffcc00;
 }
-
+.btn-outline-primary {
+    border-color: var(--dark-color);
+    color: var(--dark-color);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus{
+    background: var(--gradient-1) !important;
+    border-color: var(--dark-color);
+    color: white;
+}
 .btn-admin {
     background: white;
     color: var(--primary-color);
