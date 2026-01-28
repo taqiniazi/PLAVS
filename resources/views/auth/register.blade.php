@@ -11,8 +11,8 @@
     <div class="row g-0 login-container">
         <div class="col-lg-6 left-panel">
             <div class="text-center">
-                <div class="logo-text">
-                    <img src="{{ asset('images/logo.png') }}" alt="" class="img-fluid">
+                <div class="logo-text mx-auto">
+                    <img src="{{ asset('images/login_logo.png') }}" alt="" class="img-fluid">
                 </div>
                 <h4 class="fw-bold mb-1">SIGN UP</h4>
                 <p class="text-muted mb-5">Create your account to get started</p>

@@ -384,7 +384,9 @@ $hasAdminRole = $user->hasAdminRole();
             </div>
         </div>
     </div>
+    
     @endif
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var mapping = @json(config('countries'));

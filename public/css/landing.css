@@ -47,6 +47,8 @@ body {
     font-size: 1.8rem;
     display: flex;
     align-items: center;
+    max-width: 180px;
+    width: 100%;
 }
 
 .navbar-brand i {
@@ -147,7 +149,9 @@ body {
     50% { transform: translateY(-20px); }
     100% { transform: translateY(0px); }
 }
-
+img{
+    width: 100%;
+}
 .hero-image img {
     max-width: 100%;
     border-radius: 20px;
@@ -398,7 +402,9 @@ footer {
     color: white;
     padding: 80px 0 30px;
 }
-
+.text-orange{
+    color: #ff7e5f;
+}
 .footer-logo {
     font-size: 1.8rem;
     font-weight: 700;
@@ -406,6 +412,8 @@ footer {
     background: var(--gradient-2);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    max-width: 180px;
+    width: 100%;
 }
 
 .footer-about {

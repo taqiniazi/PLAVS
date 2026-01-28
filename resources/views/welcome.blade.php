@@ -21,7 +21,7 @@
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="{{ asset('images/landing-logo.png') }}" alt="Logo" class="logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -65,7 +65,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-duration="1000">
                     <h1 class="hero-title">Transform Your Library Experience</h1>
-                    <p class="hero-subtitle">PLAVS revolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
+                    <p class="hero-subtitle">PLAVS <em class="text-orange">(Physical Library Assets Visibility System)</em> revolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
                     <div class="hero-buttons">
                         <a href="#features" class="btn btn-primary me-3">Explore Features</a>
                         @auth
@@ -75,7 +75,7 @@
                         @endauth
                     </div>
                 </div>
-                <div class="col-lg-6 ms-auto hero-image text-center" data-aos="fade-left" data-aos-duration="1000">
+                <div class="col-lg-6 ps-lg-5 hero-image text-center" data-aos="fade-left" data-aos-duration="1000">
                     <img src="{{ asset('images/landing-image.jpeg') }}" alt="Library Management Dashboard" class="img-fluid rounded-4 shadow-lg">
                 </div>
             </div>
@@ -253,7 +253,7 @@
             <div class="row">
                 <div class="col-lg-4 mb-5 mb-lg-0">
                     <!-- <div class="footer-logo">PLAVS </div> -->
-                                         <div class="footer-logo"><img src="{{ asset('images/footer-logo.png') }}" alt="Logo" class="logo"></div>
+                    <div class="footer-logo"><img src="{{ asset('images/footer-logo.png') }}" alt="Logo" class="logo"></div>
 
                     <p class="footer-about">PLAVS  is your complete digital solution for organizing, tracking, and sharing your personal book collection. Join thousands of book lovers who have transformed their libraries.</p>
                     <div class="social-icons">

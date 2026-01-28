@@ -8,10 +8,10 @@
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
     @stack('styles')
     <script src="{{ asset('js/jquery-3.7.0.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('js/select2.min.js') }}"></script>
 
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 </head>
@@ -51,7 +51,9 @@
         
         @yield('content')
     </div>
-    
+    <div class="footer-bottom text-center">
+        <p>&copy; 2026 PLAVS . All rights reserved. | Designed with <i class="fas fa-heart-fill text-danger"></i> for book lovers everywhere</p>
+    </div>
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
