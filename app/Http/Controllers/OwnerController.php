@@ -31,8 +31,11 @@ class OwnerController extends Controller
         $user->loadCount('ownedBooks');
         // Load libraries owned by this user
         $libraries = \App\Models\Library::where('owner_id', $user->id)->withCount('books')->get();
+        
+        // Load latest owner request (for displaying submitted details even if library not created yet)
+        $ownerRequest = $user->ownerRequests()->latest()->first();
 
-        return view('owners.show', compact('user', 'libraries'));
+        return view('owners.show', compact('user', 'libraries', 'ownerRequest'));
     }
 
     public function sendMessage(Request $request)

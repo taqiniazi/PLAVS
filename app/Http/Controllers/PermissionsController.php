@@ -49,6 +49,8 @@ class PermissionsController extends Controller
             'library_country' => 'nullable|string|max:120',
             'library_address' => 'nullable|string|max:255',
             'library_phone' => 'nullable|string|max:30',
+            'payment_method' => 'required|in:easypaisa,jazzcash,banktransfer',
+            'transaction_screenshot' => 'required|image|max:2048',
         ]);
 
         // Avoid duplicate pending requests from same user
@@ -59,6 +61,11 @@ class PermissionsController extends Controller
             return redirect()->back()->with('error', 'You already have a pending owner request.');
         }
 
+        $screenshotPath = null;
+        if ($request->hasFile('transaction_screenshot')) {
+            $screenshotPath = $request->file('transaction_screenshot')->store('payment_proofs', 'public');
+        }
+
         \App\Models\OwnerRequest::create([
             'user_id' => $user->id,
             'library_name' => $validated['library_name'],
@@ -66,6 +73,9 @@ class PermissionsController extends Controller
             'library_country' => $validated['library_country'] ?? null,
             'library_address' => $validated['library_address'] ?? null,
             'library_phone' => $validated['library_phone'] ?? null,
+            'payment_method' => $validated['payment_method'],
+            'transaction_screenshot_path' => $screenshotPath,
+            'amount' => 1000.00,
             'status' => 'pending',
         ]);
 

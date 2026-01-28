@@ -83,6 +83,25 @@
                     <div class="text-center py-5">
                         <i class="fas fa-building fa-2x text-muted mb-3 opacity-50"></i>
                         <p class="text-muted">No libraries created yet.</p>
+                        
+                        @if((auth()->user()->isSuperAdmin() || auth()->user()->isAdmin()) && isset($ownerRequest))
+                        <div class="mt-4 text-start px-5">
+                            <h6 class="fw-bold border-bottom pb-2">Submitted Library Details</h6>
+                            <div class="row g-2 small">
+                                <div class="col-md-4 text-muted">Library Name:</div>
+                                <div class="col-md-8 fw-bold">{{ $ownerRequest->library_name }}</div>
+                                
+                                <div class="col-md-4 text-muted">Address:</div>
+                                <div class="col-md-8">{{ $ownerRequest->library_address ?? 'N/A' }}</div>
+                                
+                                <div class="col-md-4 text-muted">City/Country:</div>
+                                <div class="col-md-8">{{ $ownerRequest->library_city }}, {{ $ownerRequest->library_country }}</div>
+                                
+                                <div class="col-md-4 text-muted">Phone:</div>
+                                <div class="col-md-8">{{ $ownerRequest->library_phone ?? 'N/A' }}</div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     @endif
                 </div>

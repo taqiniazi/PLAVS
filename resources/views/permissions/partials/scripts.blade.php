@@ -33,6 +33,24 @@
             });
         }
 
+        // Screenshot Modal
+        var screenshotModal = document.getElementById('screenshotModal');
+        if (screenshotModal) {
+            screenshotModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var imageUrl = button.getAttribute('data-image-url');
+                var modalImage = screenshotModal.querySelector('#modalScreenshotImage');
+                var downloadLink = screenshotModal.querySelector('#downloadScreenshotLink');
+                
+                if (modalImage) {
+                    modalImage.src = imageUrl;
+                }
+                if (downloadLink) {
+                    downloadLink.href = imageUrl;
+                }
+            });
+        }
+
         var editRoleForm = document.getElementById('editRoleForm');
         if (editRoleForm) {
             editRoleForm.addEventListener('submit', function(e) {

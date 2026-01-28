@@ -341,7 +341,7 @@ $hasAdminRole = $user->hasAdminRole();
                     <h5 class="modal-title" id="ownerRequestModalLabel">Request Owner Role</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="{{ route('permissions.request-owner') }}">
+                <form method="POST" action="{{ route('permissions.request-owner') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3">
@@ -372,6 +372,40 @@ $hasAdminRole = $user->hasAdminRole();
                                 <label class="form-label">Address</label>
                                 <input type="text" name="library_address" class="form-control">
                             </div>
+
+                            <div class="col-12 mt-4">
+                                <h6 class="fw-bold border-bottom pb-2">Payment Details (Fee: 1000 PKR)
+                                    <br><small class="text-muted fw-normal">Please select a payment method to view account details, and upload a screenshot of the payment.</small>
+                                </h6>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label d-block mb-2">Payment Method</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="pm_easypaisa" value="easypaisa" required {{ old('payment_method') == 'easypaisa' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="pm_easypaisa">Easypaisa</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="pm_jazzcash" value="jazzcash" required {{ old('payment_method') == 'jazzcash' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="pm_jazzcash">Jazzcash</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="pm_banktransfer" value="banktransfer" required {{ old('payment_method') == 'banktransfer' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="pm_banktransfer">Bank Transfer</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 mt-2 d-none" id="payment-info-container">
+                                <div class="p-3 bg-light rounded border border-secondary border-opacity-25">
+                                    <h6 class="fw-bold text-primary mb-2">Transfer Details</h6>
+                                    <p class="mb-1"><strong>Account Title:</strong> abc</p>
+                                    <p class="mb-0"><strong id="payment-account-label">Account No.</strong>: 030000000000</p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Transaction Screenshot</label>
+                                <input type="file" name="transaction_screenshot" class="form-control" accept="image/*" required>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -390,42 +424,80 @@ $hasAdminRole = $user->hasAdminRole();
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var mapping = @json(config('countries'));
-            var countrySelect = document.getElementById('owner_request_country');
-            var citySelect = document.getElementById('owner_request_city');
-            var $citySelect = $(citySelect);
-            if (!countrySelect || !citySelect) {
+            var $countrySelect = $('#owner_request_country');
+            var $citySelect = $('#owner_request_city');
+
+            if ($countrySelect.length === 0 || $citySelect.length === 0) {
                 return;
             }
 
             function populateOwnerRequestCities() {
-                var selectedCountry = countrySelect.value;
+                var selectedCountry = $countrySelect.val();
                 var cities = mapping[selectedCountry] || [];
-                if ($citySelect.data('select2')) {
-                    $citySelect.empty();
-                    $citySelect.append(new Option('Select city', '', true, true));
-                    cities.forEach(function(city) {
-                        $citySelect.append(new Option(city, city, false, false));
-                    });
-                    $citySelect.trigger('change.select2');
-                } else {
-                    citySelect.innerHTML = '';
-                    var emptyOption = document.createElement('option');
-                    emptyOption.value = '';
-                    emptyOption.textContent = 'Select city';
-                    citySelect.appendChild(emptyOption);
-                    cities.forEach(function(city) {
-                        var opt = document.createElement('option');
-                        opt.value = city;
-                        opt.textContent = city;
-                        citySelect.appendChild(opt);
-                    });
-                }
+                
+                // Clear current options
+                $citySelect.empty();
+                
+                // Add default option
+                $citySelect.append(new Option('Select city', '', true, true));
+                
+                // Add city options
+                cities.forEach(function(city) {
+                    $citySelect.append(new Option(city, city, false, false));
+                });
+
+                // Trigger change event to update Select2
+                $citySelect.trigger('change');
             }
-            countrySelect.addEventListener('change', function() {
-                citySelect.value = '';
+
+            // Listen for change on country select using jQuery to catch Select2 changes
+            $countrySelect.on('change', function() {
+                // We don't want to clear value immediately, let populate handle it
+                // But we do want to reset city selection when country changes
                 populateOwnerRequestCities();
             });
-            populateOwnerRequestCities();
+
+            // Initial population if country is already selected (e.g. old input)
+            if ($countrySelect.val()) {
+                var oldCity = "{{ old('library_city') }}";
+                populateOwnerRequestCities();
+                if (oldCity) {
+                    $citySelect.val(oldCity).trigger('change');
+                }
+            }
+
+            // Payment Method Logic
+            var $paymentRadios = $('input[name="payment_method"]');
+            var $paymentInfoContainer = $('#payment-info-container');
+            var $paymentAccountLabel = $('#payment-account-label');
+
+            function updatePaymentInfo() {
+                var selectedMethod = $('input[name="payment_method"]:checked').val();
+                
+                if (selectedMethod) {
+                    $paymentInfoContainer.removeClass('d-none');
+                    var labelText = 'Account No.';
+                    
+                    if (selectedMethod === 'jazzcash') {
+                        labelText = 'Jazz Cash No.';
+                    } else if (selectedMethod === 'easypaisa') {
+                        labelText = 'Easypaisa No.';
+                    } else if (selectedMethod === 'banktransfer') {
+                        labelText = 'Rast (IBAN) No.';
+                    }
+                    
+                    $paymentAccountLabel.text(labelText);
+                } else {
+                    $paymentInfoContainer.addClass('d-none');
+                }
+            }
+
+            $paymentRadios.on('change', updatePaymentInfo);
+            
+            // Check on load (for validation errors)
+            if ($('input[name="payment_method"]:checked').length > 0) {
+                updatePaymentInfo();
+            }
         });
     </script>
     @endsection

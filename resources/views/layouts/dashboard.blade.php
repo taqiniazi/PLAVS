@@ -65,6 +65,15 @@ document.addEventListener("DOMContentLoaded", function() {
             document.body.appendChild(modal);
         }
     });
+
+    // Auto-hide alerts after 3 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 3000);
 });
 
 $(function () {
