@@ -24,8 +24,27 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+use App\Models\User;
+use App\Models\Book;
+use App\Models\Library;
+use Illuminate\Support\Facades\DB;
+
 // Authentication Routes
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/', function () {
+    try {
+        $booksCount = Book::count();
+        $usersCount = User::count();
+        $librariesCount = Library::count();
+        $lentBooksCount = DB::table('book_user')->count();
+    } catch (\Exception $e) {
+        $booksCount = 0;
+        $usersCount = 0;
+        $librariesCount = 0;
+        $lentBooksCount = 0;
+    }
+
+    return view('welcome', compact('booksCount', 'usersCount', 'librariesCount', 'lentBooksCount'));
+})->name('home');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
