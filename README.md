@@ -1,4 +1,4 @@
-# MyBookShelf - Laravel Backend Implementation
+# PLAVS - Laravel Backend Implementation
 
 This Laravel application is a complete backend implementation based on the frontend designs provided.
 

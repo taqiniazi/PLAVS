@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'MyBookShelf - Dashboard')
+@section('title', 'PLAVS - Dashboard')
 
 @section('content')
 @php

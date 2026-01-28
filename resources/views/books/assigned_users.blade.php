@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'MyBookShelf - Assigned Users')
+@section('title', 'PLAVS - Assigned Users')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">

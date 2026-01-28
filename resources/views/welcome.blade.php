@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyBookShelf | Physical Library Management Reimagined</title>
+    <title>PLAVS | Physical Library Assets Visibility System</title>
     <!-- Bootstrap 5 CSS -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -65,7 +65,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-duration="1000">
                     <h1 class="hero-title">Transform Your Library Experience</h1>
-                    <p class="hero-subtitle">MyBookShelfrevolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
+                    <p class="hero-subtitle">PLAVSrevolutionizes how you manage, share, and enjoy your book collection. Keep a digital inventory, track lending, and connect with fellow book lovers.</p>
                     <div class="hero-buttons">
                         <a href="#features" class="btn btn-primary me-3">Explore Features</a>
                         @auth
@@ -153,7 +153,7 @@
             <div class="row mb-5">
                 <div class="col-12 text-center" data-aos="fade-up" data-aos-duration="1000">
                     <h2 class="section-title">How It Works</h2>
-                    <p class="section-subtitle">Get started with MyBookShelfin three simple steps</p>
+                    <p class="section-subtitle">Get started with PLAVSin three simple steps</p>
                 </div>
             </div>
             
@@ -252,10 +252,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-5 mb-lg-0">
-                    <!-- <div class="footer-logo">MyBookShelf</div> -->
+                    <!-- <div class="footer-logo">PLAVS</div> -->
                                          <div class="footer-logo"><img src="{{ asset('images/footer-logo.png') }}" alt="Logo" class="logo"></div>
 
-                    <p class="footer-about">MyBookShelf is your complete digital solution for organizing, tracking, and sharing your personal book collection. Join thousands of book lovers who have transformed their libraries.</p>
+                    <p class="footer-about">PLAVS is your complete digital solution for organizing, tracking, and sharing your personal book collection. Join thousands of book lovers who have transformed their libraries.</p>
                     <div class="social-icons">
                         <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
                         <a href="#" class="social-icon"><i class="bi bi-twitter"></i></a>
@@ -292,7 +292,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2026 MyBookShelf. All rights reserved. | Designed with <i class="bi bi-heart-fill text-danger"></i> for book lovers everywhere</p>
+                <p>&copy; 2026 PLAVS. All rights reserved. | Designed with <i class="bi bi-heart-fill text-danger"></i> for book lovers everywhere</p>
             </div>
         </div>
     </footer>

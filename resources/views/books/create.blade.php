@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'MyBookShelf - Add New Book')
+@section('title', 'PLAVS - Add New Book')
 
 @section('content')
 @if(session('success'))

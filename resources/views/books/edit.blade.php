@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'MyBookShelf - Edit Book')
+@section('title', 'PLAVS - Edit Book')
 
 @section('content')
 <div class="row mt-3">
