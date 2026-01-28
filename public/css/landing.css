@@ -128,7 +128,7 @@ body {
 
 .btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 126, 95, 0.3);
+    box-shadow: 0 8px 20px rgba(1, 26, 125, 0.3);
 }
 
 .btn-outline-light:hover {
@@ -243,9 +243,12 @@ body {
     display: flex;
     align-items: center;
 }
-
+.btn {
+    min-height: 38px;
+    line-height: 1.6;
+}
 .feature-list i {
-    color: var(--dark-color);
+    color: var(--accent-color);
     margin-right: 10px;
     font-size: 1.2rem;
 }
@@ -302,7 +305,7 @@ body {
 /* Stats Section */
 .stats-section {
     padding: 80px 0;
-    background: var(--gradient-3);
+    background: var(--gradient-1);
     color: white;
     text-align: center;
 }
@@ -359,7 +362,7 @@ body {
 .admin-feature i {
     margin-right: 10px;
     font-size: 1.2rem;
-    color: #ffcc00;
+    color: var(--light-color);
 }
 .btn-outline-primary {
     border-color: var(--dark-color);
