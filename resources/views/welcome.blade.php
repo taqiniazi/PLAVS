@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LibraFlow | Digital Library Management Reimagined</title>
     <!-- Bootstrap 5 CSS -->
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -22,7 +21,7 @@
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo">
+                <img src="{{ asset('images/landing-logo.png') }}" alt="Logo" class="logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -253,7 +252,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-5 mb-lg-0">
-                    <div class="footer-logo">MyBookShelf</div>
+                    <!-- <div class="footer-logo">MyBookShelf</div> -->
+                                         <div class="footer-logo"><img src="{{ asset('images/footer-logo.png') }}" alt="Logo" class="logo"></div>
+
                     <p class="footer-about">MyBookShelf is your complete digital solution for organizing, tracking, and sharing your personal book collection. Join thousands of book lovers who have transformed their libraries.</p>
                     <div class="social-icons">
                         <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
