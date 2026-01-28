@@ -12,9 +12,94 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\BookResource;
 
 class BookController extends Controller
 {
+    // API Methods
+    public function apiIndex(Request $request)
+    {
+        $query = Book::query();
+
+        // Search
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('author', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('isbn', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('publisher', 'LIKE', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Filter by Owner
+        if ($request->has('owner_id') && !empty($request->owner_id)) {
+            $ownerId = $request->owner_id;
+            $query->where(function ($q) use ($ownerId) {
+                $q->whereHas('shelf.room.library', function ($subQ) use ($ownerId) {
+                    $subQ->where('owner_id', $ownerId);
+                })
+                ->orWhere('owner', User::find($ownerId)->name ?? '');
+            });
+        }
+        
+        // Filter by Library
+        if ($request->has('library_id') && !empty($request->library_id)) {
+             $query->whereHas('shelf.room.library', function ($q) use ($request) {
+                $q->where('id', $request->library_id);
+             });
+        }
+
+        $books = $query->paginate(20);
+
+        return BookResource::collection($books);
+    }
+
+    public function details(Book $book)
+    {
+        return new BookResource($book->load(['shelf.room.library', 'shelf']));
+    }
+
+    public function store(Request $request)
+    {
+        // Reuse existing validation logic or create new
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'isbn' => 'nullable|string|max:20',
+            'publisher' => 'nullable|string|max:255',
+            'published_year' => 'nullable|integer',
+            'description' => 'nullable|string',
+            'cover_image' => 'nullable|image|max:2048',
+        ]);
+
+        // Add owner logic if authenticated via API
+        // For simplicity, assuming basic creation for now
+        $book = Book::create($validated);
+
+        return new BookResource($book);
+    }
+
+    public function update(Request $request, Book $book)
+    {
+        $validated = $request->validate([
+            'title' => 'string|max:255',
+            'author' => 'string|max:255',
+            // ... add other fields
+        ]);
+
+        $book->update($validated);
+
+        return new BookResource($book);
+    }
+
+    public function destroy(Book $book)
+    {
+        $book->delete();
+        return response()->json(['message' => 'Book deleted successfully']);
+    }
+
+    // Existing Web Methods
     public function index(Request $request)
     {
         $user = Auth::user();

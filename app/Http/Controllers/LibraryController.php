@@ -12,9 +12,41 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\LibraryResource;
+use App\Http\Resources\BookResource;
 
 class LibraryController extends Controller
 {
+    // API Methods
+    public function apiIndex(Request $request)
+    {
+        $query = Library::with('owner')->withCount('books');
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('location', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('city')) {
+            $query->where('location', 'like', '%' . $request->city . '%');
+        }
+
+        $libraries = $query->paginate(20);
+
+        return LibraryResource::collection($libraries);
+    }
+
+    public function apiShow(Library $library)
+    {
+        return new LibraryResource($library->load(['owner'])->loadCount('books'));
+    }
+
+    public function apiBooks(Library $library)
+    {
+        $books = $library->books()->paginate(20);
+        return BookResource::collection($books);
+    }
+
     /**
      * Display a listing of the libraries.
      */
@@ -328,64 +360,6 @@ class LibraryController extends Controller
         return redirect()->back()
             ->with('success', 'Invite token generated.')
             ->with('invite_url', route('libraries.join', $library->invite_token));
-    }
-
-    public function apiIndex(): JsonResponse
-    {
-        $libraries = Library::with('owner:id,name')
-            ->withCount('books')
-            ->where('type', 'public')
-            ->get()
-            ->map(function (Library $library) {
-                return [
-                    'id' => $library->id,
-                    'name' => $library->name,
-                    'type' => $library->type,
-                    'location' => $library->location,
-                    'description' => $library->description,
-                    'contact_email' => $library->contact_email,
-                    'contact_phone' => $library->contact_phone,
-                    'owner' => $library->owner ? $library->owner->name : null,
-                    'books_count' => $library->books_count,
-                ];
-            });
-
-        return response()->json(['data' => $libraries]);
-    }
-
-    public function apiShow(Library $library): JsonResponse
-    {
-        if ($library->isPrivate()) {
-            abort(404);
-        }
-
-        $library->load('owner:id,name')->loadCount('books');
-
-        return response()->json([
-            'id' => $library->id,
-            'name' => $library->name,
-            'type' => $library->type,
-            'location' => $library->location,
-            'description' => $library->description,
-            'contact_email' => $library->contact_email,
-            'contact_phone' => $library->contact_phone,
-            'owner' => $library->owner ? $library->owner->name : null,
-            'books_count' => $library->books_count,
-        ]);
-    }
-
-    public function apiBooks(Library $library): JsonResponse
-    {
-        if ($library->isPrivate()) {
-            abort(404);
-        }
-
-        $books = $library->books()
-            ->where('visibility', true)
-            ->select('id', 'title', 'author', 'isbn', 'publisher', 'status', 'cover_image', 'shelf_location')
-            ->get();
-
-        return response()->json(['data' => $books]);
     }
 
     /**

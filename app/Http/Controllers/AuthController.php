@@ -172,6 +172,7 @@ class AuthController extends Controller
                     : back()->withErrors(['email' => __($status)]);
     }
 
+    // API Methods
     public function apiRegister(Request $request)
     {
         $validated = $request->validate([
@@ -189,49 +190,58 @@ class AuthController extends Controller
             'requested_owner' => false,
         ]);
 
-        $token = $user->createToken('api')->plainTextToken;
+        event(new Registered($user));
+
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'token' => $token,
+            'message' => 'Registration successful. Please verify your email.',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'user' => $user,
         ], 201);
     }
 
     public function apiLogin(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if (! Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials do not match our records.'],
-            ]);
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'message' => 'Invalid login details'
+            ], 401);
         }
 
-        $user = $request->user();
+        $user = User::where('email', $request['email'])->firstOrFail();
+
+        if (!$user->hasVerifiedEmail()) {
+             return response()->json([
+                'message' => 'Email not verified.'
+            ], 403);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        
+        // Update last login
         $user->last_login_at = now();
         $user->save();
 
-        $token = $user->createToken('api')->plainTextToken;
-
         return response()->json([
-            'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'user' => $user,
         ]);
     }
 
     public function apiLogout(Request $request)
     {
-        $user = $request->user();
-
-        if ($user && $request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
-        }
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'success' => true,
+            'message' => 'Logged out successfully'
         ]);
     }
 }
