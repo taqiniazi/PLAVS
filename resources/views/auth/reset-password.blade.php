@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'PLAVS - Reset Password')
+@section('title', 'PLAVS  - Reset Password')
 
 @push('styles')
 <link href="{{ asset('css/login.css') }}" rel="stylesheet">

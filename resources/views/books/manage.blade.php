@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'PLAVS - Manage Books')
+@section('title', 'PLAVS  - Manage Books')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap.min.css') }}">

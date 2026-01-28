@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'PLAVS - Events')
+@section('title', 'PLAVS  - Events')
 
 @push('styles')
 @php

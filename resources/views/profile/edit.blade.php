@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'PLAVS - Update Profile')
+@section('title', 'PLAVS  - Update Profile')
 
 @section('content')
 @if(session('success'))
