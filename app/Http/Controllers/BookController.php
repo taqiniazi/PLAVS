@@ -55,12 +55,22 @@ class BookController extends Controller
         return BookResource::collection($books);
     }
 
-    public function details(Book $book)
+    public function apiBorrowedBooks(Request $request)
+    {
+        $user = $request->user();
+        $books = $user->booksThroughAssignment()
+                      ->wherePivot('is_returned', false)
+                      ->with(['shelf.room.library'])
+                      ->get();
+        return BookResource::collection($books);
+    }
+
+    public function apiShow(Book $book)
     {
         return new BookResource($book->load(['shelf.room.library', 'shelf']));
     }
 
-    public function store(Request $request)
+    public function apiStore(Request $request)
     {
         // Reuse existing validation logic or create new
         $validated = $request->validate([
@@ -80,7 +90,7 @@ class BookController extends Controller
         return new BookResource($book);
     }
 
-    public function update(Request $request, Book $book)
+    public function apiUpdate(Request $request, Book $book)
     {
         $validated = $request->validate([
             'title' => 'string|max:255',
@@ -93,7 +103,7 @@ class BookController extends Controller
         return new BookResource($book);
     }
 
-    public function destroy(Book $book)
+    public function apiDestroy(Book $book)
     {
         $book->delete();
         return response()->json(['message' => 'Book deleted successfully']);
@@ -909,19 +919,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function apiIndex(): JsonResponse
-    {
-        $books = Book::where('visibility', true)
-            ->select('id', 'title', 'author', 'isbn', 'publisher', 'status', 'cover_image', 'shelf_location')
-            ->get();
 
-        return response()->json(['data' => $books]);
-    }
-
-    public function details(Book $book)
-    {
-        return $this->show($book);
-    }
 
     private function logActivity($type, $description, $subject = null)
     {

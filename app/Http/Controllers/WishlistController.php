@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Wishlist;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
@@ -19,6 +20,33 @@ class WishlistController extends Controller
             ->get();
 
         return view('wishlist.index', compact('wishlistItems'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+        ]);
+
+        $user = Auth::user();
+        $bookId = $request->book_id;
+
+        $wishlist = Wishlist::firstOrCreate([
+            'user_id' => $user->id,
+            'book_id' => $bookId,
+        ]);
+
+        return response()->json(['message' => 'Added to wishlist', 'data' => $wishlist]);
+    }
+
+    public function destroy(Book $book)
+    {
+        $user = Auth::user();
+        Wishlist::where('user_id', $user->id)
+                ->where('book_id', $book->id)
+                ->delete();
+
+        return response()->json(['message' => 'Removed from wishlist']);
     }
 
     /**
