@@ -9,12 +9,7 @@
     $isStudent = $user && !$user->canViewAllBooks();
     $totalBooks = isset($books) && is_object($books) && method_exists($books, 'total') ? $books->total() : (is_countable($books) ? count($books) : 0);
 @endphp
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-@endif
+
 
 <div class="row mt-3">
     <div class="col-lg-12">
